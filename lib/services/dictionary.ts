@@ -1,0 +1,628 @@
+/**
+ * Dictionary Service
+ * 
+ * Provides word metadata, example sentences, and linguistic information
+ * for Spanish vocabulary using Wiktionary API and fallback sources.
+ * 
+ * @module lib/services/dictionary
+ */
+
+import type { Gender, PartOfSpeech } from '@/lib/types/vocabulary';
+
+export interface DictionaryResult {
+  word: string;
+  gender?: Gender;
+  partOfSpeech?: PartOfSpeech;
+  examples: ExampleSentence[];
+  definition?: string;
+  synonyms?: string[];
+  source: 'wiktionary' | 'fallback' | 'cache';
+}
+
+export interface ExampleSentence {
+  spanish: string;
+  english: string;
+  source?: string;
+  context?: 'formal' | 'informal' | 'neutral';
+}
+
+export interface DictionaryError {
+  error: string;
+  message: string;
+  fallbackAvailable: boolean;
+}
+
+/**
+ * Fetches dictionary data for a Spanish word from Wiktionary
+ * 
+ * @param word - Spanish word to look up
+ * @returns Dictionary data including gender, part of speech, and examples
+ */
+export async function lookupWord(word: string): Promise<DictionaryResult> {
+  if (!word || word.trim().length === 0) {
+    throw {
+      error: 'INVALID_INPUT',
+      message: 'Word cannot be empty',
+      fallbackAvailable: false,
+    } as DictionaryError;
+  }
+
+  try {
+    // Use Wiktionary API to fetch word data
+    const response = await fetch(
+      `https://es.wiktionary.org/api/rest_v1/page/summary/${encodeURIComponent(word)}`,
+      {
+        headers: {
+          'Accept': 'application/json',
+        },
+      }
+    );
+
+    if (!response.ok) {
+      if (response.status === 404) {
+        // Word not found, use intelligent heuristics
+        const partOfSpeech = inferPartOfSpeechFromWord(word);
+        // Don't assign gender to adjectives (they change form: rojo/roja)
+        const gender = partOfSpeech === 'adjective' ? undefined : inferGenderFromWord(word);
+        
+        return {
+          word,
+          gender,
+          partOfSpeech,
+          examples: [],
+          source: 'fallback',
+        };
+      }
+      throw new Error(`Dictionary API returned ${response.status}`);
+    }
+
+    const data = await response.json();
+
+    // Extract part of speech and gender from extract text
+    const partOfSpeech = extractPartOfSpeech(data.extract || '');
+    // Don't assign gender to adjectives (they change form: rojo/roja)
+    const gender = partOfSpeech === 'adjective' ? undefined : extractGender(data.extract || '', word, partOfSpeech);
+
+    return {
+      word,
+      partOfSpeech,
+      gender,
+      examples: [],
+      definition: data.extract,
+      source: 'wiktionary',
+    };
+  } catch (error) {
+    console.error('Dictionary lookup error:', error);
+    
+    // Return data with intelligent heuristics
+    const partOfSpeech = inferPartOfSpeechFromWord(word);
+    // Don't assign gender to adjectives (they change form: rojo/roja)
+    const gender = partOfSpeech === 'adjective' ? undefined : inferGenderFromWord(word);
+    
+    return {
+      word,
+      gender,
+      partOfSpeech,
+      examples: [],
+      source: 'fallback',
+    };
+  }
+}
+
+/**
+ * Scores an example sentence based on quality metrics
+ * Higher score = better quality (more context, natural length)
+ */
+function scoreExampleQuality(spanish: string, english: string): number {
+  let score = 0;
+  
+  // Word count scoring (prefer sentences with 5-15 words)
+  const spanishWords = spanish.trim().split(/\s+/).length;
+  const englishWords = english.trim().split(/\s+/).length;
+  
+  if (spanishWords >= 5 && spanishWords <= 15) {
+    score += 10;
+  } else if (spanishWords >= 3 && spanishWords <= 20) {
+    score += 5;
+  }
+  
+  // Prefer complete sentences with punctuation
+  if (spanish.match(/[.!?]$/)) {
+    score += 5;
+  }
+  
+  // Bonus for sentences with commas (more complex/contextual)
+  if (spanish.includes(',')) {
+    score += 3;
+  }
+  
+  // Penalize very short sentences (< 3 words)
+  if (spanishWords < 3) {
+    score -= 10;
+  }
+  
+  // Penalize very long sentences (> 25 words - too complex)
+  if (spanishWords > 25) {
+    score -= 5;
+  }
+  
+  // Bonus for balanced translation length (good sign of quality)
+  const ratio = Math.min(spanishWords, englishWords) / Math.max(spanishWords, englishWords);
+  if (ratio > 0.7) {
+    score += 3;
+  }
+  
+  return score;
+}
+
+/**
+ * Checks if a sentence contains the exact word (respecting word boundaries)
+ * This prevents matching "caro" when searching for "cara"
+ */
+function containsExactWord(sentence: string, word: string): boolean {
+  const normalizedSentence = sentence.toLowerCase();
+  const normalizedWord = word.toLowerCase();
+  
+  // Create regex pattern with word boundaries
+  // \b matches word boundaries, ensuring we match complete words only
+  const pattern = new RegExp(`\\b${normalizedWord}\\b`, 'i');
+  
+  return pattern.test(normalizedSentence);
+}
+
+/**
+ * Fetches example sentences for a Spanish word
+ * 
+ * Uses multiple sources to find natural example sentences with translations
+ * Prioritizes longer, more contextual examples
+ * Ensures examples contain the EXACT word being searched
+ * Now returns more examples (up to 5) for enhanced learning
+ * 
+ * @param word - Spanish word to find examples for
+ * @param limit - Maximum number of examples to return (default: 5)
+ * @returns Array of example sentences with translations
+ */
+export async function getExamples(word: string, limit: number = 5): Promise<ExampleSentence[]> {
+  try {
+    // Fetch more results from Tatoeba to have better selection
+    const response = await fetch(
+      `https://tatoeba.org/en/api_v0/search?from=spa&to=eng&query=${encodeURIComponent(word)}&orphans=no&unapproved=no&limit=30`,
+      {
+        headers: {
+          'Accept': 'application/json',
+        },
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(`Examples API returned ${response.status}`);
+    }
+
+    const data = await response.json();
+    
+    if (!data.results || data.results.length === 0) {
+      return generateFallbackExample(word);
+    }
+
+    // Process examples with quality scoring and context detection
+    const examples: Array<ExampleSentence & { score: number }> = data.results
+      .map((result: any) => ({
+        spanish: result.text,
+        english: result.translations?.[0]?.[0]?.text || '',
+        source: 'tatoeba',
+        context: detectSentenceContext(result.text),
+        score: 0,
+      }))
+      .filter((ex: any) => {
+        // Only include if:
+        // 1. Translation exists
+        // 2. Spanish sentence contains the EXACT word (with word boundaries)
+        return ex.english && containsExactWord(ex.spanish, word);
+      })
+      .map((ex: any) => ({
+        ...ex,
+        score: scoreExampleQuality(ex.spanish, ex.english),
+      }));
+
+    // Sort by quality score (highest first)
+    examples.sort((a, b) => b.score - a.score);
+
+    // Take top examples up to the limit
+    const topExamples = examples.slice(0, limit).map(({ spanish, english, source, context }) => ({
+      spanish,
+      english,
+      source,
+      context,
+    }));
+
+    return topExamples.length > 0 ? topExamples : generateFallbackExample(word);
+  } catch (error) {
+    console.error('Examples fetch error:', error);
+    return generateFallbackExample(word);
+  }
+}
+
+/**
+ * Detects the formality context of a Spanish sentence
+ * Identifies formal/informal usage patterns
+ * 
+ * @param sentence - Spanish sentence
+ * @returns Context classification
+ */
+function detectSentenceContext(sentence: string): 'formal' | 'informal' | 'neutral' {
+  const lower = sentence.toLowerCase();
+  
+  // Formal indicators
+  const formalIndicators = [
+    'usted', 'ustedes', 'señor', 'señora', 'estimado',
+    'distinguido', 'atentamente', 'cordialmente'
+  ];
+  
+  // Informal indicators
+  const informalIndicators = [
+    'tú', 'vos', 'che', 'güey', 'tío', 'colega',
+    'mano', 'pana', 'compa'
+  ];
+  
+  const hasFormal = formalIndicators.some(indicator => lower.includes(indicator));
+  const hasInformal = informalIndicators.some(indicator => lower.includes(indicator));
+  
+  if (hasFormal && !hasInformal) return 'formal';
+  if (hasInformal && !hasFormal) return 'informal';
+  return 'neutral';
+}
+
+/**
+ * Generates contextual example sentences when API lookup fails
+ * Creates more natural, longer examples based on word type
+ * 
+ * @param word - Spanish word
+ * @returns Fallback example sentence with context
+ */
+function generateFallbackExample(word: string): ExampleSentence[] {
+  // Check if it's a verb (infinitive)
+  if (word.endsWith('ar') || word.endsWith('er') || word.endsWith('ir')) {
+    return [
+      {
+        spanish: `Me gustaría aprender a ${word} correctamente en español.`,
+        english: `I would like to learn to ${word} correctly in Spanish.`,
+        source: 'generated',
+      },
+    ];
+  }
+  
+  // For nouns and adjectives, create a more contextual sentence
+  return [
+    {
+      spanish: `La palabra "${word}" es muy útil cuando estudio español.`,
+      english: `The word "${word}" is very useful when I study Spanish.`,
+      source: 'generated',
+    },
+  ];
+}
+
+/**
+ * Extracts part of speech from Wiktionary extract text
+ * Prioritizes more specific matches and checks for Spanish grammatical terms
+ * 
+ * @param text - Extract text from Wiktionary
+ * @returns Detected part of speech
+ */
+function extractPartOfSpeech(text: string): PartOfSpeech | undefined {
+  const lower = text.toLowerCase();
+  
+  // Check for adjective first (often appears before noun in definitions)
+  // Spanish: adjetivo, adj.
+  // English: adjective, adj.
+  if (lower.match(/\badjetivo\b/) || lower.match(/\badjective\b/) || 
+      lower.match(/\badj\.\b/)) {
+    return 'adjective';
+  }
+  
+  // Verbs
+  // Spanish: verbo, v.
+  // English: verb, v.
+  if (lower.match(/\bverbo\b/) || lower.match(/\bverb\b/) || 
+      lower.match(/\bv\.\b/)) {
+    return 'verb';
+  }
+  
+  // Nouns (check after adjective to avoid false positives)
+  // Spanish: sustantivo, s., m., f.
+  // English: noun, n.
+  if (lower.match(/\bsustantivo\b/) || lower.match(/\bnoun\b/) || 
+      lower.match(/\bs\.\b/) || lower.match(/\bn\.\b/)) {
+    return 'noun';
+  }
+  
+  // Adverbs
+  // Spanish: adverbio, adv.
+  // English: adverb, adv.
+  if (lower.match(/\badverbio\b/) || lower.match(/\badverb\b/) || 
+      lower.match(/\badv\.\b/)) {
+    return 'adverb';
+  }
+  
+  // Prepositions
+  // Spanish: preposición, prep.
+  // English: preposition, prep.
+  if (lower.match(/\bpreposición\b/) || lower.match(/\bpreposition\b/) || 
+      lower.match(/\bprep\.\b/)) {
+    return 'preposition';
+  }
+  
+  // Pronouns
+  // Spanish: pronombre, pron.
+  // English: pronoun, pron.
+  if (lower.match(/\bpronombre\b/) || lower.match(/\bpronoun\b/) || 
+      lower.match(/\bpron\.\b/)) {
+    return 'pronoun';
+  }
+  
+  // Conjunctions
+  // Spanish: conjunción, conj.
+  // English: conjunction, conj.
+  if (lower.match(/\bconjunción\b/) || lower.match(/\bconjunction\b/) || 
+      lower.match(/\bconj\.\b/)) {
+    return 'conjunction';
+  }
+  
+  // Interjections
+  // Spanish: interjección, interj.
+  // English: interjection, interj.
+  if (lower.match(/\binterjección\b/) || lower.match(/\binterjection\b/) || 
+      lower.match(/\binterj\.\b/)) {
+    return 'interjection';
+  }
+  
+  return undefined;
+}
+
+/**
+ * Extracts gender from Wiktionary extract text or word ending
+ * 
+ * @param text - Extract text from Wiktionary
+ * @param word - The Spanish word
+ * @param partOfSpeech - Optional part of speech (gender not applicable to adjectives)
+ * @returns Detected gender (undefined for adjectives)
+ */
+function extractGender(text: string, word: string, partOfSpeech?: PartOfSpeech): Gender | undefined {
+  // Adjectives don't have a fixed gender (e.g., rojo/roja)
+  if (partOfSpeech === 'adjective') {
+    return undefined;
+  }
+  
+  const lower = text.toLowerCase();
+  
+  // Check for explicit gender markers in text
+  if (lower.includes('masculino') || lower.includes('masculine') || lower.includes('m.')) {
+    return 'masculine';
+  }
+  if (lower.includes('femenino') || lower.includes('feminine') || lower.includes('f.')) {
+    return 'feminine';
+  }
+  
+  // Infer from word ending (common Spanish patterns) - only for nouns
+  if (word.endsWith('o')) return 'masculine';
+  if (word.endsWith('a')) return 'feminine';
+  if (word.endsWith('e') || word.endsWith('ción') || word.endsWith('dad')) {
+    // Many words ending in -e are masculine, but -ción and -dad are feminine
+    if (word.endsWith('ción') || word.endsWith('dad')) {
+      return 'feminine';
+    }
+  }
+  
+  return undefined;
+}
+
+/**
+ * Performs complete dictionary lookup including examples
+ * 
+ * @param word - Spanish word to look up
+ * @returns Complete dictionary result with examples
+ */
+export async function getCompleteWordData(
+  word: string
+): Promise<DictionaryResult> {
+  // Fetch word data and examples in parallel
+  const [wordData, examples] = await Promise.all([
+    lookupWord(word),
+    getExamples(word),
+  ]);
+
+  return {
+    ...wordData,
+    examples,
+  };
+}
+
+/**
+ * Infers gender from Spanish word patterns
+ * Uses common Spanish linguistic rules
+ * Note: Gender is only applicable to nouns, not adjectives
+ * 
+ * @param word - Spanish word
+ * @returns Inferred gender or undefined
+ */
+function inferGenderFromWord(word: string): Gender | undefined {
+  const lower = word.toLowerCase();
+  
+  // If it's a known adjective, don't assign gender
+  if (COMMON_ADJECTIVES.has(lower)) {
+    return undefined;
+  }
+  
+  // Common masculine endings
+  if (lower.endsWith('o') && !lower.endsWith('mano')) {
+    return 'masculine';
+  }
+  
+  // Common feminine endings
+  if (lower.endsWith('a') && !lower.endsWith('ma') && !lower.endsWith('ta')) {
+    return 'feminine';
+  }
+  
+  // Words ending in -ción, -sión, -dad, -tad, -tud are feminine
+  if (lower.endsWith('ción') || lower.endsWith('sión') || 
+      lower.endsWith('dad') || lower.endsWith('tad') || lower.endsWith('tud')) {
+    return 'feminine';
+  }
+  
+  // Words ending in -ma are often masculine (el problema, el sistema)
+  if (lower.endsWith('ma')) {
+    return 'masculine';
+  }
+  
+  // Words ending in -e could be either, don't guess
+  return undefined;
+}
+
+/**
+ * Common Spanish adjectives that don't follow predictable patterns
+ * These are frequently used adjectives that need explicit identification
+ */
+const COMMON_ADJECTIVES = new Set([
+  // Size and quantity
+  'grande', 'pequeño', 'pequeña', 'largo', 'larga', 'corto', 'corta',
+  'alto', 'alta', 'bajo', 'baja', 'ancho', 'ancha', 'estrecho', 'estrecha',
+  'gordo', 'gorda', 'delgado', 'delgada', 'grueso', 'gruesa', 'fino', 'fina',
+  'enorme', 'diminuto', 'diminuta', 'inmenso', 'inmensa', 'minúsculo', 'minúscula',
+  'mucho', 'mucha', 'poco', 'poca', 'varios', 'varias', 'bastante',
+  
+  // Colors
+  'rojo', 'roja', 'azul', 'verde', 'amarillo', 'amarilla', 'negro', 'negra',
+  'blanco', 'blanca', 'gris', 'marrón', 'rosa', 'naranja', 'morado', 'morada',
+  'violeta', 'celeste', 'dorado', 'dorada', 'plateado', 'plateada',
+  
+  // Quality and characteristics
+  'bueno', 'buena', 'malo', 'mala', 'mejor', 'peor', 'nuevo', 'nueva',
+  'viejo', 'vieja', 'joven', 'antiguo', 'antigua', 'moderno', 'moderna',
+  'fresco', 'fresca', 'seco', 'seca', 'húmedo', 'húmeda', 'mojado', 'mojada',
+  'limpio', 'limpia', 'sucio', 'sucia', 'claro', 'clara', 'oscuro', 'oscura',
+  'duro', 'dura', 'blando', 'blanda', 'suave', 'áspero', 'áspera',
+  'fuerte', 'débil', 'ligero', 'ligera', 'pesado', 'pesada',
+  
+  // Temperature and sensation
+  'caliente', 'frío', 'fría', 'tibio', 'tibia', 'helado', 'helada',
+  
+  // Speed and time
+  'rápido', 'rápida', 'lento', 'lenta', 'veloz', 'temprano', 'tardío', 'tardía',
+  
+  // Emotional and psychological
+  'feliz', 'triste', 'alegre', 'contento', 'contenta', 'enfadado', 'enfadada',
+  'triste', 'nervioso', 'nerviosa', 'tranquilo', 'tranquila', 'preocupado', 'preocupada',
+  'cansado', 'cansada', 'aburrido', 'aburrida', 'interesante', 'divertido', 'divertida',
+  
+  // Difficulty and complexity
+  'fácil', 'difícil', 'simple', 'complejo', 'compleja', 'complicado', 'complicada',
+  
+  // Social and relationship
+  'amable', 'simpático', 'simpática', 'antipático', 'antipática', 'agradable',
+  'educado', 'educada', 'maleducado', 'maleducada', 'cortés', 'grosero', 'grosera',
+  
+  // Comparative and superlative
+  'mayor', 'menor', 'superior', 'inferior', 'máximo', 'máxima', 'mínimo', 'mínima',
+  
+  // Other common adjectives
+  'bonito', 'bonita', 'feo', 'fea', 'hermoso', 'hermosa', 'bello', 'bella',
+  'rico', 'rica', 'pobre', 'caro', 'cara', 'barato', 'barata',
+  'lleno', 'llena', 'vacío', 'vacía', 'completo', 'completa',
+  'abierto', 'abierta', 'cerrado', 'cerrada', 'público', 'pública', 'privado', 'privada',
+  'propio', 'propia', 'ajeno', 'ajena', 'mismo', 'misma', 'otro', 'otra',
+  'solo', 'sola', 'único', 'única', 'doble', 'triple', 'múltiple',
+  'seguro', 'segura', 'peligroso', 'peligrosa', 'cierto', 'cierta', 'falso', 'falsa',
+  'verdadero', 'verdadera', 'real', 'posible', 'imposible', 'probable',
+  'necesario', 'necesaria', 'importante', 'principal', 'esencial',
+  'normal', 'especial', 'común', 'raro', 'rara', 'extraño', 'extraña',
+  'perfecto', 'perfecta', 'imperfecto', 'imperfecta', 'exacto', 'exacta',
+  'correcto', 'correcta', 'incorrecto', 'incorrecta', 'preciso', 'precisa',
+]);
+
+/**
+ * Common Spanish nouns that might be confused with adjectives
+ * These should be explicitly identified as nouns
+ */
+const COMMON_NOUNS = new Set([
+  // Time
+  'día', 'noche', 'tarde', 'mañana', 'hora', 'momento', 'tiempo', 'año', 'mes', 'semana',
+  
+  // Places
+  'casa', 'calle', 'ciudad', 'país', 'mundo', 'lugar', 'sitio', 'zona',
+  
+  // People
+  'persona', 'hombre', 'mujer', 'niño', 'niña', 'amigo', 'amiga', 'familia',
+  
+  // Body parts
+  'mano', 'cara', 'cabeza', 'ojo', 'boca', 'nariz', 'oreja', 'brazo', 'pierna',
+  
+  // Things
+  'cosa', 'objeto', 'elemento', 'parte', 'punto', 'lado', 'forma', 'manera',
+]);
+
+/**
+ * Infers part of speech from Spanish word patterns
+ * Uses common Spanish linguistic rules and explicit word lists
+ * 
+ * @param word - Spanish word
+ * @returns Inferred part of speech or undefined
+ */
+function inferPartOfSpeechFromWord(word: string): PartOfSpeech | undefined {
+  const lower = word.toLowerCase();
+  
+  // First, check explicit word lists (most reliable)
+  if (COMMON_ADJECTIVES.has(lower)) {
+    return 'adjective';
+  }
+  
+  if (COMMON_NOUNS.has(lower)) {
+    return 'noun';
+  }
+  
+  // Verb infinitives end in -ar, -er, -ir
+  if (lower.endsWith('ar') || lower.endsWith('er') || lower.endsWith('ir')) {
+    return 'verb';
+  }
+  
+  // Adverbs typically end in -mente
+  if (lower.endsWith('mente')) {
+    return 'adverb';
+  }
+  
+  // Common adjective endings
+  if (lower.endsWith('oso') || lower.endsWith('osa') || 
+      lower.endsWith('ivo') || lower.endsWith('iva') ||
+      lower.endsWith('able') || lower.endsWith('ible') ||
+      lower.endsWith('ante') || lower.endsWith('iente') ||
+      lower.endsWith('ado') || lower.endsWith('ada') ||
+      lower.endsWith('ido') || lower.endsWith('ida')) {
+    return 'adjective';
+  }
+  
+  // Words ending in -ción, -sión, -dad, -tad, -tud are almost always nouns
+  if (lower.endsWith('ción') || lower.endsWith('sión') || 
+      lower.endsWith('dad') || lower.endsWith('tad') || lower.endsWith('tud') ||
+      lower.endsWith('miento') || lower.endsWith('anza') || lower.endsWith('encia') ||
+      lower.endsWith('ancia')) {
+    return 'noun';
+  }
+  
+  // Words ending in -ista can be nouns or adjectives, but default to noun
+  if (lower.endsWith('ista')) {
+    return 'noun';
+  }
+  
+  // Most words ending in -o or -a that haven't been identified as adjectives are nouns
+  // (Animals, objects, concepts: gato, perro, casa, mesa, libro, etc.)
+  if (lower.endsWith('o') || lower.endsWith('a')) {
+    return 'noun';
+  }
+  
+  // Words ending in -e could be various parts of speech
+  if (lower.endsWith('e')) {
+    return 'noun'; // Default assumption for -e words (leche, coche, calle, etc.)
+  }
+  
+  // Default to noun for unmatched patterns (most common word class)
+  return 'noun';
+}
+

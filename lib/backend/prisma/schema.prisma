@@ -1,0 +1,359 @@
+// Prisma schema for Palabra backend database
+// This schema supports multi-user authentication and cloud synchronization
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================================================
+// AUTHENTICATION MODELS (NextAuth.js compatible)
+// ============================================================================
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  emailVerified DateTime?
+  image         String?
+  password      String?   // For credentials login (hashed)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Relations
+  accounts      Account[]
+  sessions      Session[]
+  vocabulary    VocabularyItem[]
+  reviews       Review[]
+  studySessions StudySession[]
+  dailyStats    DailyStats[]
+  settings      UserSettings?
+  tags          Tag[]
+  syncLog       SyncLog[]
+
+  @@index([email])
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+// ============================================================================
+// VOCABULARY & LEARNING DATA
+// ============================================================================
+
+model VocabularyItem {
+  id                String   @id @default(cuid())
+  userId            String
+  
+  // Core vocabulary data
+  spanish           String
+  english           String
+  partOfSpeech      String?
+  gender            String?
+  level             String   @default("beginner")
+  
+  // Additional information
+  examples          Json?    // Array of example objects
+  notes             String?  @db.Text
+  images            Json?    // Array of image URLs
+  audio             Json?    // Audio file references
+  synonyms          Json?    // Array of synonyms
+  antonyms          Json?    // Array of antonyms
+  relatedWords      Json?    // Array of related words
+  conjugations      Json?    // Verb conjugation table
+  
+  // Learning progress
+  status            String   @default("new") // new, learning, mastered
+  difficulty        Float    @default(0)
+  easeFactor        Float    @default(2.5)
+  interval          Int      @default(0)
+  repetitions       Int      @default(0)
+  lastReviewDate    DateTime?
+  nextReviewDate    DateTime?
+  
+  // Metadata
+  source            String?  // Where the word came from
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  
+  // Sync metadata
+  version           Int      @default(1)
+  lastSyncedAt      DateTime @default(now())
+  isDeleted         Boolean  @default(false)
+  
+  // Relations
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  reviews           Review[]
+  tags              Tag[]    @relation("VocabularyTags")
+  
+  @@index([userId])
+  @@index([userId, status])
+  @@index([userId, nextReviewDate])
+  @@index([userId, createdAt])
+  @@index([lastSyncedAt])
+}
+
+model Review {
+  id              String         @id @default(cuid())
+  userId          String
+  vocabularyId    String
+  sessionId       String?
+  
+  // Review details
+  reviewType      String         // recognition, recall, listening
+  direction       String         @default("spanish-english")
+  quality         Int            // 0-5 (Forgot to Easy)
+  timeSpent       Int            // milliseconds
+  correct         Boolean
+  
+  // Context
+  reviewDate      DateTime       @default(now())
+  difficulty      Float          // Difficulty at time of review
+  interval        Int            // Interval at time of review
+  
+  // Sync metadata
+  version         Int            @default(1)
+  lastSyncedAt    DateTime       @default(now())
+  isDeleted       Boolean        @default(false)
+  
+  // Relations
+  user            User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  vocabulary      VocabularyItem @relation(fields: [vocabularyId], references: [id], onDelete: Cascade)
+  session         StudySession?  @relation(fields: [sessionId], references: [id], onDelete: SetNull)
+  
+  @@index([userId])
+  @@index([vocabularyId])
+  @@index([sessionId])
+  @@index([reviewDate])
+  @@index([lastSyncedAt])
+}
+
+model StudySession {
+  id              String   @id @default(cuid())
+  userId          String
+  
+  // Session details
+  sessionType     String   // review, practice, custom
+  cardsStudied    Int      @default(0)
+  accuracy        Float    @default(0)
+  totalTime       Int      @default(0) // milliseconds
+  
+  // Configuration
+  config          Json?    // Session configuration
+  
+  // Timestamps
+  startedAt       DateTime @default(now())
+  completedAt     DateTime?
+  
+  // Sync metadata
+  version         Int      @default(1)
+  lastSyncedAt    DateTime @default(now())
+  isDeleted       Boolean  @default(false)
+  
+  // Relations
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  reviews         Review[]
+  
+  @@index([userId])
+  @@index([startedAt])
+  @@index([lastSyncedAt])
+}
+
+model DailyStats {
+  id                String   @id @default(cuid())
+  userId            String
+  date              DateTime @db.Date
+  
+  // Activity metrics
+  wordsAdded        Int      @default(0)
+  cardsReviewed     Int      @default(0)
+  correctReviews    Int      @default(0)
+  studyTime         Int      @default(0) // milliseconds
+  sessionsCompleted Int      @default(0)
+  
+  // Progress metrics
+  newWordsLearned   Int      @default(0)
+  wordsMastered     Int      @default(0)
+  
+  // Streak tracking
+  isActive          Boolean  @default(false)
+  streakDay         Int      @default(0)
+  
+  // Sync metadata
+  version           Int      @default(1)
+  lastSyncedAt      DateTime @default(now())
+  isDeleted         Boolean  @default(false)
+  
+  // Relations
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@unique([userId, date])
+  @@index([userId])
+  @@index([date])
+  @@index([lastSyncedAt])
+}
+
+model Tag {
+  id            String           @id @default(cuid())
+  userId        String
+  name          String
+  color         String?
+  description   String?
+  
+  // Metadata
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+  
+  // Sync metadata
+  version       Int              @default(1)
+  lastSyncedAt  DateTime         @default(now())
+  isDeleted     Boolean          @default(false)
+  
+  // Relations
+  user          User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  vocabulary    VocabularyItem[] @relation("VocabularyTags")
+  
+  @@unique([userId, name])
+  @@index([userId])
+  @@index([lastSyncedAt])
+}
+
+model UserSettings {
+  id                        String   @id @default(cuid())
+  userId                    String   @unique
+  
+  // Review settings
+  dailyGoal                 Int      @default(20)
+  reviewMode                String   @default("mixed")
+  autoPlayAudio             Boolean  @default(true)
+  
+  // Notification settings
+  notificationsEnabled      Boolean  @default(false)
+  notificationTime          String?  // HH:MM format
+  quietHoursStart           String?
+  quietHoursEnd             String?
+  
+  // Display settings
+  theme                     String   @default("system")
+  language                  String   @default("en")
+  fontSize                  String   @default("medium")
+  
+  // Advanced settings
+  spacedRepetitionAlgorithm String   @default("sm2")
+  showGenderColors          Boolean  @default(true)
+  showPartOfSpeech          Boolean  @default(true)
+  
+  // Sync settings
+  autoSync                  Boolean  @default(true)
+  syncFrequency             Int      @default(5) // minutes
+  
+  // Metadata
+  createdAt                 DateTime @default(now())
+  updatedAt                 DateTime @updatedAt
+  
+  // Relations
+  user                      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([userId])
+}
+
+// ============================================================================
+// SYNC & SYSTEM MODELS
+// ============================================================================
+
+model SyncLog {
+  id              String   @id @default(cuid())
+  userId          String
+  
+  // Sync details
+  syncType        String   // full, incremental
+  direction       String   // upload, download, bidirectional
+  status          String   // pending, in_progress, completed, failed
+  
+  // Statistics
+  itemsSynced     Int      @default(0)
+  conflictsFound  Int      @default(0)
+  conflictsResolved Int    @default(0)
+  errors          Json?
+  
+  // Timestamps
+  startedAt       DateTime @default(now())
+  completedAt     DateTime?
+  
+  // Device info
+  deviceId        String?
+  deviceName      String?
+  appVersion      String?
+  
+  // Relations
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([userId])
+  @@index([startedAt])
+  @@index([status])
+}
+
+model DeviceInfo {
+  id            String   @id @default(cuid())
+  userId        String
+  
+  // Device details
+  deviceId      String   @unique
+  deviceName    String
+  deviceType    String   // mobile, tablet, desktop
+  platform      String   // iOS, Android, Windows, macOS, Linux
+  browser       String?
+  
+  // Last activity
+  lastActiveAt  DateTime @default(now())
+  lastSyncAt    DateTime?
+  appVersion    String?
+  
+  // Metadata
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  @@index([userId])
+  @@index([deviceId])
+  @@index([lastActiveAt])
+}
+
