@@ -179,125 +179,89 @@ export function ReviewSession({ words, onComplete, onCancel }: ReviewSessionProp
   }
 
   return (
-    <div className="flex flex-col h-screen max-h-screen overflow-hidden">
+    <div className="flex flex-col h-screen max-h-screen overflow-hidden bg-bg-secondary">
       {/* Header */}
-      <div className="flex items-center justify-between p-3 md:p-4 border-b border-separator flex-shrink-0">
+      <div className="flex items-center justify-between p-4 md:p-5 border-b border-separator flex-shrink-0 bg-bg-primary">
         <button
           onClick={handleCancel}
-          className="p-2 rounded-full hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
+          className="p-2.5 rounded-full hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
           aria-label="Exit review session"
         >
           <X className="w-6 h-6 text-text-secondary" />
         </button>
 
-        <div className="flex-1 mx-6">
+        <div className="flex-1 mx-4 sm:mx-8 max-w-md">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-medium text-text-secondary">
+            <span className="text-sm font-semibold text-text">
               {results.length} / {shuffledWords.length}
             </span>
-            <span className="text-sm font-medium text-text-secondary">
+            <span className="text-sm font-semibold text-accent">
               {Math.round(progress)}%
             </span>
           </div>
           {/* Progress Bar */}
-          <div className="h-1 bg-black/10 dark:bg-white/10 rounded-full overflow-hidden">
+          <div className="h-2 bg-black/10 dark:bg-white/10 rounded-full overflow-hidden">
             <div
-              className="h-full bg-accent transition-all duration-300 ease-out rounded-full"
+              className="h-full bg-gradient-to-r from-accent to-accent/80 transition-all duration-300 ease-out rounded-full"
               style={{ width: `${progress}%` }}
             />
           </div>
         </div>
 
-        <div className="w-10" /> {/* Spacer for symmetry */}
-      </div>
-
-      {/* Flashcard Area */}
-      <div className="flex-1 flex items-center justify-center p-4 md:p-6 overflow-hidden">
-        <Flashcard
-          word={currentWord}
-          isFlipped={isFlipped}
-          onFlip={handleFlip}
-          cardNumber={`Card ${currentIndex + 1} of ${shuffledWords.length}`}
-        />
-      </div>
-
-      {/* Navigation and Rating Controls */}
-      <div className="p-4 md:p-6 space-y-4 border-t border-separator flex-shrink-0 pb-safe">
-        {/* Self-Assessment Buttons (space always reserved to prevent layout shift) */}
-        <div className={`space-y-2 transition-opacity duration-200 ${!isFlipped ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
-          <p className="text-xs text-center text-text-secondary font-medium">
-            How well did you know this word?
-          </p>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-            <button
-              onClick={() => handleRating("forgot")}
-              disabled={!isFlipped}
-              className="py-3 px-3 rounded-xl font-medium transition-all hover:scale-105 active:scale-95 bg-difficulty-forgot text-white disabled:pointer-events-none flex flex-col items-center gap-1"
-            >
-              <div className="text-sm font-bold">1</div>
-              <div className="text-base">😞</div>
-              <div className="text-xs">Forgot</div>
-            </button>
-            <button
-              onClick={() => handleRating("hard")}
-              disabled={!isFlipped}
-              className="py-3 px-3 rounded-xl font-medium transition-all hover:scale-105 active:scale-95 bg-difficulty-hard text-white disabled:pointer-events-none flex flex-col items-center gap-1"
-            >
-              <div className="text-sm font-bold">2</div>
-              <div className="text-base">🤔</div>
-              <div className="text-xs">Hard</div>
-            </button>
-            <button
-              onClick={() => handleRating("good")}
-              disabled={!isFlipped}
-              className="py-3 px-3 rounded-xl font-medium transition-all hover:scale-105 active:scale-95 bg-difficulty-good text-white disabled:pointer-events-none flex flex-col items-center gap-1"
-            >
-              <div className="text-sm font-bold">3</div>
-              <div className="text-base">😊</div>
-              <div className="text-xs">Good</div>
-            </button>
-            <button
-              onClick={() => handleRating("easy")}
-              disabled={!isFlipped}
-              className="py-3 px-3 rounded-xl font-medium transition-all hover:scale-105 active:scale-95 bg-difficulty-easy text-white disabled:pointer-events-none flex flex-col items-center gap-1"
-            >
-              <div className="text-sm font-bold">4</div>
-              <div className="text-base">🎉</div>
-              <div className="text-xs">Easy</div>
-            </button>
-          </div>
-        </div>
-
-        {/* Card Navigation */}
-        <div className="flex items-center justify-center gap-8">
+        {/* Navigation Arrows */}
+        <div className="flex items-center gap-2">
           <button
             onClick={handlePrevious}
             disabled={currentIndex === 0}
-            className="p-2 rounded-full hover:bg-black/5 dark:hover:bg-white/5 transition-colors disabled:opacity-30 disabled:pointer-events-none"
+            className="p-2.5 rounded-full hover:bg-black/5 dark:hover:bg-white/5 transition-colors disabled:opacity-20 disabled:pointer-events-none"
             aria-label="Previous card"
           >
             <ChevronLeft className="w-5 h-5 text-text-secondary" />
           </button>
-
           <button
             onClick={handleNext}
             disabled={
               currentIndex === shuffledWords.length - 1 ||
               !results.some(r => r.vocabularyId === currentWord.id)
             }
-            className="p-2 rounded-full hover:bg-black/5 dark:hover:bg-white/5 transition-colors disabled:opacity-30 disabled:pointer-events-none"
+            className="p-2.5 rounded-full hover:bg-black/5 dark:hover:bg-white/5 transition-colors disabled:opacity-20 disabled:pointer-events-none"
             aria-label="Next card"
           >
             <ChevronRight className="w-5 h-5 text-text-secondary" />
           </button>
         </div>
+      </div>
 
-        {/* Keyboard Hints */}
-        <div className="flex flex-wrap justify-center gap-3 text-[10px] text-text-tertiary">
-          <span>1-4 Rate</span>
-          <span>Space/Enter Flip</span>
-          <span>← → Navigate</span>
-          <span>Esc Exit</span>
+      {/* Flashcard Area - Centered with proper spacing */}
+      <div className="flex-1 flex items-center justify-center p-4 sm:p-6 overflow-hidden">
+        <Flashcard
+          word={currentWord}
+          isFlipped={isFlipped}
+          onFlip={handleFlip}
+          cardNumber={`Card ${currentIndex + 1} of ${shuffledWords.length}`}
+          onRate={isFlipped ? handleRating : undefined}
+        />
+      </div>
+
+      {/* Footer - Keyboard Hints */}
+      <div className="p-3 border-t border-separator flex-shrink-0 bg-bg-primary">
+        <div className="flex flex-wrap justify-center gap-4 text-xs text-text-tertiary">
+          <span className="flex items-center gap-1.5">
+            <kbd className="px-2 py-0.5 bg-black/5 dark:bg-white/5 rounded text-xs font-mono">1-4</kbd>
+            Rate
+          </span>
+          <span className="flex items-center gap-1.5">
+            <kbd className="px-2 py-0.5 bg-black/5 dark:bg-white/5 rounded text-xs font-mono">Enter</kbd>
+            Flip
+          </span>
+          <span className="flex items-center gap-1.5">
+            <kbd className="px-2 py-0.5 bg-black/5 dark:bg-white/5 rounded text-xs font-mono">← →</kbd>
+            Navigate
+          </span>
+          <span className="flex items-center gap-1.5">
+            <kbd className="px-2 py-0.5 bg-black/5 dark:bg-white/5 rounded text-xs font-mono">Esc</kbd>
+            Exit
+          </span>
         </div>
       </div>
     </div>

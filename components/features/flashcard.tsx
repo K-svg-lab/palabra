@@ -1,22 +1,22 @@
 "use client";
 
 import { useState } from "react";
-import { Volume2, ChevronLeft, ChevronRight } from "lucide-react";
-import type { VocabularyWord } from "@/lib/types/vocabulary";
+import { Volume2 } from "lucide-react";
+import type { VocabularyWord, DifficultyRating } from "@/lib/types/vocabulary";
 import { playAudio } from "@/lib/services/audio";
 
 /**
  * Flashcard Component
  * 
  * Displays a vocabulary word with a flip animation to reveal the translation
- * and additional metadata. Implements a card-flip interaction pattern.
+ * and rating buttons. Optimized for mobile and desktop viewing.
  * 
  * Features:
- * - 3D flip animation (Spanish front → English back)
+ * - 3D flip animation (Spanish front → English back with rating buttons)
  * - Audio pronunciation playback
  * - Responsive touch and click interactions
- * - Metadata display (gender, part of speech, examples)
- * - Apple-style design with subtle shadows
+ * - Self-contained rating system on card back
+ * - Fully visible without scrolling
  */
 
 interface FlashcardProps {
@@ -26,14 +26,14 @@ interface FlashcardProps {
   isFlipped?: boolean;
   /** Callback when card is clicked/tapped to flip */
   onFlip?: () => void;
-  /** Current card number (e.g., "1 of 3") */
+  /** Current card number (e.g., "1 of 5") */
   cardNumber?: string;
+  /** Callback when user rates the card */
+  onRate?: (rating: DifficultyRating) => void;
 }
 
-export function Flashcard({ word, isFlipped = false, onFlip, cardNumber }: FlashcardProps) {
+export function Flashcard({ word, isFlipped = false, onFlip, cardNumber, onRate }: FlashcardProps) {
   const [isPlaying, setIsPlaying] = useState(false);
-  const [currentExampleIndex, setCurrentExampleIndex] = useState(0);
-  const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
   /**
    * Handles pronunciation playback
@@ -50,6 +50,14 @@ export function Flashcard({ word, isFlipped = false, onFlip, cardNumber }: Flash
     } finally {
       setIsPlaying(false);
     }
+  };
+
+  /**
+   * Handle rating button click
+   */
+  const handleRating = (e: React.MouseEvent, rating: DifficultyRating) => {
+    e.stopPropagation(); // Prevent card flip
+    onRate?.(rating);
   };
 
   /**
@@ -87,8 +95,8 @@ export function Flashcard({ word, isFlipped = false, onFlip, cardNumber }: Flash
       >
         {/* Front Side - Spanish */}
         <div className="flashcard-face flashcard-front">
-          <div className="flex flex-col items-center justify-center h-full p-6">
-            {/* Card Number - Centered at top */}
+          <div className="flex flex-col items-center justify-center h-full p-6 sm:p-8">
+            {/* Card Number */}
             {cardNumber && (
               <div className="absolute top-4 left-0 right-0 text-center text-xs text-text-tertiary font-medium">
                 {cardNumber}
@@ -99,201 +107,120 @@ export function Flashcard({ word, isFlipped = false, onFlip, cardNumber }: Flash
             <button
               onClick={handlePlayAudio}
               disabled={isPlaying}
-              className="absolute top-4 right-4 p-2 rounded-full bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 transition-colors disabled:opacity-50"
+              className="absolute top-4 right-4 p-2.5 rounded-full bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 transition-colors disabled:opacity-50"
               aria-label="Play pronunciation"
             >
-              <Volume2 className={`w-4 h-4 ${isPlaying ? "text-accent" : "text-text-secondary"}`} />
+              <Volume2 className={`w-5 h-5 ${isPlaying ? "text-accent" : "text-text-secondary"}`} />
             </button>
 
-            {/* Spanish Word */}
-            <div className="text-center space-y-3 max-w-md">
+            {/* Spanish Word - Clean and Prominent */}
+            <div className="text-center space-y-4">
               {getGenderDisplay() && (
-                <p className="text-xl text-text-secondary font-light">
+                <p className="text-2xl sm:text-3xl text-text-secondary font-light">
                   {getGenderDisplay()}
                 </p>
               )}
-              <h2 className="text-4xl md:text-5xl font-semibold text-text">
+              <h2 className="text-5xl sm:text-6xl md:text-7xl font-bold text-text leading-tight px-4">
                 {word.spanishWord}
               </h2>
               {word.partOfSpeech && (
-                <p className="text-xs text-text-secondary uppercase tracking-wide">
+                <p className="text-sm sm:text-base text-text-secondary uppercase tracking-wider mt-3">
                   {word.partOfSpeech}
                 </p>
               )}
               
-              {/* Spanish Example Sentence with Navigation */}
+              {/* Example Sentence */}
               {word.examples && word.examples.length > 0 && (
-                <div className="mt-4 w-full max-w-md">
-                  {/* Example Text */}
-                  <p className="text-sm text-text-secondary italic text-center">
-                    &ldquo;{word.examples[currentExampleIndex].spanish}&rdquo;
-                  </p>
-                  
-                  {/* Context Badge */}
-                  {word.examples[currentExampleIndex].context && (
-                    <div className="flex justify-center mt-2">
-                      <span className={`px-2 py-0.5 text-[10px] rounded-full ${
-                        word.examples[currentExampleIndex].context === 'formal' 
-                          ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300'
-                          : word.examples[currentExampleIndex].context === 'informal'
-                          ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300'
-                          : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300'
-                      }`}>
-                        {word.examples[currentExampleIndex].context}
-                      </span>
-                    </div>
-                  )}
-                  
-                  {/* Navigation (if multiple examples) */}
-                  {word.examples.length > 1 && (
-                    <div className="flex items-center justify-center gap-2 mt-2">
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setCurrentExampleIndex((currentExampleIndex - 1 + word.examples.length) % word.examples.length);
-                        }}
-                        className="p-1 hover:bg-black/5 dark:hover:bg-white/5 rounded-full transition-colors"
-                        aria-label="Previous example"
-                      >
-                        <ChevronLeft className="w-3 h-3" />
-                      </button>
-                      <span className="text-xs text-text-tertiary">
-                        {currentExampleIndex + 1} / {word.examples.length}
-                      </span>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setCurrentExampleIndex((currentExampleIndex + 1) % word.examples.length);
-                        }}
-                        className="p-1 hover:bg-black/5 dark:hover:bg-white/5 rounded-full transition-colors"
-                        aria-label="Next example"
-                      >
-                        <ChevronRight className="w-3 h-3" />
-                      </button>
-                    </div>
-                  )}
-                </div>
+                <p className="text-base sm:text-lg text-text-secondary italic mt-6 max-w-sm mx-auto px-4 leading-relaxed">
+                  &ldquo;{word.examples[0].spanish}&rdquo;
+                </p>
               )}
             </div>
 
             {/* Tap to Flip Hint */}
-            <p className="absolute bottom-4 text-xs text-text-tertiary">
-              Tap or press Enter to reveal
+            <p className="absolute bottom-6 text-sm text-text-tertiary font-medium">
+              Tap or press Enter to flip back
             </p>
           </div>
         </div>
 
-        {/* Back Side - English */}
+        {/* Back Side - English with Rating Buttons */}
         <div className="flashcard-face flashcard-back">
-          <div className="flex flex-col h-full p-6">
-            {/* Card Number - Centered at top */}
+          <div className="flex flex-col h-full p-6 sm:p-8">
+            {/* Card Number */}
             {cardNumber && (
               <div className="absolute top-4 left-0 right-0 text-center text-xs text-text-tertiary font-medium">
                 {cardNumber}
               </div>
             )}
 
-            {/* Translation */}
-            <div className="flex-1 flex flex-col items-center justify-center space-y-3 overflow-y-auto">
-              <div className="text-center space-y-2 max-w-md">
-                <h3 className="text-3xl md:text-4xl font-semibold text-text">
+            {/* English Translation - Prominent and Clean */}
+            <div className="flex-1 flex flex-col items-center justify-center space-y-6">
+              <div className="text-center space-y-4">
+                <h3 className="text-4xl sm:text-5xl md:text-6xl font-bold text-text leading-tight px-4">
                   {word.englishTranslation}
                 </h3>
                 
                 {/* Spanish Word Reference */}
-                <p className="text-lg text-text-secondary">
+                <p className="text-xl sm:text-2xl text-text-secondary">
                   {getGenderDisplay() && <span className="mr-1">{getGenderDisplay()}</span>}
                   {word.spanishWord}
                 </p>
 
                 {/* English Example Translation */}
                 {word.examples && word.examples.length > 0 && (
-                  <div className="mt-3 w-full max-w-md">
-                    <p className="text-xs text-text-tertiary italic text-center">
-                      &ldquo;{word.examples[currentExampleIndex].english}&rdquo;
-                    </p>
-                  </div>
+                  <p className="text-base sm:text-lg text-text-secondary italic mt-6 max-w-sm mx-auto px-4 leading-relaxed">
+                    &ldquo;{word.examples[0].english}&rdquo;
+                  </p>
                 )}
               </div>
-
-              {/* Tags */}
-              {word.tags && word.tags.length > 0 && (
-                <div className="flex flex-wrap gap-1 justify-center">
-                  {word.tags.map((tag, index) => (
-                    <span
-                      key={index}
-                      className="px-2 py-0.5 text-[10px] font-medium rounded-full bg-black/5 dark:bg-white/5 text-text-secondary"
-                    >
-                      {tag}
-                    </span>
-                  ))}
-                </div>
-              )}
-
-              {/* Image (if available) */}
-              {word.images && word.images.length > 0 && (
-                <div className="max-w-md w-full mt-3">
-                  <div className="relative">
-                    <img
-                      src={word.images[currentImageIndex].url}
-                      alt={word.images[currentImageIndex].altText || word.spanishWord}
-                      className="w-full h-32 object-cover rounded-lg"
-                      onClick={(e) => e.stopPropagation()}
-                    />
-                    {word.images.length > 1 && (
-                      <div className="absolute bottom-2 left-0 right-0 flex items-center justify-center gap-1">
-                        {word.images.map((_, index) => (
-                          <button
-                            key={index}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setCurrentImageIndex(index);
-                            }}
-                            className={`w-1.5 h-1.5 rounded-full transition-colors ${
-                              index === currentImageIndex
-                                ? 'bg-white'
-                                : 'bg-white/50 hover:bg-white/75'
-                            }`}
-                            aria-label={`View image ${index + 1}`}
-                          />
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )}
-
-              {/* Synonyms (compact display) */}
-              {word.relationships?.synonyms && word.relationships.synonyms.length > 0 && (
-                <div className="max-w-md w-full mt-2">
-                  <p className="text-[10px] text-text-tertiary uppercase tracking-wide mb-1">Synonyms</p>
-                  <div className="flex flex-wrap gap-1 justify-center">
-                    {word.relationships.synonyms.slice(0, 3).map((synonym, index) => (
-                      <span
-                        key={index}
-                        className="px-2 py-0.5 text-xs bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 rounded-full"
-                      >
-                        {synonym}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Personal Notes */}
-              {word.notes && (
-                <div className="max-w-md p-2 rounded-lg bg-black/5 dark:bg-white/5 mt-2">
-                  <p className="text-xs text-text-secondary">
-                    💭 {word.notes}
-                  </p>
-                </div>
-              )}
             </div>
 
-            {/* Tap to Flip Hint */}
-            <p className="text-center text-xs text-text-tertiary mt-2">
-              Tap or press Enter to flip back
-            </p>
+            {/* Rating Buttons - Always visible on back */}
+            {onRate && (
+              <div className="space-y-3 mt-auto">
+                <p className="text-sm text-center text-text-secondary font-medium">
+                  How well did you know this?
+                </p>
+                <div className="grid grid-cols-4 gap-2 sm:gap-3">
+                  <button
+                    onClick={(e) => handleRating(e, "forgot")}
+                    className="flex flex-col items-center gap-1.5 py-4 sm:py-5 px-2 rounded-2xl font-medium transition-all hover:scale-105 active:scale-95 bg-gradient-to-br from-red-500 to-red-600 text-white shadow-lg hover:shadow-xl"
+                  >
+                    <span className="text-xs sm:text-sm font-bold opacity-75">1</span>
+                    <span className="text-2xl sm:text-3xl">😞</span>
+                    <span className="text-xs sm:text-sm font-semibold">Forgot</span>
+                  </button>
+                  <button
+                    onClick={(e) => handleRating(e, "hard")}
+                    className="flex flex-col items-center gap-1.5 py-4 sm:py-5 px-2 rounded-2xl font-medium transition-all hover:scale-105 active:scale-95 bg-gradient-to-br from-orange-500 to-orange-600 text-white shadow-lg hover:shadow-xl"
+                  >
+                    <span className="text-xs sm:text-sm font-bold opacity-75">2</span>
+                    <span className="text-2xl sm:text-3xl">🤔</span>
+                    <span className="text-xs sm:text-sm font-semibold">Hard</span>
+                  </button>
+                  <button
+                    onClick={(e) => handleRating(e, "good")}
+                    className="flex flex-col items-center gap-1.5 py-4 sm:py-5 px-2 rounded-2xl font-medium transition-all hover:scale-105 active:scale-95 bg-gradient-to-br from-green-500 to-green-600 text-white shadow-lg hover:shadow-xl"
+                  >
+                    <span className="text-xs sm:text-sm font-bold opacity-75">3</span>
+                    <span className="text-2xl sm:text-3xl">😊</span>
+                    <span className="text-xs sm:text-sm font-semibold">Good</span>
+                  </button>
+                  <button
+                    onClick={(e) => handleRating(e, "easy")}
+                    className="flex flex-col items-center gap-1.5 py-4 sm:py-5 px-2 rounded-2xl font-medium transition-all hover:scale-105 active:scale-95 bg-gradient-to-br from-blue-500 to-blue-600 text-white shadow-lg hover:shadow-xl"
+                  >
+                    <span className="text-xs sm:text-sm font-bold opacity-75">4</span>
+                    <span className="text-2xl sm:text-3xl">🎉</span>
+                    <span className="text-xs sm:text-sm font-semibold">Easy</span>
+                  </button>
+                </div>
+                <p className="text-xs text-center text-text-tertiary">
+                  Press 1-4 or tap a button
+                </p>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -301,10 +228,18 @@ export function Flashcard({ word, isFlipped = false, onFlip, cardNumber }: Flash
       <style jsx>{`
         .flashcard-container {
           width: 100%;
-          max-width: 500px;
+          max-width: 600px;
           height: 100%;
-          max-height: 50vh;
+          min-height: 500px;
+          max-height: calc(100vh - 180px);
           margin: 0 auto;
+        }
+
+        @media (max-width: 640px) {
+          .flashcard-container {
+            max-height: calc(100vh - 160px);
+            min-height: 450px;
+          }
         }
 
         .flashcard {
@@ -326,9 +261,10 @@ export function Flashcard({ word, isFlipped = false, onFlip, cardNumber }: Flash
           height: 100%;
           backface-visibility: hidden;
           -webkit-backface-visibility: hidden;
-          border-radius: 16px;
+          border-radius: 20px;
           background: var(--bg-primary);
-          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1), 0 0 1px rgba(0, 0, 0, 0.1);
+          box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12), 0 0 1px rgba(0, 0, 0, 0.1);
+          overflow: hidden;
         }
 
         .flashcard-front {
@@ -341,15 +277,15 @@ export function Flashcard({ word, isFlipped = false, onFlip, cardNumber }: Flash
 
         /* Focus styles */
         .flashcard:focus-visible {
-          outline: 2px solid var(--accent);
+          outline: 3px solid var(--accent);
           outline-offset: 4px;
-          border-radius: 16px;
+          border-radius: 20px;
         }
 
         /* Hover effect */
         @media (hover: hover) {
           .flashcard:hover {
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.18);
           }
         }
 
