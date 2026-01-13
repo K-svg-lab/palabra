@@ -55,6 +55,12 @@ export function FlashcardEnhanced({
   cardNumber,
   onRate,
 }: FlashcardEnhancedProps) {
+  // #region agent log
+  useEffect(() => {
+    fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'flashcard-enhanced.tsx:58',message:'FlashcardEnhanced mounted',data:{mode,direction,isFlipped,hasOnRate:!!onRate,wordId:word.id,spanish:word.spanishWord,english:word.englishTranslation},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'B,C,D'})}).catch(()=>{});
+  }, []);
+  // #endregion
+
   const [isPlaying, setIsPlaying] = useState(false);
   const [userAnswer, setUserAnswer] = useState("");
   const [answerChecked, setAnswerChecked] = useState(false);
@@ -66,10 +72,19 @@ export function FlashcardEnhanced({
   const [showHint, setShowHint] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
+  // #region agent log
+  useEffect(() => {
+    fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'flashcard-enhanced.tsx:78',message:'FlashcardEnhanced props updated',data:{mode,isFlipped,hasOnRate:!!onRate},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'B'})}).catch(()=>{});
+  }, [mode, isFlipped, onRate]);
+  // #endregion
+
   /**
    * Handle rating button click
    */
   const handleRating = (e: React.MouseEvent, rating: DifficultyRating) => {
+    // #region agent log
+    fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'flashcard-enhanced.tsx:86',message:'handleRating called',data:{rating,hasOnRate:!!onRate},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'B'})}).catch(()=>{});
+    // #endregion
     e.stopPropagation(); // Prevent card flip
     onRate?.(rating);
   };
@@ -164,7 +179,11 @@ export function FlashcardEnhanced({
   /**
    * Render Recognition Mode (traditional flip card)
    */
-  const renderRecognitionMode = () => (
+  const renderRecognitionMode = () => {
+    // #region agent log
+    fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'flashcard-enhanced.tsx:185',message:'renderRecognitionMode called',data:{isFlipped,hasOnRate:!!onRate,frontContent:isSpanishToEnglish?word.spanishWord:word.englishTranslation,backContent:isSpanishToEnglish?word.englishTranslation:word.spanishWord},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'C,D,E'})}).catch(()=>{});
+    // #endregion
+    return (
     <div
       className={`flashcard ${isFlipped ? "flipped" : ""}`}
       onClick={onFlip}
@@ -289,7 +308,8 @@ export function FlashcardEnhanced({
         </div>
       </div>
     </div>
-  );
+    );
+  };
 
   /**
    * Render Recall Mode (type the answer)
@@ -482,6 +502,12 @@ export function FlashcardEnhanced({
   );
 
   // Render appropriate mode
+  // #region agent log
+  useEffect(() => {
+    fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'flashcard-enhanced.tsx:510',message:'About to render mode',data:{mode,willRenderRecognition:mode==='recognition',willRenderRecall:mode==='recall',willRenderListening:mode==='listening'},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'C'})}).catch(()=>{});
+  }, [mode]);
+  // #endregion
+  
   return (
     <div 
       className="flashcard-container"
