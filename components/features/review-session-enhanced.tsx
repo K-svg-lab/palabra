@@ -324,57 +324,12 @@ export function ReviewSessionEnhanced({
           onAnswerSubmit={handleAnswerSubmit}
           onAudioPlay={handleAudioPlay}
           cardNumber={`Card ${currentIndex + 1} of ${processedWords.length}`}
+          onRate={config.mode === 'recognition' && isFlipped ? handleRating : undefined}
         />
       </div>
 
       {/* Navigation and Rating Controls */}
       <div className="p-4 md:p-6 space-y-4 border-t border-separator flex-shrink-0 pb-safe">
-        {/* Self-Assessment Buttons (recognition mode only) */}
-        {config.mode === 'recognition' && (
-          <div className={`space-y-2 transition-opacity duration-200 ${!isFlipped ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
-            <p className="text-xs text-center text-text-secondary font-medium">
-              How well did you know this word?
-            </p>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-              <button
-                onClick={() => handleRating("forgot")}
-                disabled={!isFlipped}
-                className="py-3 px-3 rounded-xl font-medium transition-all hover:scale-105 active:scale-95 bg-difficulty-forgot text-white disabled:pointer-events-none flex flex-col items-center gap-1"
-              >
-                <div className="text-sm font-bold">1</div>
-                <div className="text-base">😞</div>
-                <div className="text-xs">Forgot</div>
-              </button>
-              <button
-                onClick={() => handleRating("hard")}
-                disabled={!isFlipped}
-                className="py-3 px-3 rounded-xl font-medium transition-all hover:scale-105 active:scale-95 bg-difficulty-hard text-white disabled:pointer-events-none flex flex-col items-center gap-1"
-              >
-                <div className="text-sm font-bold">2</div>
-                <div className="text-base">🤔</div>
-                <div className="text-xs">Hard</div>
-              </button>
-              <button
-                onClick={() => handleRating("good")}
-                disabled={!isFlipped}
-                className="py-3 px-3 rounded-xl font-medium transition-all hover:scale-105 active:scale-95 bg-difficulty-good text-white disabled:pointer-events-none flex flex-col items-center gap-1"
-              >
-                <div className="text-sm font-bold">3</div>
-                <div className="text-base">😊</div>
-                <div className="text-xs">Good</div>
-              </button>
-              <button
-                onClick={() => handleRating("easy")}
-                disabled={!isFlipped}
-                className="py-3 px-3 rounded-xl font-medium transition-all hover:scale-105 active:scale-95 bg-difficulty-easy text-white disabled:pointer-events-none flex flex-col items-center gap-1"
-              >
-                <div className="text-sm font-bold">4</div>
-                <div className="text-base">🎉</div>
-                <div className="text-xs">Easy</div>
-              </button>
-            </div>
-          </div>
-        )}
 
         {/* Card Navigation */}
         <div className="flex items-center justify-center gap-8">

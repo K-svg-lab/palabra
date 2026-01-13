@@ -2,23 +2,25 @@
 
 import { useState, useEffect, useRef } from "react";
 import { Volume2, Check, X } from "lucide-react";
-import type { VocabularyWord } from "@/lib/types/vocabulary";
+import type { VocabularyWord, DifficultyRating } from "@/lib/types/vocabulary";
 import type { ReviewMode, ReviewDirection } from "@/lib/types/review";
 import { playAudio } from "@/lib/services/audio";
 import { checkAnswer, checkSpanishAnswer } from "@/lib/utils/answer-checker";
 
 /**
- * Enhanced Flashcard Component - Phase 8
+ * Enhanced Flashcard Component - Phase 8 Updated
  * 
  * Supports:
  * - Bidirectional review (Spanish → English or English → Spanish)
  * - Multiple review modes (Recognition, Recall, Listening)
  * - Typed answer checking with fuzzy matching
+ * - Integrated rating buttons on card back
  * 
  * Features:
- * - Recognition mode: Traditional flip card
+ * - Recognition mode: Flip card with integrated rating buttons
  * - Recall mode: Type the answer
  * - Listening mode: Audio-first learning
+ * - Optimized for mobile and desktop viewing
  */
 
 interface FlashcardEnhancedProps {
@@ -38,6 +40,8 @@ interface FlashcardEnhancedProps {
   onAudioPlay?: () => void;
   /** Current card number (e.g., "1 of 3") */
   cardNumber?: string;
+  /** Callback when user rates the card (recognition mode) */
+  onRate?: (rating: DifficultyRating) => void;
 }
 
 export function FlashcardEnhanced({
@@ -49,6 +53,7 @@ export function FlashcardEnhanced({
   onAnswerSubmit,
   onAudioPlay,
   cardNumber,
+  onRate,
 }: FlashcardEnhancedProps) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [userAnswer, setUserAnswer] = useState("");
@@ -60,6 +65,14 @@ export function FlashcardEnhanced({
   } | null>(null);
   const [showHint, setShowHint] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  /**
+   * Handle rating button click
+   */
+  const handleRating = (e: React.MouseEvent, rating: DifficultyRating) => {
+    e.stopPropagation(); // Prevent card flip
+    onRate?.(rating);
+  };
 
   // Determine front and back content based on direction
   const isSpanishToEnglish = direction === 'spanish-to-english';
@@ -165,9 +178,9 @@ export function FlashcardEnhanced({
       }}
       aria-label={isFlipped ? `Flip card to show ${frontLanguage}` : `Flip card to show ${backLanguage}`}
     >
-      {/* Front Side */}
+      {/* Front Side - Question */}
       <div className="flashcard-face flashcard-front">
-        <div className="flex flex-col items-center justify-center h-full p-6">
+        <div className="flex flex-col items-center justify-center h-full p-6 sm:p-8">
           {cardNumber && (
             <div className="absolute top-4 left-0 right-0 text-center text-xs text-text-tertiary font-medium">
               {cardNumber}
@@ -177,60 +190,102 @@ export function FlashcardEnhanced({
           <button
             onClick={handlePlayAudio}
             disabled={isPlaying}
-            className="absolute top-4 right-4 p-2 rounded-full bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 transition-colors disabled:opacity-50"
+            className="absolute top-4 right-4 p-2.5 rounded-full bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 transition-colors disabled:opacity-50"
             aria-label="Play pronunciation"
           >
-            <Volume2 className={`w-4 h-4 ${isPlaying ? "text-accent" : "text-text-secondary"}`} />
+            <Volume2 className={`w-5 h-5 ${isPlaying ? "text-accent" : "text-text-secondary"}`} />
           </button>
 
-          <div className="text-center space-y-3 max-w-md">
+          <div className="text-center space-y-4">
             {isSpanishToEnglish && getGenderDisplay() && (
-              <p className="text-xl text-text-secondary font-light">
+              <p className="text-2xl sm:text-3xl text-text-secondary font-light">
                 {getGenderDisplay()}
               </p>
             )}
-            <h2 className="text-4xl md:text-5xl font-semibold text-text">
+            <h2 className="text-5xl sm:text-6xl md:text-7xl font-bold text-text leading-tight px-4">
               {frontContent}
             </h2>
             {word.partOfSpeech && (
-              <p className="text-xs text-text-secondary uppercase tracking-wide">
+              <p className="text-sm sm:text-base text-text-secondary uppercase tracking-wider mt-3">
                 {word.partOfSpeech}
               </p>
             )}
           </div>
 
-          <p className="absolute bottom-4 text-xs text-text-tertiary">
+          <p className="absolute bottom-6 text-sm text-text-tertiary font-medium">
             Tap or press Enter to reveal
           </p>
         </div>
       </div>
 
-      {/* Back Side */}
+      {/* Back Side - Answer with Rating Buttons */}
       <div className="flashcard-face flashcard-back">
-        <div className="flex flex-col h-full p-6">
+        <div className="flex flex-col h-full p-6 sm:p-8">
           {cardNumber && (
             <div className="absolute top-4 left-0 right-0 text-center text-xs text-text-tertiary font-medium">
               {cardNumber}
             </div>
           )}
 
-          <div className="flex-1 flex flex-col items-center justify-center space-y-3 overflow-y-auto">
-            <div className="text-center space-y-2 max-w-md">
-              <h3 className="text-3xl md:text-4xl font-semibold text-text">
+          <div className="flex-1 flex flex-col items-center justify-center space-y-6">
+            <div className="text-center space-y-4">
+              <h3 className="text-4xl sm:text-5xl md:text-6xl font-bold text-text leading-tight px-4">
                 {backContent}
               </h3>
               
               {word.examples && word.examples.length > 0 && (
-                <p className="text-xs text-text-tertiary italic mt-3">
+                <p className="text-base sm:text-lg text-text-secondary italic mt-6 max-w-sm mx-auto px-4 leading-relaxed">
                   &ldquo;{isSpanishToEnglish ? word.examples[0].english : word.examples[0].spanish}&rdquo;
                 </p>
               )}
             </div>
           </div>
 
-          <p className="text-center text-xs text-text-tertiary mt-2">
-            Tap or press Enter to flip back
-          </p>
+          {/* Rating Buttons - Always visible on back */}
+          {onRate && (
+            <div className="space-y-3 mt-auto">
+              <p className="text-sm text-center text-text-secondary font-medium">
+                How well did you know this?
+              </p>
+              <div className="grid grid-cols-4 gap-2 sm:gap-3">
+                <button
+                  onClick={(e) => handleRating(e, "forgot")}
+                  className="flex flex-col items-center gap-1.5 py-4 sm:py-5 px-2 rounded-2xl font-medium transition-all hover:scale-105 active:scale-95 bg-gradient-to-br from-red-500 to-red-600 text-white shadow-lg hover:shadow-xl"
+                >
+                  <span className="text-xs sm:text-sm font-bold opacity-75">1</span>
+                  <span className="text-2xl sm:text-3xl">😞</span>
+                  <span className="text-xs sm:text-sm font-semibold">Forgot</span>
+                </button>
+                <button
+                  onClick={(e) => handleRating(e, "hard")}
+                  className="flex flex-col items-center gap-1.5 py-4 sm:py-5 px-2 rounded-2xl font-medium transition-all hover:scale-105 active:scale-95 bg-gradient-to-br from-orange-500 to-orange-600 text-white shadow-lg hover:shadow-xl"
+                >
+                  <span className="text-xs sm:text-sm font-bold opacity-75">2</span>
+                  <span className="text-2xl sm:text-3xl">🤔</span>
+                  <span className="text-xs sm:text-sm font-semibold">Hard</span>
+                </button>
+                <button
+                  onClick={(e) => handleRating(e, "good")}
+                  className="flex flex-col items-center gap-1.5 py-4 sm:py-5 px-2 rounded-2xl font-medium transition-all hover:scale-105 active:scale-95 bg-gradient-to-br from-green-500 to-green-600 text-white shadow-lg hover:shadow-xl"
+                >
+                  <span className="text-xs sm:text-sm font-bold opacity-75">3</span>
+                  <span className="text-2xl sm:text-3xl">😊</span>
+                  <span className="text-xs sm:text-sm font-semibold">Good</span>
+                </button>
+                <button
+                  onClick={(e) => handleRating(e, "easy")}
+                  className="flex flex-col items-center gap-1.5 py-4 sm:py-5 px-2 rounded-2xl font-medium transition-all hover:scale-105 active:scale-95 bg-gradient-to-br from-blue-500 to-blue-600 text-white shadow-lg hover:shadow-xl"
+                >
+                  <span className="text-xs sm:text-sm font-bold opacity-75">4</span>
+                  <span className="text-2xl sm:text-3xl">🎉</span>
+                  <span className="text-xs sm:text-sm font-semibold">Easy</span>
+                </button>
+              </div>
+              <p className="text-xs text-center text-text-tertiary">
+                Press 1-4 or tap a button
+              </p>
+            </div>
+          )}
         </div>
       </div>
     </div>
@@ -439,10 +494,18 @@ export function FlashcardEnhanced({
       <style jsx>{`
         .flashcard-container {
           width: 100%;
-          max-width: 500px;
+          max-width: 600px;
           height: 100%;
-          max-height: 50vh;
+          min-height: 500px;
+          max-height: calc(100vh - 180px);
           margin: 0 auto;
+        }
+
+        @media (max-width: 640px) {
+          .flashcard-container {
+            max-height: calc(100vh - 160px);
+            min-height: 450px;
+          }
         }
 
         .flashcard,
@@ -451,9 +514,10 @@ export function FlashcardEnhanced({
           position: relative;
           width: 100%;
           height: 100%;
-          border-radius: 16px;
+          border-radius: 20px;
           background: var(--bg-primary);
-          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1), 0 0 1px rgba(0, 0, 0, 0.1);
+          box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12), 0 0 1px rgba(0, 0, 0, 0.1);
+          overflow: hidden;
         }
 
         .flashcard {
@@ -472,9 +536,10 @@ export function FlashcardEnhanced({
           height: 100%;
           backface-visibility: hidden;
           -webkit-backface-visibility: hidden;
-          border-radius: 16px;
+          border-radius: 20px;
           background: var(--bg-primary);
-          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1), 0 0 1px rgba(0, 0, 0, 0.1);
+          box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12), 0 0 1px rgba(0, 0, 0, 0.1);
+          overflow: hidden;
         }
 
         .flashcard-front {
@@ -486,14 +551,14 @@ export function FlashcardEnhanced({
         }
 
         .flashcard:focus-visible {
-          outline: 2px solid var(--accent);
+          outline: 3px solid var(--accent);
           outline-offset: 4px;
-          border-radius: 16px;
+          border-radius: 20px;
         }
 
         @media (hover: hover) {
           .flashcard:hover {
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.18);
           }
         }
 

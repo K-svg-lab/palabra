@@ -139,7 +139,7 @@ export function Flashcard({ word, isFlipped = false, onFlip, cardNumber, onRate 
 
             {/* Tap to Flip Hint */}
             <p className="absolute bottom-6 text-sm text-text-tertiary font-medium">
-              Tap or press Enter to flip back
+              Tap or press Enter to reveal
             </p>
           </div>
         </div>
