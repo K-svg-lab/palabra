@@ -244,15 +244,17 @@ export async function renameTag(
   
   for (const word of wordsWithTag) {
     // Replace old tag with new tag
-    word.tags = word.tags.map((tag: string) => (tag === oldTag ? newTag : tag));
-    // Deduplicate and sort
-    word.tags = Array.from(new Set(word.tags)).sort((a, b) =>
-      a.toLowerCase().localeCompare(b.toLowerCase())
-    );
-    word.updatedAt = Date.now();
-    
-    await db.put(DB_CONFIG.STORES.VOCABULARY, word);
-    updateCount++;
+    if (word.tags) {
+      word.tags = word.tags.map((tag: string) => (tag === oldTag ? newTag : tag));
+      // Deduplicate and sort
+      word.tags = Array.from(new Set(word.tags)).sort((a, b) =>
+        a.toLowerCase().localeCompare(b.toLowerCase())
+      );
+      word.updatedAt = Date.now();
+      
+      await db.put(DB_CONFIG.STORES.VOCABULARY, word);
+      updateCount++;
+    }
   }
   
   return updateCount;
@@ -271,11 +273,13 @@ export async function deleteTag(tag: string): Promise<number> {
   let updateCount = 0;
   
   for (const word of wordsWithTag) {
-    word.tags = word.tags.filter((t) => t !== tag);
-    word.updatedAt = Date.now();
-    
-    await db.put(DB_CONFIG.STORES.VOCABULARY, word);
-    updateCount++;
+    if (word.tags) {
+      word.tags = word.tags.filter((t) => t !== tag);
+      word.updatedAt = Date.now();
+      
+      await db.put(DB_CONFIG.STORES.VOCABULARY, word);
+      updateCount++;
+    }
   }
   
   return updateCount;
@@ -300,16 +304,18 @@ export async function mergeTags(
   
   for (const word of wordsToUpdate) {
     // Remove source tags and add target tag
-    word.tags = word.tags.filter((tag: string) => !sourceTags.includes(tag));
-    if (!word.tags.includes(targetTag)) {
-      word.tags.push(targetTag);
+    if (word.tags) {
+      word.tags = word.tags.filter((tag: string) => !sourceTags.includes(tag));
+      if (!word.tags.includes(targetTag)) {
+        word.tags.push(targetTag);
+      }
+      // Sort tags
+      word.tags.sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()));
+      word.updatedAt = Date.now();
+      
+      await db.put(DB_CONFIG.STORES.VOCABULARY, word);
+      updateCount++;
     }
-    // Sort tags
-    word.tags.sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()));
-    word.updatedAt = Date.now();
-    
-    await db.put(DB_CONFIG.STORES.VOCABULARY, word);
-    updateCount++;
   }
   
   return updateCount;

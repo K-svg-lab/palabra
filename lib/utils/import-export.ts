@@ -145,7 +145,7 @@ export function exportToCSV(
     }
     
     if (includeTags) {
-      row.push(escapeCSV(word.tags.join('; '), delimiter));
+      row.push(escapeCSV((word.tags || []).join('; '), delimiter));
     }
     
     if (includeNotes) {

@@ -394,7 +394,7 @@ export class CloudSyncService implements SyncService {
       const itemDate = new Date(itemTime);
       const shouldSync = !lastSyncTime || itemDate > lastSyncTime;
       
-      console.log(`[Sync] Item "${item.spanishWord || item.spanish || item.id}" - created: ${new Date(item.createdAt).toISOString()}, updated: ${new Date(item.updatedAt).toISOString()}, lastSync: ${lastSyncTime?.toISOString() || 'never'}, shouldSync: ${shouldSync}`);
+      console.log(`[Sync] Item "${item.spanishWord || (item as any).spanish || item.id}" - created: ${new Date(item.createdAt).toISOString()}, updated: ${new Date(item.updatedAt).toISOString()}, lastSync: ${lastSyncTime?.toISOString() || 'never'}, shouldSync: ${shouldSync}`);
       
       if (shouldSync) {
         vocabulary.push({
