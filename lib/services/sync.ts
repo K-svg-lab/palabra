@@ -18,8 +18,8 @@ import type {
   SyncStatus,
 } from '@/lib/types/sync';
 import { getAllVocabularyWords, updateVocabularyWord } from '@/lib/db/vocabulary';
-import { getAllReviews } from '@/lib/db/reviews';
-import { getAllStats } from '@/lib/db/stats';
+import { getAllReviews, updateReviewRecord, createReviewRecord } from '@/lib/db/reviews';
+import { getAllStats, saveStats } from '@/lib/db/stats';
 
 const SYNC_DB_NAME = 'palabra-sync';
 const SYNC_DB_VERSION = 1;
@@ -223,9 +223,46 @@ export class CloudSyncService implements SyncService {
       const reviewsResult = await this.syncReviews(operations.reviews, lastSyncTime);
       console.log(`📥 Downloaded ${reviewsResult.reviews?.length || 0} reviews`);
       
+      // Apply remote review changes to local database
+      if (reviewsResult.reviews && reviewsResult.reviews.length > 0) {
+        console.log(`📥 Applying ${reviewsResult.reviews.length} remote review records...`);
+        for (const review of reviewsResult.reviews) {
+          try {
+            await updateReviewRecord(review);
+            console.log(`✅ Applied review for vocab: ${review.vocabId}`);
+          } catch (error) {
+            // If update fails, try creating it
+            try {
+              await createReviewRecord(review);
+              console.log(`✅ Created review for vocab: ${review.vocabId}`);
+            } catch (createError) {
+              console.error('Failed to apply remote review:', createError);
+            }
+          }
+        }
+      } else {
+        console.log('📥 No remote review changes to apply');
+      }
+      
       // Sync stats
       const statsResult = await this.syncStats(operations.stats, lastSyncTime);
       console.log(`📥 Downloaded ${statsResult.stats?.length || 0} stats`);
+      
+      // Apply remote stats changes to local database
+      if (statsResult.stats && statsResult.stats.length > 0) {
+        console.log(`📥 Applying ${statsResult.stats.length} remote stats records...`);
+        for (const stat of statsResult.stats) {
+          try {
+            await saveStats(stat);
+            console.log(`✅ Applied stats for date: ${stat.date}`);
+          } catch (error) {
+            console.error('Failed to apply remote stats:', error);
+          }
+        }
+      } else {
+        console.log('📥 No remote stats changes to apply');
+      }
+
       
       // Update last sync time
       await this.setLastSyncTime(new Date());
