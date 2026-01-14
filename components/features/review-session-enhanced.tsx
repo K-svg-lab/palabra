@@ -274,7 +274,7 @@ export function ReviewSessionEnhanced({
   return (
     <div className="flex flex-col h-screen max-h-screen overflow-hidden">
       {/* Header */}
-      <div className="flex items-center justify-between p-2 md:p-3 border-b border-separator flex-shrink-0">
+      <div className="flex items-center justify-between px-2 py-1 md:px-3 md:py-1.5 border-b border-separator flex-shrink-0">
         <button
           onClick={handleCancel}
           className="p-2 rounded-full hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
@@ -283,8 +283,8 @@ export function ReviewSessionEnhanced({
           <X className="w-6 h-6 text-text-secondary" />
         </button>
 
-        <div className="flex-1 mx-6">
-          <div className="flex items-center justify-between mb-2">
+        <div className="flex-1 mx-3 md:mx-4">
+          <div className="flex items-center justify-between mb-1">
             <span className="text-sm font-medium text-text-secondary">
               {results.length} / {processedWords.length}
             </span>
@@ -320,7 +320,7 @@ export function ReviewSessionEnhanced({
 
       {/* Flashcard Area - Clickable on mobile to flip */}
       <div 
-        className="flex-1 flex items-center justify-center px-2 py-1 md:px-3 md:py-2 overflow-hidden"
+        className="flex-1 flex items-center justify-center px-2 py-0.5 md:px-3 md:py-1 overflow-hidden"
         onClick={() => {
           // On mobile, clicking anywhere flips the card
           if (window.innerWidth < 768 && config.mode === 'recognition') {
@@ -348,11 +348,11 @@ export function ReviewSessionEnhanced({
       </div>
 
       {/* Navigation and Rating Controls */}
-      <div className="p-2 md:p-3 space-y-2 border-t border-separator flex-shrink-0 pb-safe">
+      <div className="px-2 py-1 md:px-3 md:py-1.5 space-y-1 border-t border-separator flex-shrink-0 pb-safe">
 
         {/* Rating Buttons - Show when flipped in recognition mode */}
         {config.mode === 'recognition' && isFlipped && (
-          <div className="flex items-center justify-center gap-4 text-text-secondary text-sm pb-1">
+          <div className="flex items-center justify-center gap-2 md:gap-3 text-text-secondary text-sm pb-0.5">
             <button
               onClick={() => handleRating("forgot")}
               className="flex items-center gap-1 py-1 px-2 hover:text-text transition-colors"
@@ -385,7 +385,7 @@ export function ReviewSessionEnhanced({
         )}
 
         {/* Card Navigation */}
-        <div className="flex items-center justify-center gap-8">
+        <div className="flex items-center justify-center gap-4 md:gap-6">
           <button
             onClick={handlePrevious}
             disabled={currentIndex === 0}
