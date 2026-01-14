@@ -273,7 +273,7 @@ export function FlashcardEnhanced({
             // #region agent log
             if (el) {
               const computed = window.getComputedStyle(el);
-              fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'flashcard-enhanced.tsx:277',message:'Back inner div CSS',data:{transform:computed.transform,display:computed.display,pointerEvents:computed.pointerEvents,position:computed.position},timestamp:Date.now(),sessionId:'debug-session',hypothesisId':'I,J,K'})}).catch(()=>{});
+              fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'flashcard-enhanced.tsx:277',message:'Back inner div CSS',data:{transform:computed.transform,display:computed.display,pointerEvents:computed.pointerEvents,position:computed.position},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'I,J,K'})}).catch(()=>{});
             }
             // #endregion
           }}>
