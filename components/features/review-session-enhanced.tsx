@@ -315,7 +315,7 @@ export function ReviewSessionEnhanced({
 
       {/* Flashcard Area - Clickable on mobile to flip */}
       <div 
-        className="flex-1 flex items-center justify-center p-2 md:p-3 overflow-hidden"
+        className="flex-1 flex items-center justify-center px-2 py-1 md:px-3 md:py-2 overflow-hidden"
         onClick={() => {
           // On mobile, clicking anywhere flips the card
           if (window.innerWidth < 768 && config.mode === 'recognition') {
@@ -344,6 +344,40 @@ export function ReviewSessionEnhanced({
 
       {/* Navigation and Rating Controls */}
       <div className="p-2 md:p-3 space-y-2 border-t border-separator flex-shrink-0 pb-safe">
+
+        {/* Rating Buttons - Show when flipped in recognition mode */}
+        {config.mode === 'recognition' && isFlipped && (
+          <div className="flex items-center justify-center gap-4 text-text-secondary text-sm pb-1">
+            <button
+              onClick={() => handleRating("forgot")}
+              className="flex items-center gap-1 py-1 px-2 hover:text-text transition-colors"
+            >
+              <span className="text-base">😞</span>
+              <span className="text-xs">Forgot</span>
+            </button>
+            <button
+              onClick={() => handleRating("hard")}
+              className="flex items-center gap-1 py-1 px-2 hover:text-text transition-colors"
+            >
+              <span className="text-base">🤔</span>
+              <span className="text-xs">Hard</span>
+            </button>
+            <button
+              onClick={() => handleRating("good")}
+              className="flex items-center gap-1 py-1 px-2 hover:text-text transition-colors"
+            >
+              <span className="text-base">😊</span>
+              <span className="text-xs">Good</span>
+            </button>
+            <button
+              onClick={() => handleRating("easy")}
+              className="flex items-center gap-1 py-1 px-2 hover:text-text transition-colors"
+            >
+              <span className="text-base">🎉</span>
+              <span className="text-xs">Easy</span>
+            </button>
+          </div>
+        )}
 
         {/* Card Navigation */}
         <div className="flex items-center justify-center gap-8">

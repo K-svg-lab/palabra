@@ -216,7 +216,6 @@ export function FlashcardEnhanced({
     };
     
     return (
-    <>
       <div className="flashcard-simple">
         {/* Conditionally render EITHER front OR back - no 3D transforms */}
         {!isFlipped ? (
@@ -334,55 +333,6 @@ export function FlashcardEnhanced({
         </div>
         )}
       </div>
-
-      {/* Rating Buttons - Simple text/emoji format for footer */}
-      {onRate && isFlipped && (
-        <div className="w-full text-center mt-2">
-          <div className="flex items-center justify-center gap-4 text-text-secondary">
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                handleRating(e, "forgot");
-              }}
-              className="flex items-center gap-1 py-1 px-2 hover:text-text transition-colors"
-            >
-              <span className="text-lg">😞</span>
-              <span className="text-xs">Forgot</span>
-            </button>
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                handleRating(e, "hard");
-              }}
-              className="flex items-center gap-1 py-1 px-2 hover:text-text transition-colors"
-            >
-              <span className="text-lg">🤔</span>
-              <span className="text-xs">Hard</span>
-            </button>
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                handleRating(e, "good");
-              }}
-              className="flex items-center gap-1 py-1 px-2 hover:text-text transition-colors"
-            >
-              <span className="text-lg">😊</span>
-              <span className="text-xs">Good</span>
-            </button>
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                handleRating(e, "easy");
-              }}
-              className="flex items-center gap-1 py-1 px-2 hover:text-text transition-colors"
-            >
-              <span className="text-lg">🎉</span>
-              <span className="text-xs">Easy</span>
-            </button>
-          </div>
-        </div>
-      )}
-    </>
     );
   };
 
