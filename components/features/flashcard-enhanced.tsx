@@ -534,7 +534,6 @@ export function FlashcardEnhanced({
           }
         }
 
-        .flashcard,
         .flashcard-recall,
         .flashcard-listening {
           position: relative;
@@ -547,6 +546,13 @@ export function FlashcardEnhanced({
         }
 
         .flashcard {
+          position: relative;
+          width: 100%;
+          height: 100%;
+          border-radius: 20px;
+          background: var(--bg-primary);
+          box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12), 0 0 1px rgba(0, 0, 0, 0.1);
+          /* NO overflow: hidden - it breaks transform-style: preserve-3d */
           transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
           transform-style: preserve-3d;
           cursor: pointer;
