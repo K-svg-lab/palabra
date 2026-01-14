@@ -274,17 +274,17 @@ export function ReviewSessionEnhanced({
   return (
     <div className="flex flex-col h-screen max-h-screen overflow-hidden">
       {/* Header */}
-      <div className="flex items-center justify-between px-2 py-1 md:px-3 md:py-1.5 border-b border-separator flex-shrink-0">
+      <div className="flex items-center justify-between px-3 py-2 md:px-4 md:py-2.5 border-b border-separator flex-shrink-0">
         <button
           onClick={handleCancel}
-          className="p-2 rounded-full hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
+          className="p-1.5 rounded-full hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
           aria-label="Exit review session"
         >
-          <X className="w-6 h-6 text-text-secondary" />
+          <X className="w-5 h-5 text-text-secondary" />
         </button>
 
-        <div className="flex-1 mx-3 md:mx-4">
-          <div className="flex items-center justify-between mb-1">
+        <div className="flex-1 mx-2 md:mx-3">
+          <div className="flex items-center justify-between mb-0.5">
             <span className="text-sm font-medium text-text-secondary">
               {results.length} / {processedWords.length}
             </span>
@@ -320,7 +320,7 @@ export function ReviewSessionEnhanced({
 
       {/* Flashcard Area - Clickable on mobile to flip */}
       <div 
-        className="flex-1 flex items-center justify-center px-2 py-1 overflow-hidden"
+        className="flex-1 flex items-center justify-center px-3 py-2 md:px-4 md:py-3 overflow-hidden"
         onClick={() => {
           // On mobile, clicking anywhere flips the card
           if (window.innerWidth < 768 && config.mode === 'recognition') {
@@ -342,77 +342,50 @@ export function ReviewSessionEnhanced({
       </div>
 
       {/* Navigation and Rating Controls */}
-      <div className="px-2 py-1 md:px-3 md:py-1.5 space-y-1 border-t border-separator flex-shrink-0 pb-safe">
+      <div className="px-3 py-2 md:px-4 md:py-2.5 space-y-2 border-t border-separator flex-shrink-0 pb-safe">
 
         {/* Rating Buttons - Show when flipped in recognition mode */}
         {config.mode === 'recognition' && isFlipped && (
-          <div className="flex items-center justify-center gap-2 md:gap-3 text-text-secondary text-sm pb-0.5">
+          <div className="flex items-center justify-center gap-1.5 md:gap-2.5">
             <button
               onClick={() => handleRating("forgot")}
-              className="flex items-center gap-1 py-1 px-2 hover:text-text transition-colors"
+              className="flex items-center gap-1 py-1.5 px-3 rounded-lg bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 transition-colors"
             >
-              <span className="text-base">😞</span>
-              <span className="text-xs">Forgot</span>
+              <span className="text-lg">😞</span>
+              <span className="text-xs font-medium text-text-secondary">Forgot</span>
             </button>
             <button
               onClick={() => handleRating("hard")}
-              className="flex items-center gap-1 py-1 px-2 hover:text-text transition-colors"
+              className="flex items-center gap-1 py-1.5 px-3 rounded-lg bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 transition-colors"
             >
-              <span className="text-base">🤔</span>
-              <span className="text-xs">Hard</span>
+              <span className="text-lg">🤔</span>
+              <span className="text-xs font-medium text-text-secondary">Hard</span>
             </button>
             <button
               onClick={() => handleRating("good")}
-              className="flex items-center gap-1 py-1 px-2 hover:text-text transition-colors"
+              className="flex items-center gap-1 py-1.5 px-3 rounded-lg bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 transition-colors"
             >
-              <span className="text-base">😊</span>
-              <span className="text-xs">Good</span>
+              <span className="text-lg">😊</span>
+              <span className="text-xs font-medium text-text-secondary">Good</span>
             </button>
             <button
               onClick={() => handleRating("easy")}
-              className="flex items-center gap-1 py-1 px-2 hover:text-text transition-colors"
+              className="flex items-center gap-1 py-1.5 px-3 rounded-lg bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 transition-colors"
             >
-              <span className="text-base">🎉</span>
-              <span className="text-xs">Easy</span>
+              <span className="text-lg">🎉</span>
+              <span className="text-xs font-medium text-text-secondary">Easy</span>
             </button>
           </div>
         )}
 
-        {/* Card Navigation */}
-        <div className="flex items-center justify-center gap-4 md:gap-6">
-          <button
-            onClick={handlePrevious}
-            disabled={currentIndex === 0}
-            className="p-2 rounded-full hover:bg-black/5 dark:hover:bg-white/5 transition-colors disabled:opacity-30 disabled:pointer-events-none"
-            aria-label="Previous card"
-          >
-            <ChevronLeft className="w-5 h-5 text-text-secondary" />
-          </button>
-
-          <span className="text-sm text-text-secondary">
-            {currentIndex + 1} / {processedWords.length}
-          </span>
-
-          <button
-            onClick={handleNext}
-            disabled={
-              currentIndex === processedWords.length - 1 ||
-              !results.some(r => r.vocabularyId === currentWord.id)
-            }
-            className="p-2 rounded-full hover:bg-black/5 dark:hover:bg-white/5 transition-colors disabled:opacity-30 disabled:pointer-events-none"
-            aria-label="Next card"
-          >
-            <ChevronRight className="w-5 h-5 text-text-secondary" />
-          </button>
-        </div>
-
-        {/* Keyboard Hints */}
-        <div className="flex flex-wrap justify-center gap-3 text-[10px] text-text-tertiary">
-          {config.mode === 'recognition' && <span>1-4 Rate</span>}
-          {config.mode === 'recognition' && <span>Space/Enter Flip</span>}
-          <span>← → Navigate</span>
-          <span>Esc Exit</span>
-        </div>
+        {/* Keyboard Hints - Only show when rating buttons are not visible */}
+        {!(config.mode === 'recognition' && isFlipped) && (
+          <div className="flex flex-wrap justify-center gap-2.5 text-[10px] text-text-tertiary py-1">
+            {config.mode === 'recognition' && <span>Space/Enter Flip</span>}
+            <span>← → Navigate</span>
+            <span>Esc Exit</span>
+          </div>
+        )}
       </div>
     </div>
   );

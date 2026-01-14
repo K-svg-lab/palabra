@@ -301,7 +301,7 @@ export function FlashcardEnhanced({
               {/* Main answer with gender (only for English to Spanish) */}
               <div className="space-y-3">
                 <div className="flex items-baseline justify-center gap-2 flex-wrap px-4">
-                  <h3 className="text-3xl sm:text-4xl md:text-5xl font-bold text-text leading-tight">
+                  <h3 className="text-4xl sm:text-5xl md:text-6xl font-bold text-text leading-tight">
                     {backContent}
                   </h3>
                   {!isSpanishToEnglish && getGenderAbbreviation() && (
@@ -565,13 +565,13 @@ export function FlashcardEnhanced({
         .flashcard-container {
           width: 100%;
           max-width: 700px;
-          height: clamp(250px, 30vh, 350px);
+          height: 400px;
           margin: 0 auto;
         }
 
         @media (max-width: 640px) {
           .flashcard-container {
-            height: clamp(200px, 28vh, 300px);
+            height: 340px;
             max-width: 90vw;
           }
         }
