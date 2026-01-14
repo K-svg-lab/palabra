@@ -6,10 +6,11 @@
 'use client';
 
 import { useState } from 'react';
-import { Database, Tag, Bell } from 'lucide-react';
+import { Database, Tag, Bell, User } from 'lucide-react';
 import { ImportExportPanel } from '@/components/features/import-export-panel';
 import { TagManagement } from '@/components/features/tag-management';
 import { NotificationSettings } from '@/components/features/notification-settings';
+import { AccountSettings } from '@/components/features/account-settings';
 import { useVocabulary } from '@/lib/hooks/use-vocabulary';
 
 /**
@@ -19,7 +20,7 @@ import { useVocabulary } from '@/lib/hooks/use-vocabulary';
  * @returns Settings page
  */
 export default function SettingsPage() {
-  const [activeTab, setActiveTab] = useState<'notifications' | 'tags' | 'data'>('notifications');
+  const [activeTab, setActiveTab] = useState<'account' | 'notifications' | 'tags' | 'data'>('account');
   const { refetch } = useVocabulary();
   
   const handleDataChanged = () => {
@@ -46,6 +47,18 @@ export default function SettingsPage() {
       <div className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800">
         <div className="px-4 max-w-7xl mx-auto">
           <div className="flex gap-1 overflow-x-auto">
+            <button
+              onClick={() => setActiveTab('account')}
+              className={`flex items-center gap-2 px-4 py-3 border-b-2 transition-colors whitespace-nowrap ${
+                activeTab === 'account'
+                  ? 'border-blue-600 text-blue-600 dark:text-blue-400'
+                  : 'border-transparent text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
+              }`}
+            >
+              <User className="h-4 w-4" />
+              <span className="font-medium">Account</span>
+            </button>
+            
             <button
               onClick={() => setActiveTab('notifications')}
               className={`flex items-center gap-2 px-4 py-3 border-b-2 transition-colors whitespace-nowrap ${
@@ -87,6 +100,12 @@ export default function SettingsPage() {
 
       {/* Content */}
       <div className="px-4 py-6 max-w-7xl mx-auto">
+        {activeTab === 'account' && (
+          <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
+            <AccountSettings onAuthChanged={() => refetch()} />
+          </div>
+        )}
+        
         {activeTab === 'notifications' && (
           <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
             <NotificationSettings onPreferencesChanged={() => refetch()} />
