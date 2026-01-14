@@ -328,12 +328,6 @@ export function ReviewSessionEnhanced({
           }
         }}
       >
-        {/* #region agent log */}
-        {(() => {
-          fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'review-session-enhanced.tsx:320',message:'Rendering FlashcardEnhanced',data:{mode:config.mode,direction:currentDirection,isFlipped,onRateWillPass:config.mode==='recognition'&&isFlipped,wordId:currentWord?.id},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'B,C'})}).catch(()=>{});
-          return null;
-        })()}
-        {/* #endregion */}
         <FlashcardEnhanced
           word={currentWord}
           direction={currentDirection}

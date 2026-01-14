@@ -55,12 +55,6 @@ export function FlashcardEnhanced({
   cardNumber,
   onRate,
 }: FlashcardEnhancedProps) {
-  // #region agent log
-  useEffect(() => {
-    fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'flashcard-enhanced.tsx:58',message:'FlashcardEnhanced mounted',data:{mode,direction,isFlipped,hasOnRate:!!onRate,wordId:word.id,spanish:word.spanishWord,english:word.englishTranslation},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'B,C,D'})}).catch(()=>{});
-  }, []);
-  // #endregion
-
   const [isPlaying, setIsPlaying] = useState(false);
   const [userAnswer, setUserAnswer] = useState("");
   const [answerChecked, setAnswerChecked] = useState(false);
@@ -72,12 +66,6 @@ export function FlashcardEnhanced({
   const [showHint, setShowHint] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const cardRef = useRef<HTMLDivElement>(null);
-
-  // #region agent log
-  useEffect(() => {
-    fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'flashcard-enhanced.tsx:78',message:'FlashcardEnhanced props updated',data:{mode,isFlipped,hasOnRate:!!onRate,hasOnFlip:!!onFlip},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'B,H6'})}).catch(()=>{});
-  }, [mode, isFlipped, onRate, onFlip]);
-  // #endregion
 
   // Auto-focus card for keyboard events on mount and word change
   useEffect(() => {
@@ -93,9 +81,6 @@ export function FlashcardEnhanced({
    * Handle rating button click
    */
   const handleRating = (e: React.MouseEvent, rating: DifficultyRating) => {
-    // #region agent log
-    fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'flashcard-enhanced.tsx:86',message:'handleRating called',data:{rating,hasOnRate:!!onRate},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'B'})}).catch(()=>{});
-    // #endregion
     e.stopPropagation(); // Prevent card flip
     onRate?.(rating);
   };
@@ -191,25 +176,12 @@ export function FlashcardEnhanced({
    * Render Recognition Mode (traditional flip card)
    */
   const renderRecognitionMode = () => {
-    // #region agent log
-    fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'flashcard-enhanced.tsx:185',message:'renderRecognitionMode called',data:{isFlipped,hasOnRate:!!onRate,hasOnFlip:!!onFlip,frontContent:isSpanishToEnglish?word.spanishWord:word.englishTranslation,backContent:isSpanishToEnglish?word.englishTranslation:word.spanishWord},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H1'})}).catch(()=>{});
-    // #endregion
-    
     const handleClick = () => {
-      // #region agent log
-      fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'flashcard-enhanced.tsx:190',message:'Card clicked',data:{isFlipped,hasOnFlip:!!onFlip},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H5'})}).catch(()=>{});
-      // #endregion
       onFlip?.();
     };
     
     const handleKeyDown = (e: React.KeyboardEvent) => {
-      // #region agent log
-      fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'flashcard-enhanced.tsx:197',message:'Key pressed',data:{key:e.key,isFlipped,hasOnFlip:!!onFlip},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H2'})}).catch(()=>{});
-      // #endregion
       if (e.key === "Enter" || e.key === " ") {
-        // #region agent log
-        fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'flashcard-enhanced.tsx:202',message:'Enter/Space detected, calling onFlip',data:{isFlipped,willPreventDefault:true},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H3'})}).catch(()=>{});
-        // #endregion
         e.preventDefault();
         onFlip?.();
       }
@@ -223,29 +195,11 @@ export function FlashcardEnhanced({
         <div className="flashcard-content">
           <div 
             className="flex flex-col items-center justify-center h-full p-6 sm:p-8"
-            onClick={(e) => {
-              // #region agent log
-              fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'flashcard-enhanced.tsx:218',message:'INLINE CLICK on front flex div',data:{target:e.target instanceof HTMLElement?e.target.className:'unknown',currentTarget:e.currentTarget.className,isFlipped},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H10'})}).catch(()=>{});
-              // #endregion
-              handleClick();
-            }}
-            onKeyDown={(e) => {
-              // #region agent log
-              fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'flashcard-enhanced.tsx:226',message:'INLINE KEYDOWN on front flex div',data:{key:e.key,isFlipped},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H11'})}).catch(()=>{});
-              // #endregion
-              handleKeyDown(e);
-            }}
+            onClick={handleClick}
+            onKeyDown={handleKeyDown}
             role="button"
             tabIndex={0}
-            ref={(el) => {
-              cardRef.current = el;
-              // #region agent log
-              if (el) {
-                const computed = window.getComputedStyle(el);
-                fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'flashcard-enhanced.tsx:245',message:'Front inner div CSS',data:{transform:computed.transform,display:computed.display,pointerEvents:computed.pointerEvents,position:computed.position},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'I,J,K'})}).catch(()=>{});
-              }
-              // #endregion
-            }}>
+            ref={cardRef}>
             {cardNumber && (
               <div className="absolute top-4 left-0 right-0 text-center text-xs text-text-tertiary font-medium pointer-events-none">
                 {cardNumber}
@@ -287,29 +241,11 @@ export function FlashcardEnhanced({
         <div className="flashcard-content">
           <div 
             className="flex flex-col h-full p-6 sm:p-8"
-            onClick={(e) => {
-              // #region agent log
-              fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'flashcard-enhanced.tsx:283',message:'INLINE CLICK on back flex div',data:{target:e.target instanceof HTMLElement?e.target.className:'unknown',currentTarget:e.currentTarget.className,isFlipped},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H12'})}).catch(()=>{});
-              // #endregion
-              handleClick();
-            }}
-            onKeyDown={(e) => {
-              // #region agent log
-              fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'flashcard-enhanced.tsx:291',message:'INLINE KEYDOWN on back flex div',data:{key:e.key,isFlipped},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H13'})}).catch(()=>{});
-              // #endregion
-              handleKeyDown(e);
-            }}
+            onClick={handleClick}
+            onKeyDown={handleKeyDown}
             role="button"
             tabIndex={0}
-            ref={(el) => {
-              cardRef.current = el;
-              // #region agent log
-              if (el) {
-                const computed = window.getComputedStyle(el);
-                fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'flashcard-enhanced.tsx:310',message:'Back inner div CSS',data:{transform:computed.transform,display:computed.display,pointerEvents:computed.pointerEvents,position:computed.position},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'I,J,K'})}).catch(()=>{});
-              }
-              // #endregion
-            }}>
+            ref={cardRef}>
           {cardNumber && (
             <div className="absolute top-4 left-0 right-0 text-center text-xs text-text-tertiary font-medium">
               {cardNumber}
@@ -527,12 +463,6 @@ export function FlashcardEnhanced({
   );
 
   // Render appropriate mode
-  // #region agent log
-  useEffect(() => {
-    fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'flashcard-enhanced.tsx:510',message:'About to render mode',data:{mode,willRenderRecognition:mode==='recognition',willRenderRecall:mode==='recall',willRenderListening:mode==='listening'},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'C'})}).catch(()=>{});
-  }, [mode]);
-  // #endregion
-  
   return (
     <div className="flashcard-container">
       {mode === 'recognition' && renderRecognitionMode()}
