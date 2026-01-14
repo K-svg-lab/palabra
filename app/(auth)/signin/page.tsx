@@ -9,6 +9,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { getSyncService } from '@/lib/services/sync';
 import { clearAllUserData } from '@/lib/db/schema';
+import { completeOnboarding } from '@/lib/utils/onboarding';
 
 export default function SignInPage() {
   const router = useRouter();
@@ -56,6 +57,9 @@ export default function SignInPage() {
         console.error('⚠️ Sync failed:', syncError);
         // Don't block navigation if sync fails
       }
+
+      // Mark onboarding as complete (user has signed in)
+      completeOnboarding();
 
       // Redirect to dashboard
       router.push('/');
