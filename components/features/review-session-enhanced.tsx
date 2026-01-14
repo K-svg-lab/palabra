@@ -330,7 +330,7 @@ export function ReviewSessionEnhanced({
           onAnswerSubmit={handleAnswerSubmit}
           onAudioPlay={handleAudioPlay}
           cardNumber={`Card ${currentIndex + 1} of ${processedWords.length}`}
-          onRate={config.mode === 'recognition' && isFlipped ? handleRating : undefined}
+          onRate={config.mode === 'recognition' ? handleRating : undefined}
         />
       </div>
 
