@@ -13,7 +13,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { Loader2, Check, Edit2, AlertCircle } from 'lucide-react';
 import { useLookupVocabulary, useAddVocabulary } from '@/lib/hooks/use-vocabulary';
@@ -63,9 +63,20 @@ export function VocabularyEntryFormEnhanced({ onSuccess, onCancel }: Props) {
   const { register, handleSubmit, watch, setValue, formState: { errors } } = useForm<VocabularyFormData>();
   const lookupMutation = useLookupVocabulary();
   const addMutation = useAddVocabulary();
+  const inputRef = useRef<HTMLInputElement>(null);
 
   const spanishWord = watch('spanishWord');
   const notes = watch('notes');
+
+  // Auto-focus input field when component mounts
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (inputRef.current) {
+        inputRef.current.focus();
+      }
+    }, 100);
+    return () => clearTimeout(timer);
+  }, []);
 
   const handleLookup = async () => {
     if (!spanishWord || spanishWord.trim().length === 0) return;
@@ -98,10 +109,13 @@ export function VocabularyEntryFormEnhanced({ onSuccess, onCancel }: Props) {
     }
   };
 
-  const handleUseSuggestion = (suggestion: string) => {
+  const handleUseSuggestion = (e: React.MouseEvent, suggestion: string) => {
+    e.preventDefault();
+    e.stopPropagation();
     setValue('spanishWord', suggestion);
     setSpellCheckResult(null);
-    setTimeout(() => handleLookup(), 100);
+    // Trigger lookup immediately with the corrected word
+    handleLookup();
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -186,6 +200,7 @@ export function VocabularyEntryFormEnhanced({ onSuccess, onCancel }: Props) {
             id="spanishWord"
             type="text"
             {...register('spanishWord', { required: 'Spanish word is required' })}
+            ref={inputRef}
             onKeyDown={handleKeyDown}
             className="flex-1 px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-black focus:ring-2 focus:ring-accent focus:border-transparent"
             placeholder="perro"
@@ -232,7 +247,7 @@ export function VocabularyEntryFormEnhanced({ onSuccess, onCancel }: Props) {
                       <button
                         key={suggestion}
                         type="button"
-                        onClick={() => handleUseSuggestion(suggestion)}
+                        onClick={(e) => handleUseSuggestion(e, suggestion)}
                         className="px-3 py-1 text-sm bg-white dark:bg-gray-800 border border-yellow-300 dark:border-yellow-700 rounded-md hover:bg-yellow-100 dark:hover:bg-yellow-900/40 transition-colors"
                       >
                         {suggestion}
@@ -337,7 +352,6 @@ export function VocabularyEntryFormEnhanced({ onSuccess, onCancel }: Props) {
                 <option value="">Not specified</option>
                 <option value="masculine">Masculine</option>
                 <option value="feminine">Feminine</option>
-                <option value="neutral">Neutral</option>
               </select>
             </div>
 
