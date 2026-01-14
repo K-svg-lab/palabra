@@ -10,7 +10,8 @@
 'use client';
 
 import { useState } from 'react';
-import { ChevronRight, BookOpen, Brain, TrendingUp, X } from 'lucide-react';
+import { ChevronRight, BookOpen, Brain, TrendingUp, X, Cloud } from 'lucide-react';
+import Link from 'next/link';
 
 interface OnboardingWelcomeProps {
   onComplete: () => void;
@@ -38,6 +39,14 @@ const ONBOARDING_STEPS = [
     description: 'Watch your vocabulary grow with detailed statistics, streaks, and achievement milestones.',
     color: 'text-green-600 dark:text-green-400',
     bgColor: 'bg-green-50 dark:bg-green-900/20',
+  },
+  {
+    icon: Cloud,
+    title: 'Sync Across Devices',
+    description: 'Sign in to access your vocabulary from any device. Your progress is automatically backed up and synced.',
+    color: 'text-indigo-600 dark:text-indigo-400',
+    bgColor: 'bg-indigo-50 dark:bg-indigo-900/20',
+    isAuthStep: true,
   },
 ];
 
@@ -131,6 +140,30 @@ export function OnboardingWelcome({ onComplete, onSkip }: OnboardingWelcomeProps
                 {step.description}
               </p>
             </div>
+
+            {/* Authentication Options (Last Step) */}
+            {step.isAuthStep && (
+              <div className="space-y-3 pt-4">
+                <Link
+                  href="/signup"
+                  className="block w-full px-6 py-3 bg-accent text-white rounded-lg hover:bg-accent/90 transition-colors font-medium shadow-lg shadow-accent/20"
+                >
+                  Create Account
+                </Link>
+                <Link
+                  href="/signin"
+                  className="block w-full px-6 py-3 bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors font-medium"
+                >
+                  Sign In
+                </Link>
+                <button
+                  onClick={onComplete}
+                  className="w-full px-6 py-3 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-colors text-sm font-medium"
+                >
+                  Skip for now (use offline)
+                </button>
+              </div>
+            )}
           </div>
         </div>
 
@@ -151,15 +184,17 @@ export function OnboardingWelcome({ onComplete, onSkip }: OnboardingWelcomeProps
             {currentStep + 1} of {ONBOARDING_STEPS.length}
           </div>
 
-          {/* Next/Get Started Button */}
-          <button
-            onClick={handleNext}
-            className="px-6 py-2 bg-accent text-white rounded-full hover:bg-accent/90 transition-colors font-medium flex items-center gap-2 shadow-lg shadow-accent/20"
-            aria-label={isLastStep ? 'Complete onboarding' : 'Next step'}
-          >
-            {isLastStep ? 'Get Started' : 'Next'}
-            <ChevronRight className="w-4 h-4" />
-          </button>
+          {/* Next/Get Started Button - Hidden on auth step */}
+          {!step.isAuthStep && (
+            <button
+              onClick={handleNext}
+              className="px-6 py-2 bg-accent text-white rounded-full hover:bg-accent/90 transition-colors font-medium flex items-center gap-2 shadow-lg shadow-accent/20"
+              aria-label={isLastStep ? 'Complete onboarding' : 'Next step'}
+            >
+              {isLastStep ? 'Get Started' : 'Next'}
+              <ChevronRight className="w-4 h-4" />
+            </button>
+          )}
         </div>
       </div>
     </div>
