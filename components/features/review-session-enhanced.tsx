@@ -41,6 +41,11 @@ export function ReviewSessionEnhanced({
   const [currentDirection, setCurrentDirection] = useState<ReviewDirection>(
     config.direction === 'mixed' ? 'spanish-to-english' : config.direction
   );
+
+  // Scroll to top when component mounts (fixes inherited scroll position from config page)
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'instant' });
+  }, []);
   
   // Process words based on configuration
   const processedWords = useMemo(() => {
