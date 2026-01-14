@@ -61,9 +61,8 @@ export default function SignInPage() {
       // Mark onboarding as complete (user has signed in)
       completeOnboarding();
 
-      // Redirect to dashboard
-      router.push('/');
-      router.refresh();
+      // Force hard reload to clear all cached data
+      window.location.href = '/';
     } catch (err: any) {
       setError(err.message);
     } finally {
