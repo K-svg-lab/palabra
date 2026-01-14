@@ -79,11 +79,14 @@ export function FlashcardEnhanced({
   }, [mode, isFlipped, onRate, onFlip]);
   // #endregion
 
-  // Auto-focus card for keyboard events
+  // Auto-focus card for keyboard events on mount and word change
   useEffect(() => {
-    if (cardRef.current && mode === 'recognition') {
-      cardRef.current.focus();
-    }
+    const timer = setTimeout(() => {
+      if (cardRef.current && mode === 'recognition') {
+        cardRef.current.focus();
+      }
+    }, 100); // Small delay to ensure DOM is ready
+    return () => clearTimeout(timer);
   }, [word.id, mode]);
 
   /**
@@ -599,14 +602,15 @@ export function FlashcardEnhanced({
       <style jsx>{`
         .flashcard-container {
           width: 100%;
-          max-width: 600px;
-          height: 400px;
+          max-width: 800px;
+          height: clamp(400px, 50vh, 600px);
           margin: 0 auto;
         }
 
         @media (max-width: 640px) {
           .flashcard-container {
-            height: 350px;
+            height: clamp(350px, 45vh, 500px);
+            max-width: 92vw;
           }
         }
 
