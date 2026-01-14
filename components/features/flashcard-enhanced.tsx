@@ -235,28 +235,30 @@ export function FlashcardEnhanced({
               <Volume2 className={`w-5 h-5 ${isPlaying ? "text-accent" : "text-text-secondary"} pointer-events-none`} />
             </button>
 
-            <div className="text-center space-y-4 max-w-xl pointer-events-none">
+            <div className="text-center space-y-5 max-w-xl pointer-events-none">
               {/* Main word with gender */}
-              <div className="space-y-2">
-                <h2 className="text-4xl sm:text-5xl md:text-6xl font-bold text-text leading-tight px-4">
-                  {frontContent}
+              <div className="space-y-3">
+                <div className="flex items-baseline justify-center gap-2 flex-wrap px-4">
+                  <h2 className="text-4xl sm:text-5xl md:text-6xl font-bold text-text leading-tight">
+                    {frontContent}
+                  </h2>
                   {isSpanishToEnglish && getGenderAbbreviation() && (
-                    <span className="text-3xl sm:text-4xl md:text-5xl text-text-secondary/70 ml-2">
+                    <span className="text-lg sm:text-xl text-text-tertiary/80 font-normal">
                       ({getGenderAbbreviation()})
                     </span>
                   )}
-                </h2>
+                </div>
                 
                 {/* Part of speech in Spanish (if front is Spanish) */}
                 {isSpanishToEnglish && getSpanishPartOfSpeech() && (
-                  <p className="text-sm sm:text-base text-text-secondary font-medium tracking-wide">
+                  <p className="text-xs sm:text-sm text-text-secondary/80 font-medium tracking-[0.05em] uppercase">
                     {getSpanishPartOfSpeech()}
                   </p>
                 )}
                 
                 {/* Part of speech in English (if front is English) */}
                 {!isSpanishToEnglish && word.partOfSpeech && (
-                  <p className="text-sm sm:text-base text-text-secondary font-medium tracking-wide capitalize">
+                  <p className="text-xs sm:text-sm text-text-secondary/80 font-medium tracking-[0.05em] uppercase">
                     {word.partOfSpeech}
                   </p>
                 )}
@@ -264,9 +266,10 @@ export function FlashcardEnhanced({
 
               {/* Example sentence */}
               {word.examples && word.examples.length > 0 && (
-                <div className="pt-3 border-t border-separator/30">
-                  <p className="text-base sm:text-lg text-text-secondary/90 italic leading-relaxed px-4">
-                    &ldquo;{isSpanishToEnglish ? word.examples[0].spanish : word.examples[0].english}&rdquo;
+                <div className="pt-4 mt-1">
+                  <div className="h-px w-16 bg-separator/40 mx-auto mb-4"></div>
+                  <p className="text-sm sm:text-base text-text-secondary/90 italic leading-relaxed px-6 font-light">
+                    {isSpanishToEnglish ? word.examples[0].spanish : word.examples[0].english}
                   </p>
                 </div>
               )}
@@ -293,28 +296,30 @@ export function FlashcardEnhanced({
             </div>
           )}
 
-          <div className="flex-1 flex flex-col items-center justify-center space-y-4 max-w-xl mx-auto pointer-events-none">
-            <div className="text-center space-y-4">
+          <div className="flex-1 flex flex-col items-center justify-center space-y-5 max-w-xl mx-auto pointer-events-none">
+            <div className="text-center space-y-5">
               {/* Main answer with gender (only for English to Spanish) */}
-              <div className="space-y-2">
-                <h3 className="text-3xl sm:text-4xl md:text-5xl font-bold text-text leading-tight px-4">
-                  {backContent}
+              <div className="space-y-3">
+                <div className="flex items-baseline justify-center gap-2 flex-wrap px-4">
+                  <h3 className="text-3xl sm:text-4xl md:text-5xl font-bold text-text leading-tight">
+                    {backContent}
+                  </h3>
                   {!isSpanishToEnglish && getGenderAbbreviation() && (
-                    <span className="text-2xl sm:text-3xl md:text-4xl text-text-secondary/70 ml-2">
+                    <span className="text-lg sm:text-xl text-text-tertiary/80 font-normal">
                       ({getGenderAbbreviation()})
                     </span>
                   )}
-                </h3>
+                </div>
                 
                 {/* Part of speech on back side */}
                 {!isSpanishToEnglish && getSpanishPartOfSpeech() && (
-                  <p className="text-sm sm:text-base text-text-secondary font-medium tracking-wide">
+                  <p className="text-xs sm:text-sm text-text-secondary/80 font-medium tracking-[0.05em] uppercase">
                     {getSpanishPartOfSpeech()}
                   </p>
                 )}
                 
                 {isSpanishToEnglish && word.partOfSpeech && (
-                  <p className="text-sm sm:text-base text-text-secondary font-medium tracking-wide capitalize">
+                  <p className="text-xs sm:text-sm text-text-secondary/80 font-medium tracking-[0.05em] uppercase">
                     {word.partOfSpeech}
                   </p>
                 )}
@@ -322,9 +327,10 @@ export function FlashcardEnhanced({
               
               {/* Example sentence in target language */}
               {word.examples && word.examples.length > 0 && (
-                <div className="pt-3 border-t border-separator/30">
-                  <p className="text-base sm:text-lg text-text-secondary/90 italic px-4 leading-relaxed">
-                    &ldquo;{isSpanishToEnglish ? word.examples[0].english : word.examples[0].spanish}&rdquo;
+                <div className="pt-4 mt-1">
+                  <div className="h-px w-16 bg-separator/40 mx-auto mb-4"></div>
+                  <p className="text-sm sm:text-base text-text-secondary/90 italic px-6 leading-relaxed font-light">
+                    {isSpanishToEnglish ? word.examples[0].english : word.examples[0].spanish}
                   </p>
                 </div>
               )}
@@ -350,38 +356,41 @@ export function FlashcardEnhanced({
         )}
 
         {/* Question */}
-        <div className="text-center space-y-4 max-w-md">
-          <p className="text-sm text-text-secondary font-medium">
-            Type the {backLanguage} translation:
+        <div className="text-center space-y-5 max-w-md">
+          <p className="text-xs sm:text-sm text-text-tertiary/90 font-medium uppercase tracking-wider">
+            Type the {backLanguage} translation
           </p>
           
-          <div className="space-y-2">
-            <h2 className="text-4xl md:text-5xl font-bold text-text">
-              {frontContent}
+          <div className="space-y-3">
+            <div className="flex items-baseline justify-center gap-2 flex-wrap">
+              <h2 className="text-4xl md:text-5xl font-bold text-text">
+                {frontContent}
+              </h2>
               {isSpanishToEnglish && getGenderAbbreviation() && (
-                <span className="text-3xl md:text-4xl text-text-secondary/70 ml-2">
+                <span className="text-lg sm:text-xl text-text-tertiary/80 font-normal">
                   ({getGenderAbbreviation()})
                 </span>
               )}
-            </h2>
+            </div>
             
             {isSpanishToEnglish && getSpanishPartOfSpeech() && (
-              <p className="text-sm text-text-secondary font-medium tracking-wide">
+              <p className="text-xs sm:text-sm text-text-secondary/80 font-medium tracking-[0.05em] uppercase">
                 {getSpanishPartOfSpeech()}
               </p>
             )}
             
             {!isSpanishToEnglish && word.partOfSpeech && (
-              <p className="text-sm text-text-secondary font-medium tracking-wide capitalize">
+              <p className="text-xs sm:text-sm text-text-secondary/80 font-medium tracking-[0.05em] uppercase">
                 {word.partOfSpeech}
               </p>
             )}
           </div>
 
           {word.examples && word.examples.length > 0 && (
-            <div className="pt-2 border-t border-separator/30 mt-3">
-              <p className="text-sm sm:text-base text-text-secondary/90 italic leading-relaxed">
-                &ldquo;{isSpanishToEnglish ? word.examples[0].spanish : word.examples[0].english}&rdquo;
+            <div className="pt-4">
+              <div className="h-px w-12 bg-separator/40 mx-auto mb-3"></div>
+              <p className="text-xs sm:text-sm text-text-secondary/80 italic leading-relaxed font-light">
+                {isSpanishToEnglish ? word.examples[0].spanish : word.examples[0].english}
               </p>
             </div>
           )}
@@ -466,12 +475,12 @@ export function FlashcardEnhanced({
         )}
 
         {/* Instructions */}
-        <div className="text-center space-y-2">
-          <p className="text-lg text-text-secondary font-medium">
+        <div className="text-center space-y-3">
+          <p className="text-base sm:text-lg text-text-secondary font-medium">
             🎧 Listen and type what you hear
           </p>
           {getSpanishPartOfSpeech() && (
-            <p className="text-sm text-text-secondary font-medium tracking-wide">
+            <p className="text-xs sm:text-sm text-text-secondary/80 font-medium tracking-[0.05em] uppercase">
               {getSpanishPartOfSpeech()}
             </p>
           )}
