@@ -212,15 +212,25 @@ export function FlashcardEnhanced({
         <div className="flashcard-content">
           <div 
             className="flex flex-col items-center justify-center h-full p-6 sm:p-8"
-            onClick={handleClick}
-            onKeyDown={handleKeyDown}
+            onClick={(e) => {
+              // #region agent log
+              fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'flashcard-enhanced.tsx:218',message:'INLINE CLICK on front flex div',data:{target:e.target instanceof HTMLElement?e.target.className:'unknown',currentTarget:e.currentTarget.className,isFlipped},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H10'})}).catch(()=>{});
+              // #endregion
+              handleClick();
+            }}
+            onKeyDown={(e) => {
+              // #region agent log
+              fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'flashcard-enhanced.tsx:226',message:'INLINE KEYDOWN on front flex div',data:{key:e.key,isFlipped},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H11'})}).catch(()=>{});
+              // #endregion
+              handleKeyDown(e);
+            }}
             role="button"
             tabIndex={0}
             ref={(el) => {
             // #region agent log
             if (el) {
               const computed = window.getComputedStyle(el);
-              fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'flashcard-enhanced.tsx:232',message:'Front inner div CSS',data:{transform:computed.transform,display:computed.display,pointerEvents:computed.pointerEvents,position:computed.position},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'I,J,K'})}).catch(()=>{});
+              fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'flashcard-enhanced.tsx:238',message:'Front inner div CSS',data:{transform:computed.transform,display:computed.display,pointerEvents:computed.pointerEvents,position:computed.position},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'I,J,K'})}).catch(()=>{});
             }
             // #endregion
           }}>
@@ -265,15 +275,25 @@ export function FlashcardEnhanced({
         <div className="flashcard-content">
           <div 
             className="flex flex-col h-full p-6 sm:p-8"
-            onClick={handleClick}
-            onKeyDown={handleKeyDown}
+            onClick={(e) => {
+              // #region agent log
+              fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'flashcard-enhanced.tsx:283',message:'INLINE CLICK on back flex div',data:{target:e.target instanceof HTMLElement?e.target.className:'unknown',currentTarget:e.currentTarget.className,isFlipped},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H12'})}).catch(()=>{});
+              // #endregion
+              handleClick();
+            }}
+            onKeyDown={(e) => {
+              // #region agent log
+              fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'flashcard-enhanced.tsx:291',message:'INLINE KEYDOWN on back flex div',data:{key:e.key,isFlipped},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H13'})}).catch(()=>{});
+              // #endregion
+              handleKeyDown(e);
+            }}
             role="button"
             tabIndex={0}
             ref={(el) => {
             // #region agent log
             if (el) {
               const computed = window.getComputedStyle(el);
-              fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'flashcard-enhanced.tsx:277',message:'Back inner div CSS',data:{transform:computed.transform,display:computed.display,pointerEvents:computed.pointerEvents,position:computed.position},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'I,J,K'})}).catch(()=>{});
+              fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'flashcard-enhanced.tsx:303',message:'Back inner div CSS',data:{transform:computed.transform,display:computed.display,pointerEvents:computed.pointerEvents,position:computed.position},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'I,J,K'})}).catch(()=>{});
             }
             // #endregion
           }}>
