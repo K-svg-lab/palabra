@@ -198,7 +198,14 @@ export function FlashcardEnhanced({
       aria-label={isFlipped ? `Flip card to show ${frontLanguage}` : `Flip card to show ${backLanguage}`}
     >
       {/* Front Side - Question */}
-      <div className="flashcard-face flashcard-front">
+      <div className="flashcard-face flashcard-front" ref={(el) => {
+        // #region agent log
+        if (el) {
+          const computed = window.getComputedStyle(el);
+          fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'flashcard-enhanced.tsx:203',message:'Front face CSS',data:{transform:computed.transform,backfaceVisibility:computed.backfaceVisibility,display:computed.display,opacity:computed.opacity,visibility:computed.visibility,zIndex:computed.zIndex},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'I,J,K'})}).catch(()=>{});
+        }
+        // #endregion
+      }}>
         <div className="flex flex-col items-center justify-center h-full p-6 sm:p-8">
           {cardNumber && (
             <div className="absolute top-4 left-0 right-0 text-center text-xs text-text-tertiary font-medium">
@@ -238,7 +245,14 @@ export function FlashcardEnhanced({
       </div>
 
       {/* Back Side - Answer with Rating Buttons */}
-      <div className="flashcard-face flashcard-back">
+      <div className="flashcard-face flashcard-back" ref={(el) => {
+        // #region agent log
+        if (el) {
+          const computed = window.getComputedStyle(el);
+          fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'flashcard-enhanced.tsx:242',message:'Back face CSS',data:{transform:computed.transform,backfaceVisibility:computed.backfaceVisibility,display:computed.display,opacity:computed.opacity,visibility:computed.visibility,zIndex:computed.zIndex},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'I,J,K'})}).catch(()=>{});
+        }
+        // #endregion
+      }}>
         <div className="flex flex-col h-full p-6 sm:p-8">
           {cardNumber && (
             <div className="absolute top-4 left-0 right-0 text-center text-xs text-text-tertiary font-medium">
