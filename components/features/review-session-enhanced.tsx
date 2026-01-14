@@ -269,7 +269,7 @@ export function ReviewSessionEnhanced({
   return (
     <div className="flex flex-col h-screen max-h-screen overflow-hidden">
       {/* Header */}
-      <div className="flex items-center justify-between p-3 md:p-4 border-b border-separator flex-shrink-0">
+      <div className="flex items-center justify-between p-2 md:p-3 border-b border-separator flex-shrink-0">
         <button
           onClick={handleCancel}
           className="p-2 rounded-full hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
@@ -313,8 +313,16 @@ export function ReviewSessionEnhanced({
         </button>
       </div>
 
-      {/* Flashcard Area */}
-      <div className="flex-1 flex items-center justify-center p-4 md:p-6 overflow-hidden">
+      {/* Flashcard Area - Clickable on mobile to flip */}
+      <div 
+        className="flex-1 flex items-center justify-center p-2 md:p-3 overflow-hidden"
+        onClick={() => {
+          // On mobile, clicking anywhere flips the card
+          if (window.innerWidth < 768 && config.mode === 'recognition') {
+            handleFlip();
+          }
+        }}
+      >
         {/* #region agent log */}
         {(() => {
           fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'review-session-enhanced.tsx:320',message:'Rendering FlashcardEnhanced',data:{mode:config.mode,direction:currentDirection,isFlipped,onRateWillPass:config.mode==='recognition'&&isFlipped,wordId:currentWord?.id},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'B,C'})}).catch(()=>{});
@@ -335,7 +343,7 @@ export function ReviewSessionEnhanced({
       </div>
 
       {/* Navigation and Rating Controls */}
-      <div className="p-4 md:p-6 space-y-4 border-t border-separator flex-shrink-0 pb-safe">
+      <div className="p-2 md:p-3 space-y-2 border-t border-separator flex-shrink-0 pb-safe">
 
         {/* Card Navigation */}
         <div className="flex items-center justify-center gap-8">

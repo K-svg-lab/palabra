@@ -335,61 +335,51 @@ export function FlashcardEnhanced({
         )}
       </div>
 
-      {/* Rating Buttons - Rendered below flashcard when flipped */}
+      {/* Rating Buttons - Simple text/emoji format for footer */}
       {onRate && isFlipped && (
-        <div className="w-full max-w-600px mt-4">
-          <p className="text-xs text-center text-text-secondary font-medium mb-3">
-            How well did you know this?
-          </p>
-          <div className="grid grid-cols-4 gap-2">
+        <div className="w-full text-center mt-2">
+          <div className="flex items-center justify-center gap-4 text-text-secondary">
             <button
               onClick={(e) => {
                 e.stopPropagation();
                 handleRating(e, "forgot");
               }}
-              className="flex flex-col items-center gap-1 py-3 px-2 rounded-xl font-medium transition-all hover:scale-105 active:scale-95 bg-gradient-to-br from-red-500 to-red-600 text-white shadow-lg hover:shadow-xl"
+              className="flex items-center gap-1 py-1 px-2 hover:text-text transition-colors"
             >
-              <span className="text-xs font-bold opacity-75 pointer-events-none">1</span>
-              <span className="text-xl pointer-events-none">😞</span>
-              <span className="text-xs font-semibold pointer-events-none">Forgot</span>
+              <span className="text-lg">😞</span>
+              <span className="text-xs">Forgot</span>
             </button>
             <button
               onClick={(e) => {
                 e.stopPropagation();
                 handleRating(e, "hard");
               }}
-              className="flex flex-col items-center gap-1 py-3 px-2 rounded-xl font-medium transition-all hover:scale-105 active:scale-95 bg-gradient-to-br from-orange-500 to-orange-600 text-white shadow-lg hover:shadow-xl"
+              className="flex items-center gap-1 py-1 px-2 hover:text-text transition-colors"
             >
-              <span className="text-xs font-bold opacity-75 pointer-events-none">2</span>
-              <span className="text-xl pointer-events-none">🤔</span>
-              <span className="text-xs font-semibold pointer-events-none">Hard</span>
+              <span className="text-lg">🤔</span>
+              <span className="text-xs">Hard</span>
             </button>
             <button
               onClick={(e) => {
                 e.stopPropagation();
                 handleRating(e, "good");
               }}
-              className="flex flex-col items-center gap-1 py-3 px-2 rounded-xl font-medium transition-all hover:scale-105 active:scale-95 bg-gradient-to-br from-green-500 to-green-600 text-white shadow-lg hover:shadow-xl"
+              className="flex items-center gap-1 py-1 px-2 hover:text-text transition-colors"
             >
-              <span className="text-xs font-bold opacity-75 pointer-events-none">3</span>
-              <span className="text-xl pointer-events-none">😊</span>
-              <span className="text-xs font-semibold pointer-events-none">Good</span>
+              <span className="text-lg">😊</span>
+              <span className="text-xs">Good</span>
             </button>
             <button
               onClick={(e) => {
                 e.stopPropagation();
                 handleRating(e, "easy");
               }}
-              className="flex flex-col items-center gap-1 py-3 px-2 rounded-xl font-medium transition-all hover:scale-105 active:scale-95 bg-gradient-to-br from-blue-500 to-blue-600 text-white shadow-lg hover:shadow-xl"
+              className="flex items-center gap-1 py-1 px-2 hover:text-text transition-colors"
             >
-              <span className="text-xs font-bold opacity-75 pointer-events-none">4</span>
-              <span className="text-xl pointer-events-none">🎉</span>
-              <span className="text-xs font-semibold pointer-events-none">Easy</span>
+              <span className="text-lg">🎉</span>
+              <span className="text-xs">Easy</span>
             </button>
           </div>
-          <p className="text-xs text-center text-text-tertiary mt-2">
-            Press 1-4 or tap a button
-          </p>
         </div>
       )}
     </>
@@ -602,15 +592,15 @@ export function FlashcardEnhanced({
       <style jsx>{`
         .flashcard-container {
           width: 100%;
-          max-width: 800px;
-          height: clamp(400px, 50vh, 600px);
+          max-width: 700px;
+          height: clamp(300px, 40vh, 450px);
           margin: 0 auto;
         }
 
         @media (max-width: 640px) {
           .flashcard-container {
-            height: clamp(350px, 45vh, 500px);
-            max-width: 92vw;
+            height: clamp(250px, 35vh, 400px);
+            max-width: 90vw;
           }
         }
 
