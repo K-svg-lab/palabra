@@ -185,7 +185,7 @@ export function FlashcardEnhanced({
     // #endregion
     return (
     <div
-      className={`flashcard ${isFlipped ? "flipped" : ""}`}
+      className="flashcard-simple"
       onClick={onFlip}
       role="button"
       tabIndex={0}
@@ -197,8 +197,10 @@ export function FlashcardEnhanced({
       }}
       aria-label={isFlipped ? `Flip card to show ${frontLanguage}` : `Flip card to show ${backLanguage}`}
     >
-      {/* Front Side - Question */}
-      <div className="flashcard-face flashcard-front" ref={(el) => {
+      {/* Conditionally render EITHER front OR back - no 3D transforms */}
+      {!isFlipped ? (
+        /* Front Side - Question */
+        <div className="flashcard-content" ref={(el) => {
         // #region agent log
         if (el) {
           const computed = window.getComputedStyle(el);
@@ -206,54 +208,54 @@ export function FlashcardEnhanced({
         }
         // #endregion
       }}>
-        <div className="flex flex-col items-center justify-center h-full p-6 sm:p-8">
-          {cardNumber && (
-            <div className="absolute top-4 left-0 right-0 text-center text-xs text-text-tertiary font-medium">
-              {cardNumber}
+          <div className="flex flex-col items-center justify-center h-full p-6 sm:p-8">
+            {cardNumber && (
+              <div className="absolute top-4 left-0 right-0 text-center text-xs text-text-tertiary font-medium">
+                {cardNumber}
+              </div>
+            )}
+
+            <button
+              onClick={handlePlayAudio}
+              disabled={isPlaying}
+              className="absolute top-4 right-4 p-2.5 rounded-full bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 transition-colors disabled:opacity-50"
+              aria-label="Play pronunciation"
+            >
+              <Volume2 className={`w-5 h-5 ${isPlaying ? "text-accent" : "text-text-secondary"}`} />
+            </button>
+
+            <div className="text-center space-y-4">
+              {isSpanishToEnglish && getGenderDisplay() && (
+                <p className="text-2xl sm:text-3xl text-text-secondary font-light">
+                  {getGenderDisplay()}
+                </p>
+              )}
+              <h2 className="text-5xl sm:text-6xl md:text-7xl font-bold text-text leading-tight px-4">
+                {frontContent}
+              </h2>
+              {word.partOfSpeech && (
+                <p className="text-sm sm:text-base text-text-secondary uppercase tracking-wider mt-3">
+                  {word.partOfSpeech}
+                </p>
+              )}
             </div>
-          )}
 
-          <button
-            onClick={handlePlayAudio}
-            disabled={isPlaying}
-            className="absolute top-4 right-4 p-2.5 rounded-full bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 transition-colors disabled:opacity-50"
-            aria-label="Play pronunciation"
-          >
-            <Volume2 className={`w-5 h-5 ${isPlaying ? "text-accent" : "text-text-secondary"}`} />
-          </button>
-
-          <div className="text-center space-y-4">
-            {isSpanishToEnglish && getGenderDisplay() && (
-              <p className="text-2xl sm:text-3xl text-text-secondary font-light">
-                {getGenderDisplay()}
-              </p>
-            )}
-            <h2 className="text-5xl sm:text-6xl md:text-7xl font-bold text-text leading-tight px-4">
-              {frontContent}
-            </h2>
-            {word.partOfSpeech && (
-              <p className="text-sm sm:text-base text-text-secondary uppercase tracking-wider mt-3">
-                {word.partOfSpeech}
-              </p>
-            )}
+            <p className="absolute bottom-6 text-sm text-text-tertiary font-medium">
+              Tap or press Enter to reveal
+            </p>
           </div>
-
-          <p className="absolute bottom-6 text-sm text-text-tertiary font-medium">
-            Tap or press Enter to reveal
-          </p>
         </div>
-      </div>
-
-      {/* Back Side - Answer with Rating Buttons */}
-      <div className="flashcard-face flashcard-back" ref={(el) => {
-        // #region agent log
-        if (el) {
-          const computed = window.getComputedStyle(el);
-          fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'flashcard-enhanced.tsx:242',message:'Back face CSS',data:{transform:computed.transform,backfaceVisibility:computed.backfaceVisibility,display:computed.display,opacity:computed.opacity,visibility:computed.visibility,zIndex:computed.zIndex},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'I,J,K'})}).catch(()=>{});
-        }
-        // #endregion
-      }}>
-        <div className="flex flex-col h-full p-6 sm:p-8">
+      ) : (
+        /* Back Side - Answer with Rating Buttons */
+        <div className="flashcard-content" ref={(el) => {
+          // #region agent log
+          if (el) {
+            const computed = window.getComputedStyle(el);
+            fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'flashcard-enhanced.tsx:242',message:'Back face CSS',data:{transform:computed.transform,backfaceVisibility:computed.backfaceVisibility,display:computed.display,opacity:computed.opacity,visibility:computed.visibility,zIndex:computed.zIndex},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'I,J,K'})}).catch(()=>{});
+          }
+          // #endregion
+        }}>
+          <div className="flex flex-col h-full p-6 sm:p-8">
           {cardNumber && (
             <div className="absolute top-4 left-0 right-0 text-center text-xs text-text-tertiary font-medium">
               {cardNumber}
@@ -319,8 +321,9 @@ export function FlashcardEnhanced({
               </p>
             </div>
           )}
+          </div>
         </div>
-      </div>
+      )}
     </div>
     );
   };
@@ -523,10 +526,7 @@ export function FlashcardEnhanced({
   // #endregion
   
   return (
-    <div 
-      className="flashcard-container"
-      style={{ perspective: mode === 'recognition' ? "1000px" : undefined }}
-    >
+    <div className="flashcard-container">
       {mode === 'recognition' && renderRecognitionMode()}
       {mode === 'recall' && renderRecallMode()}
       {mode === 'listening' && renderListeningMode()}
@@ -559,58 +559,37 @@ export function FlashcardEnhanced({
           overflow: hidden;
         }
 
-        .flashcard {
+        .flashcard-simple {
           position: relative;
           width: 100%;
           height: 100%;
           border-radius: 20px;
           background: var(--bg-primary);
           box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12), 0 0 1px rgba(0, 0, 0, 0.1);
-          /* NO overflow: hidden - it breaks transform-style: preserve-3d */
-          transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-          transform-style: preserve-3d;
           cursor: pointer;
+          user-select: none;
+          -webkit-user-select: none;
         }
 
-        .flashcard.flipped {
-          transform: rotateY(180deg);
-        }
-
-        .flashcard-face {
-          position: absolute;
+        .flashcard-content {
+          position: relative;
           width: 100%;
           height: 100%;
-          backface-visibility: hidden;
-          -webkit-backface-visibility: hidden;
           border-radius: 20px;
           background: var(--bg-primary);
-          box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12), 0 0 1px rgba(0, 0, 0, 0.1);
           overflow: hidden;
         }
 
-        .flashcard-front {
-          transform: rotateY(0deg);
-        }
-
-        .flashcard-back {
-          transform: rotateY(180deg);
-        }
-
-        .flashcard:focus-visible {
+        .flashcard-simple:focus-visible {
           outline: 3px solid var(--accent);
           outline-offset: 4px;
           border-radius: 20px;
         }
 
         @media (hover: hover) {
-          .flashcard:hover {
+          .flashcard-simple:hover {
             box-shadow: 0 12px 40px rgba(0, 0, 0, 0.18);
           }
-        }
-
-        .flashcard {
-          user-select: none;
-          -webkit-user-select: none;
         }
       `}</style>
     </div>
