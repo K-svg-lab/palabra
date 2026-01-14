@@ -71,12 +71,20 @@ export function FlashcardEnhanced({
   } | null>(null);
   const [showHint, setShowHint] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+  const cardRef = useRef<HTMLDivElement>(null);
 
   // #region agent log
   useEffect(() => {
     fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'flashcard-enhanced.tsx:78',message:'FlashcardEnhanced props updated',data:{mode,isFlipped,hasOnRate:!!onRate,hasOnFlip:!!onFlip},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'B,H6'})}).catch(()=>{});
   }, [mode, isFlipped, onRate, onFlip]);
   // #endregion
+
+  // Auto-focus card for keyboard events
+  useEffect(() => {
+    if (cardRef.current && mode === 'recognition') {
+      cardRef.current.focus();
+    }
+  }, [word.id, mode]);
 
   /**
    * Handle rating button click
@@ -205,9 +213,10 @@ export function FlashcardEnhanced({
     };
     
     return (
-    <div className="flashcard-simple">
-      {/* Conditionally render EITHER front OR back - no 3D transforms */}
-      {!isFlipped ? (
+    <>
+      <div className="flashcard-simple">
+        {/* Conditionally render EITHER front OR back - no 3D transforms */}
+        {!isFlipped ? (
         /* Front Side - Question */
         <div className="flashcard-content">
           <div 
@@ -227,13 +236,14 @@ export function FlashcardEnhanced({
             role="button"
             tabIndex={0}
             ref={(el) => {
-            // #region agent log
-            if (el) {
-              const computed = window.getComputedStyle(el);
-              fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'flashcard-enhanced.tsx:238',message:'Front inner div CSS',data:{transform:computed.transform,display:computed.display,pointerEvents:computed.pointerEvents,position:computed.position},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'I,J,K'})}).catch(()=>{});
-            }
-            // #endregion
-          }}>
+              cardRef.current = el;
+              // #region agent log
+              if (el) {
+                const computed = window.getComputedStyle(el);
+                fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'flashcard-enhanced.tsx:245',message:'Front inner div CSS',data:{transform:computed.transform,display:computed.display,pointerEvents:computed.pointerEvents,position:computed.position},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'I,J,K'})}).catch(()=>{});
+              }
+              // #endregion
+            }}>
             {cardNumber && (
               <div className="absolute top-4 left-0 right-0 text-center text-xs text-text-tertiary font-medium pointer-events-none">
                 {cardNumber}
@@ -290,13 +300,14 @@ export function FlashcardEnhanced({
             role="button"
             tabIndex={0}
             ref={(el) => {
-            // #region agent log
-            if (el) {
-              const computed = window.getComputedStyle(el);
-              fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'flashcard-enhanced.tsx:303',message:'Back inner div CSS',data:{transform:computed.transform,display:computed.display,pointerEvents:computed.pointerEvents,position:computed.position},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'I,J,K'})}).catch(()=>{});
-            }
-            // #endregion
-          }}>
+              cardRef.current = el;
+              // #region agent log
+              if (el) {
+                const computed = window.getComputedStyle(el);
+                fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'flashcard-enhanced.tsx:310',message:'Back inner div CSS',data:{transform:computed.transform,display:computed.display,pointerEvents:computed.pointerEvents,position:computed.position},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'I,J,K'})}).catch(()=>{});
+              }
+              // #endregion
+            }}>
           {cardNumber && (
             <div className="absolute top-4 left-0 right-0 text-center text-xs text-text-tertiary font-medium">
               {cardNumber}
@@ -316,56 +327,69 @@ export function FlashcardEnhanced({
               )}
             </div>
           </div>
-
-          {/* Rating Buttons - Always visible on back */}
-          {onRate && (
-            <div className="space-y-2 mt-auto pointer-events-auto">
-              <p className="text-xs text-center text-text-secondary font-medium pointer-events-none">
-                How well did you know this?
-              </p>
-              <div className="grid grid-cols-4 gap-2 pointer-events-auto">
-                <button
-                  onClick={(e) => handleRating(e, "forgot")}
-                  className="flex flex-col items-center gap-1 py-3 px-2 rounded-xl font-medium transition-all hover:scale-105 active:scale-95 bg-gradient-to-br from-red-500 to-red-600 text-white shadow-lg hover:shadow-xl pointer-events-auto"
-                >
-                  <span className="text-xs font-bold opacity-75 pointer-events-none">1</span>
-                  <span className="text-xl pointer-events-none">😞</span>
-                  <span className="text-xs font-semibold pointer-events-none">Forgot</span>
-                </button>
-                <button
-                  onClick={(e) => handleRating(e, "hard")}
-                  className="flex flex-col items-center gap-1 py-3 px-2 rounded-xl font-medium transition-all hover:scale-105 active:scale-95 bg-gradient-to-br from-orange-500 to-orange-600 text-white shadow-lg hover:shadow-xl pointer-events-auto"
-                >
-                  <span className="text-xs font-bold opacity-75 pointer-events-none">2</span>
-                  <span className="text-xl pointer-events-none">🤔</span>
-                  <span className="text-xs font-semibold pointer-events-none">Hard</span>
-                </button>
-                <button
-                  onClick={(e) => handleRating(e, "good")}
-                  className="flex flex-col items-center gap-1 py-3 px-2 rounded-xl font-medium transition-all hover:scale-105 active:scale-95 bg-gradient-to-br from-green-500 to-green-600 text-white shadow-lg hover:shadow-xl pointer-events-auto"
-                >
-                  <span className="text-xs font-bold opacity-75 pointer-events-none">3</span>
-                  <span className="text-xl pointer-events-none">😊</span>
-                  <span className="text-xs font-semibold pointer-events-none">Good</span>
-                </button>
-                <button
-                  onClick={(e) => handleRating(e, "easy")}
-                  className="flex flex-col items-center gap-1 py-3 px-2 rounded-xl font-medium transition-all hover:scale-105 active:scale-95 bg-gradient-to-br from-blue-500 to-blue-600 text-white shadow-lg hover:shadow-xl pointer-events-auto"
-                >
-                  <span className="text-xs font-bold opacity-75 pointer-events-none">4</span>
-                  <span className="text-xl pointer-events-none">🎉</span>
-                  <span className="text-xs font-semibold pointer-events-none">Easy</span>
-                </button>
-              </div>
-              <p className="text-xs text-center text-text-tertiary pointer-events-none">
-                Press 1-4 or tap a button
-              </p>
-            </div>
-          )}
           </div>
         </div>
+        )}
+      </div>
+
+      {/* Rating Buttons - Rendered below flashcard when flipped */}
+      {onRate && isFlipped && (
+        <div className="w-full max-w-600px mt-4">
+          <p className="text-xs text-center text-text-secondary font-medium mb-3">
+            How well did you know this?
+          </p>
+          <div className="grid grid-cols-4 gap-2">
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                handleRating(e, "forgot");
+              }}
+              className="flex flex-col items-center gap-1 py-3 px-2 rounded-xl font-medium transition-all hover:scale-105 active:scale-95 bg-gradient-to-br from-red-500 to-red-600 text-white shadow-lg hover:shadow-xl"
+            >
+              <span className="text-xs font-bold opacity-75 pointer-events-none">1</span>
+              <span className="text-xl pointer-events-none">😞</span>
+              <span className="text-xs font-semibold pointer-events-none">Forgot</span>
+            </button>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                handleRating(e, "hard");
+              }}
+              className="flex flex-col items-center gap-1 py-3 px-2 rounded-xl font-medium transition-all hover:scale-105 active:scale-95 bg-gradient-to-br from-orange-500 to-orange-600 text-white shadow-lg hover:shadow-xl"
+            >
+              <span className="text-xs font-bold opacity-75 pointer-events-none">2</span>
+              <span className="text-xl pointer-events-none">🤔</span>
+              <span className="text-xs font-semibold pointer-events-none">Hard</span>
+            </button>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                handleRating(e, "good");
+              }}
+              className="flex flex-col items-center gap-1 py-3 px-2 rounded-xl font-medium transition-all hover:scale-105 active:scale-95 bg-gradient-to-br from-green-500 to-green-600 text-white shadow-lg hover:shadow-xl"
+            >
+              <span className="text-xs font-bold opacity-75 pointer-events-none">3</span>
+              <span className="text-xl pointer-events-none">😊</span>
+              <span className="text-xs font-semibold pointer-events-none">Good</span>
+            </button>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                handleRating(e, "easy");
+              }}
+              className="flex flex-col items-center gap-1 py-3 px-2 rounded-xl font-medium transition-all hover:scale-105 active:scale-95 bg-gradient-to-br from-blue-500 to-blue-600 text-white shadow-lg hover:shadow-xl"
+            >
+              <span className="text-xs font-bold opacity-75 pointer-events-none">4</span>
+              <span className="text-xl pointer-events-none">🎉</span>
+              <span className="text-xs font-semibold pointer-events-none">Easy</span>
+            </button>
+          </div>
+          <p className="text-xs text-center text-text-tertiary mt-2">
+            Press 1-4 or tap a button
+          </p>
+        </div>
       )}
-    </div>
+    </>
     );
   };
 
@@ -576,16 +600,13 @@ export function FlashcardEnhanced({
         .flashcard-container {
           width: 100%;
           max-width: 600px;
-          height: 100%;
-          min-height: 400px;
-          max-height: calc(100vh - 200px);
+          height: 400px;
           margin: 0 auto;
         }
 
         @media (max-width: 640px) {
           .flashcard-container {
-            max-height: calc(100vh - 180px);
-            min-height: 350px;
+            height: 350px;
           }
         }
 
