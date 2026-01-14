@@ -8,6 +8,7 @@
 import { useEffect, useState } from 'react';
 import { User, LogOut, Cloud, Smartphone } from 'lucide-react';
 import Link from 'next/link';
+import { clearAllUserData } from '@/lib/db/schema';
 
 interface AccountSettingsProps {
   onAuthChanged?: () => void;
@@ -43,14 +44,30 @@ export function AccountSettings({ onAuthChanged }: AccountSettingsProps) {
   const handleSignOut = async () => {
     try {
       setSigningOut(true);
+      
+      // Sign out from server
       await fetch('/api/auth/signout', { method: 'POST' });
-      setUser(null);
-      onAuthChanged?.();
-      window.location.reload();
+      
+      // Clear all local data (important for privacy!)
+      console.log('🗑️ Clearing local data after sign out...');
+      try {
+        await clearAllUserData();
+        console.log('✅ Local data cleared!');
+      } catch (clearError) {
+        console.error('⚠️ Failed to clear local data:', clearError);
+      }
+      
+      // Force hard reload to show clean state
+      window.location.href = '/';
     } catch (error) {
       console.error('Sign out failed:', error);
-    } finally {
-      setSigningOut(false);
+      // Even if sign out fails, try to clear local data and reload
+      try {
+        await clearAllUserData();
+      } catch (clearError) {
+        console.error('Failed to clear local data:', clearError);
+      }
+      window.location.href = '/';
     }
   };
 
