@@ -74,8 +74,8 @@ export function FlashcardEnhanced({
 
   // #region agent log
   useEffect(() => {
-    fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'flashcard-enhanced.tsx:78',message:'FlashcardEnhanced props updated',data:{mode,isFlipped,hasOnRate:!!onRate},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'B'})}).catch(()=>{});
-  }, [mode, isFlipped, onRate]);
+    fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'flashcard-enhanced.tsx:78',message:'FlashcardEnhanced props updated',data:{mode,isFlipped,hasOnRate:!!onRate,hasOnFlip:!!onFlip},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'B,H6'})}).catch(()=>{});
+  }, [mode, isFlipped, onRate, onFlip]);
   // #endregion
 
   /**
@@ -181,20 +181,36 @@ export function FlashcardEnhanced({
    */
   const renderRecognitionMode = () => {
     // #region agent log
-    fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'flashcard-enhanced.tsx:185',message:'renderRecognitionMode called',data:{isFlipped,hasOnRate:!!onRate,frontContent:isSpanishToEnglish?word.spanishWord:word.englishTranslation,backContent:isSpanishToEnglish?word.englishTranslation:word.spanishWord},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'C,D,E'})}).catch(()=>{});
+    fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'flashcard-enhanced.tsx:185',message:'renderRecognitionMode called',data:{isFlipped,hasOnRate:!!onRate,hasOnFlip:!!onFlip,frontContent:isSpanishToEnglish?word.spanishWord:word.englishTranslation,backContent:isSpanishToEnglish?word.englishTranslation:word.spanishWord},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H1'})}).catch(()=>{});
     // #endregion
+    
+    const handleClick = () => {
+      // #region agent log
+      fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'flashcard-enhanced.tsx:190',message:'Card clicked',data:{isFlipped,hasOnFlip:!!onFlip},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H5'})}).catch(()=>{});
+      // #endregion
+      onFlip?.();
+    };
+    
+    const handleKeyDown = (e: React.KeyboardEvent) => {
+      // #region agent log
+      fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'flashcard-enhanced.tsx:197',message:'Key pressed',data:{key:e.key,isFlipped,hasOnFlip:!!onFlip},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H2'})}).catch(()=>{});
+      // #endregion
+      if (e.key === "Enter" || e.key === " ") {
+        // #region agent log
+        fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'flashcard-enhanced.tsx:202',message:'Enter/Space detected, calling onFlip',data:{isFlipped,willPreventDefault:true},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H3'})}).catch(()=>{});
+        // #endregion
+        e.preventDefault();
+        onFlip?.();
+      }
+    };
+    
     return (
     <div
       className="flashcard-simple"
-      onClick={onFlip}
+      onClick={handleClick}
       role="button"
       tabIndex={0}
-      onKeyDown={(e) => {
-        if (e.key === "Enter" || e.key === " ") {
-          e.preventDefault();
-          onFlip?.();
-        }
-      }}
+      onKeyDown={handleKeyDown}
       aria-label={isFlipped ? `Flip card to show ${frontLanguage}` : `Flip card to show ${backLanguage}`}
     >
       {/* Conditionally render EITHER front OR back - no 3D transforms */}
