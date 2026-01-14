@@ -158,15 +158,15 @@ export function FlashcardEnhanced({
   };
 
   /**
-   * Format gender display as abbreviation (m/f)
+   * Format gender display as abbreviation (m./f.) to match vocabulary cards
    */
   const getGenderAbbreviation = () => {
     if (!word.gender || word.partOfSpeech !== "noun") return null;
     
     const abbreviations = {
-      masculine: "m",
-      feminine: "f",
-      neutral: "n"
+      masculine: "m.",
+      feminine: "f.",
+      neutral: "n."
     };
     
     return abbreviations[word.gender];
@@ -238,13 +238,13 @@ export function FlashcardEnhanced({
             <div className="text-center space-y-5 max-w-xl pointer-events-none">
               {/* Main word with gender */}
               <div className="space-y-3">
-                <div className="flex items-baseline justify-center gap-2 flex-wrap px-4">
+                <div className="flex items-baseline justify-center gap-1.5 flex-wrap px-4">
                   <h2 className="text-4xl sm:text-5xl md:text-6xl font-bold text-text leading-tight">
                     {frontContent}
                   </h2>
                   {isSpanishToEnglish && getGenderAbbreviation() && (
-                    <span className="text-lg sm:text-xl text-text-tertiary/80 font-normal">
-                      ({getGenderAbbreviation()})
+                    <span className="text-2xl sm:text-3xl md:text-4xl text-text-tertiary/70 font-normal">
+                      {getGenderAbbreviation()}
                     </span>
                   )}
                 </div>
@@ -300,13 +300,13 @@ export function FlashcardEnhanced({
             <div className="text-center space-y-5">
               {/* Main answer with gender (only for English to Spanish) */}
               <div className="space-y-3">
-                <div className="flex items-baseline justify-center gap-2 flex-wrap px-4">
+                <div className="flex items-baseline justify-center gap-1.5 flex-wrap px-4">
                   <h3 className="text-4xl sm:text-5xl md:text-6xl font-bold text-text leading-tight">
                     {backContent}
                   </h3>
                   {!isSpanishToEnglish && getGenderAbbreviation() && (
-                    <span className="text-lg sm:text-xl text-text-tertiary/80 font-normal">
-                      ({getGenderAbbreviation()})
+                    <span className="text-2xl sm:text-3xl md:text-4xl text-text-tertiary/70 font-normal">
+                      {getGenderAbbreviation()}
                     </span>
                   )}
                 </div>
@@ -362,13 +362,13 @@ export function FlashcardEnhanced({
           </p>
           
           <div className="space-y-3">
-            <div className="flex items-baseline justify-center gap-2 flex-wrap">
+            <div className="flex items-baseline justify-center gap-1.5 flex-wrap">
               <h2 className="text-4xl md:text-5xl font-bold text-text">
                 {frontContent}
               </h2>
               {isSpanishToEnglish && getGenderAbbreviation() && (
-                <span className="text-lg sm:text-xl text-text-tertiary/80 font-normal">
-                  ({getGenderAbbreviation()})
+                <span className="text-2xl md:text-3xl text-text-tertiary/70 font-normal">
+                  {getGenderAbbreviation()}
                 </span>
               )}
             </div>
