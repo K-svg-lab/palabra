@@ -359,14 +359,6 @@ export default function ReviewPage() {
               </p>
             )}
           </div>
-          
-          {/* Phase 8: Enhanced Review Options */}
-          <div className="p-4 rounded-xl bg-accent/10 border border-accent/20 space-y-2">
-            <p className="text-sm font-medium text-accent">✨ New in Phase 8</p>
-            <p className="text-xs text-text-secondary">
-              Multiple review modes, bidirectional cards, and custom sessions
-            </p>
-          </div>
 
           <div className="space-y-3 pt-4">
             <button
