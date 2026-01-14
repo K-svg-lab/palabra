@@ -235,7 +235,7 @@ export function FlashcardEnhanced({
             // #endregion
           }}>
             {cardNumber && (
-              <div className="absolute top-4 left-0 right-0 text-center text-xs text-text-tertiary font-medium">
+              <div className="absolute top-4 left-0 right-0 text-center text-xs text-text-tertiary font-medium pointer-events-none">
                 {cardNumber}
               </div>
             )}
@@ -243,13 +243,13 @@ export function FlashcardEnhanced({
             <button
               onClick={handlePlayAudio}
               disabled={isPlaying}
-              className="absolute top-4 right-4 p-2.5 rounded-full bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 transition-colors disabled:opacity-50"
+              className="absolute top-4 right-4 p-2.5 rounded-full bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 transition-colors disabled:opacity-50 pointer-events-auto"
               aria-label="Play pronunciation"
             >
-              <Volume2 className={`w-5 h-5 ${isPlaying ? "text-accent" : "text-text-secondary"}`} />
+              <Volume2 className={`w-5 h-5 ${isPlaying ? "text-accent" : "text-text-secondary"} pointer-events-none`} />
             </button>
 
-            <div className="text-center space-y-3">
+            <div className="text-center space-y-3 pointer-events-none">
               {isSpanishToEnglish && getGenderDisplay() && (
                 <p className="text-xl sm:text-2xl text-text-secondary font-light">
                   {getGenderDisplay()}
@@ -265,7 +265,7 @@ export function FlashcardEnhanced({
               )}
             </div>
 
-            <p className="absolute bottom-6 text-sm text-text-tertiary font-medium">
+            <p className="absolute bottom-6 text-sm text-text-tertiary font-medium pointer-events-none">
               Tap or press Enter to reveal
             </p>
           </div>
@@ -303,7 +303,7 @@ export function FlashcardEnhanced({
             </div>
           )}
 
-          <div className="flex-1 flex flex-col items-center justify-center space-y-4">
+          <div className="flex-1 flex flex-col items-center justify-center space-y-4 pointer-events-none">
             <div className="text-center space-y-3">
               <h3 className="text-3xl sm:text-4xl md:text-5xl font-bold text-text leading-tight px-4">
                 {backContent}
@@ -319,45 +319,45 @@ export function FlashcardEnhanced({
 
           {/* Rating Buttons - Always visible on back */}
           {onRate && (
-            <div className="space-y-2 mt-auto">
-              <p className="text-xs text-center text-text-secondary font-medium">
+            <div className="space-y-2 mt-auto pointer-events-auto">
+              <p className="text-xs text-center text-text-secondary font-medium pointer-events-none">
                 How well did you know this?
               </p>
-              <div className="grid grid-cols-4 gap-2">
+              <div className="grid grid-cols-4 gap-2 pointer-events-auto">
                 <button
                   onClick={(e) => handleRating(e, "forgot")}
-                  className="flex flex-col items-center gap-1 py-3 px-2 rounded-xl font-medium transition-all hover:scale-105 active:scale-95 bg-gradient-to-br from-red-500 to-red-600 text-white shadow-lg hover:shadow-xl"
+                  className="flex flex-col items-center gap-1 py-3 px-2 rounded-xl font-medium transition-all hover:scale-105 active:scale-95 bg-gradient-to-br from-red-500 to-red-600 text-white shadow-lg hover:shadow-xl pointer-events-auto"
                 >
-                  <span className="text-xs font-bold opacity-75">1</span>
-                  <span className="text-xl">😞</span>
-                  <span className="text-xs font-semibold">Forgot</span>
+                  <span className="text-xs font-bold opacity-75 pointer-events-none">1</span>
+                  <span className="text-xl pointer-events-none">😞</span>
+                  <span className="text-xs font-semibold pointer-events-none">Forgot</span>
                 </button>
                 <button
                   onClick={(e) => handleRating(e, "hard")}
-                  className="flex flex-col items-center gap-1 py-3 px-2 rounded-xl font-medium transition-all hover:scale-105 active:scale-95 bg-gradient-to-br from-orange-500 to-orange-600 text-white shadow-lg hover:shadow-xl"
+                  className="flex flex-col items-center gap-1 py-3 px-2 rounded-xl font-medium transition-all hover:scale-105 active:scale-95 bg-gradient-to-br from-orange-500 to-orange-600 text-white shadow-lg hover:shadow-xl pointer-events-auto"
                 >
-                  <span className="text-xs font-bold opacity-75">2</span>
-                  <span className="text-xl">🤔</span>
-                  <span className="text-xs font-semibold">Hard</span>
+                  <span className="text-xs font-bold opacity-75 pointer-events-none">2</span>
+                  <span className="text-xl pointer-events-none">🤔</span>
+                  <span className="text-xs font-semibold pointer-events-none">Hard</span>
                 </button>
                 <button
                   onClick={(e) => handleRating(e, "good")}
-                  className="flex flex-col items-center gap-1 py-3 px-2 rounded-xl font-medium transition-all hover:scale-105 active:scale-95 bg-gradient-to-br from-green-500 to-green-600 text-white shadow-lg hover:shadow-xl"
+                  className="flex flex-col items-center gap-1 py-3 px-2 rounded-xl font-medium transition-all hover:scale-105 active:scale-95 bg-gradient-to-br from-green-500 to-green-600 text-white shadow-lg hover:shadow-xl pointer-events-auto"
                 >
-                  <span className="text-xs font-bold opacity-75">3</span>
-                  <span className="text-xl">😊</span>
-                  <span className="text-xs font-semibold">Good</span>
+                  <span className="text-xs font-bold opacity-75 pointer-events-none">3</span>
+                  <span className="text-xl pointer-events-none">😊</span>
+                  <span className="text-xs font-semibold pointer-events-none">Good</span>
                 </button>
                 <button
                   onClick={(e) => handleRating(e, "easy")}
-                  className="flex flex-col items-center gap-1 py-3 px-2 rounded-xl font-medium transition-all hover:scale-105 active:scale-95 bg-gradient-to-br from-blue-500 to-blue-600 text-white shadow-lg hover:shadow-xl"
+                  className="flex flex-col items-center gap-1 py-3 px-2 rounded-xl font-medium transition-all hover:scale-105 active:scale-95 bg-gradient-to-br from-blue-500 to-blue-600 text-white shadow-lg hover:shadow-xl pointer-events-auto"
                 >
-                  <span className="text-xs font-bold opacity-75">4</span>
-                  <span className="text-xl">🎉</span>
-                  <span className="text-xs font-semibold">Easy</span>
+                  <span className="text-xs font-bold opacity-75 pointer-events-none">4</span>
+                  <span className="text-xl pointer-events-none">🎉</span>
+                  <span className="text-xs font-semibold pointer-events-none">Easy</span>
                 </button>
               </div>
-              <p className="text-xs text-center text-text-tertiary">
+              <p className="text-xs text-center text-text-tertiary pointer-events-none">
                 Press 1-4 or tap a button
               </p>
             </div>
