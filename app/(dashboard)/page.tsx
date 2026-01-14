@@ -12,7 +12,7 @@ import { Plus } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useVocabularyStats } from '@/lib/hooks/use-vocabulary';
-import { countDueReviews } from '@/lib/db/reviews';
+import { getDueForReviewCount } from '@/lib/db/reviews';
 import { getTodayStats } from '@/lib/db/stats';
 import { OnboardingWelcome } from '@/components/features/onboarding-welcome';
 import { hasCompletedOnboarding, completeOnboarding } from '@/lib/utils/onboarding';
@@ -47,7 +47,7 @@ export default function HomePage() {
     async function loadData() {
       try {
         const [count, today] = await Promise.all([
-          countDueReviews(),
+          getDueForReviewCount(),
           getTodayStats(),
         ]);
         setDueCount(count);
