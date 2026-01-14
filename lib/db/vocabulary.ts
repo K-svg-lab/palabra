@@ -38,9 +38,11 @@ export async function createVocabularyWord(
   
   // Update daily stats - increment new words added today
   try {
+    console.log('📝 Word created, updating daily stats...');
     await incrementNewWordsAdded();
+    console.log('✅ Daily stats updated successfully');
   } catch (error) {
-    console.error('Failed to update daily stats:', error);
+    console.error('❌ Failed to update daily stats:', error);
     // Don't fail vocabulary creation if stats update fails
   }
   

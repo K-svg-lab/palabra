@@ -72,6 +72,7 @@ export default function ProgressPage() {
         }
 
         // Load all necessary data
+        console.log('📊 Loading progress data...');
         const [
           reviews,
           todayStats,
@@ -87,6 +88,9 @@ export default function ProgressPage() {
           getTotalCardsReviewed(),
           getTotalStudyTime(),
         ]);
+        console.log('📊 Today\'s stats loaded:', todayStats);
+        console.log('📊 Total cards reviewed:', totalCardsReviewed);
+        console.log('📊 Recent stats:', last7DaysStats);
 
         // Calculate vocabulary status counts
         const statusCounts = calculateVocabularyStatusCounts(allWords, reviews);

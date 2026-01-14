@@ -29,6 +29,7 @@ export function formatDateKey(date: Date = new Date()): string {
 export async function saveStats(stats: DailyStats): Promise<DailyStats> {
   const db = await getDB();
   await db.put(DB_CONFIG.STORES.STATS, stats);
+  console.log('📊 Stats saved:', stats);
   return stats;
 }
 
@@ -123,8 +124,11 @@ export async function getRecentStats(days: number = 7): Promise<DailyStats[]> {
  * @returns Promise resolving to updated stats
  */
 export async function incrementNewWordsAdded(count: number = 1): Promise<DailyStats> {
+  console.log('➕ Incrementing new words added by', count);
   const stats = await getTodayStats();
+  console.log('📊 Current stats before increment:', stats);
   stats.newWordsAdded += count;
+  console.log('📊 Stats after increment:', stats);
   return saveStats(stats);
 }
 
@@ -141,7 +145,9 @@ export async function updateStatsAfterSession(
   accuracyRate: number,
   timeSpent: number
 ): Promise<DailyStats> {
+  console.log('📝 Updating stats after session:', { cardsReviewed, accuracyRate, timeSpent });
   const stats = await getTodayStats();
+  console.log('📊 Current stats before session update:', stats);
   
   // Update session count
   stats.sessionsCompleted += 1;
@@ -166,6 +172,7 @@ export async function updateStatsAfterSession(
   // Update time spent
   stats.timeSpent += timeSpent;
   
+  console.log('📊 Stats after session update:', stats);
   return saveStats(stats);
 }
 
