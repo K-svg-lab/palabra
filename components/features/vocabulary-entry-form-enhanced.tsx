@@ -50,7 +50,7 @@ export function VocabularyEntryFormEnhanced({ onSuccess, onCancel }: Props) {
     images?: VisualAssociation[];
     errors?: { translation?: boolean };
   } | null>(null);
-  const [isEditing, setIsEditing] = useState(false);
+  const [isEditing, setIsEditing] = useState(true);
   const [spellCheckResult, setSpellCheckResult] = useState<{
     isCorrect: boolean;
     suggestions: string[];
@@ -275,14 +275,26 @@ export function VocabularyEntryFormEnhanced({ onSuccess, onCancel }: Props) {
             <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">
               Auto-Generated Data
             </h3>
-            <button
-              type="button"
-              onClick={() => setIsEditing(!isEditing)}
-              className="text-sm text-accent hover:underline flex items-center gap-1"
-            >
-              <Edit2 className="w-3 h-3" />
-              {isEditing ? 'Done Editing' : 'Edit'}
-            </button>
+            {isEditing && (
+              <button
+                type="button"
+                onClick={() => setIsEditing(false)}
+                className="text-sm text-accent hover:underline flex items-center gap-1"
+              >
+                <Check className="w-3 h-3" />
+                Lock Fields
+              </button>
+            )}
+            {!isEditing && (
+              <button
+                type="button"
+                onClick={() => setIsEditing(true)}
+                className="text-sm text-accent hover:underline flex items-center gap-1"
+              >
+                <Edit2 className="w-3 h-3" />
+                Edit
+              </button>
+            )}
           </div>
 
           {/* Translation */}
