@@ -13,7 +13,7 @@
 
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { Loader2, Check, Edit2, AlertCircle } from 'lucide-react';
 import { useLookupVocabulary, useAddVocabulary } from '@/lib/hooks/use-vocabulary';
@@ -63,7 +63,6 @@ export function VocabularyEntryFormEnhanced({ onSuccess, onCancel }: Props) {
   const { register, handleSubmit, watch, setValue, formState: { errors } } = useForm<VocabularyFormData>();
   const lookupMutation = useLookupVocabulary();
   const addMutation = useAddVocabulary();
-  const inputRef = useRef<HTMLInputElement>(null);
 
   const spanishWord = watch('spanishWord');
   const notes = watch('notes');
@@ -71,8 +70,9 @@ export function VocabularyEntryFormEnhanced({ onSuccess, onCancel }: Props) {
   // Auto-focus input field when component mounts
   useEffect(() => {
     const timer = setTimeout(() => {
-      if (inputRef.current) {
-        inputRef.current.focus();
+      const input = document.getElementById('spanishWord') as HTMLInputElement;
+      if (input) {
+        input.focus();
       }
     }, 100);
     return () => clearTimeout(timer);
@@ -200,7 +200,6 @@ export function VocabularyEntryFormEnhanced({ onSuccess, onCancel }: Props) {
             id="spanishWord"
             type="text"
             {...register('spanishWord', { required: 'Spanish word is required' })}
-            ref={inputRef}
             onKeyDown={handleKeyDown}
             className="flex-1 px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-black focus:ring-2 focus:ring-accent focus:border-transparent"
             placeholder="perro"
