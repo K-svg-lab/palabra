@@ -320,7 +320,7 @@ export function ReviewSessionEnhanced({
 
       {/* Flashcard Area - Clickable on mobile to flip */}
       <div 
-        className="flex-1 flex items-start justify-center px-2 pt-2 pb-1 md:px-3 md:pt-3 md:pb-1.5 overflow-hidden"
+        className="flex-1 flex items-center justify-center px-2 py-1 overflow-hidden"
         onClick={() => {
           // On mobile, clicking anywhere flips the card
           if (window.innerWidth < 768 && config.mode === 'recognition') {

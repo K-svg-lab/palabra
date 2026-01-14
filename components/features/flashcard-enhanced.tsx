@@ -543,13 +543,13 @@ export function FlashcardEnhanced({
         .flashcard-container {
           width: 100%;
           max-width: 700px;
-          height: clamp(300px, 40vh, 450px);
+          height: clamp(250px, 30vh, 350px);
           margin: 0 auto;
         }
 
         @media (max-width: 640px) {
           .flashcard-container {
-            height: clamp(250px, 35vh, 400px);
+            height: clamp(200px, 28vh, 300px);
             max-width: 90vw;
           }
         }
