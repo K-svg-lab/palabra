@@ -231,16 +231,16 @@ export default function ReviewPage() {
           const vocabularyWord = await getVocabularyWord(result.vocabularyId);
           if (vocabularyWord) {
             const newStatus = determineVocabularyStatus(updatedReview);
-            console.log(`🔄 Status check for "${vocabularyWord.spanish}": current=${vocabularyWord.status}, new=${newStatus}, reviews=${updatedReview.totalReviews}, repetitions=${updatedReview.repetition}, accuracy=${Math.round((updatedReview.correctCount/updatedReview.totalReviews)*100)}%`);
+            console.log(`🔄 Status check for "${vocabularyWord.spanishWord}": current=${vocabularyWord.status}, new=${newStatus}, reviews=${updatedReview.totalReviews}, repetitions=${updatedReview.repetition}, accuracy=${Math.round((updatedReview.correctCount/updatedReview.totalReviews)*100)}%`);
             if (vocabularyWord.status !== newStatus) {
               await updateVocabularyWord({
                 ...vocabularyWord,
                 status: newStatus,
                 updatedAt: Date.now(),
               });
-              console.log(`✅ Updated "${vocabularyWord.spanish}" status: ${vocabularyWord.status} → ${newStatus}`);
+              console.log(`✅ Updated "${vocabularyWord.spanishWord}" status: ${vocabularyWord.status} → ${newStatus}`);
             } else {
-              console.log(`⏭️  Skipped "${vocabularyWord.spanish}" - status unchanged`);
+              console.log(`⏭️  Skipped "${vocabularyWord.spanishWord}" - status unchanged`);
             }
           }
         } catch (error) {

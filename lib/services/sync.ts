@@ -273,7 +273,7 @@ export class CloudSyncService implements SyncService {
                     status: newStatus,
                     updatedAt: Date.now(),
                   });
-                  console.log(`✅ Updated vocab "${vocabularyWord.spanishWord || vocabularyWord.spanish}" status from sync: ${vocabularyWord.status} → ${newStatus}`);
+                  console.log(`✅ Updated vocab "${vocabularyWord.spanishWord}" status from sync: ${vocabularyWord.status} → ${newStatus}`);
                 }
               }
             } catch (statusError) {
@@ -301,7 +301,7 @@ export class CloudSyncService implements SyncService {
                       status: newStatus,
                       updatedAt: Date.now(),
                     });
-                    console.log(`✅ Updated vocab "${vocabularyWord.spanishWord || vocabularyWord.spanish}" status from sync: ${vocabularyWord.status} → ${newStatus}`);
+                    console.log(`✅ Updated vocab "${vocabularyWord.spanishWord}" status from sync: ${vocabularyWord.status} → ${newStatus}`);
                   }
                 }
               } catch (statusError) {

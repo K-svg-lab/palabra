@@ -179,10 +179,6 @@ export function useVocabularyStats() {
         mastered: all.filter(w => w.status === 'mastered').length,
       };
       
-      // #region agent log H4
-      fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'use-vocabulary.ts:176',message:'Dashboard vocab stats calculated',data:{...stats,sampleStatuses:all.slice(0,5).map(w=>({word:w.spanish,status:w.status}))},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H4',runId:'metrics-verify'})}).catch(()=>{});
-      // #endregion
-      
       return stats;
     },
   });

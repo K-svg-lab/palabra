@@ -16,9 +16,6 @@ import type { ReviewRecord } from '@/lib/types';
 export async function createReviewRecord(
   review: ReviewRecord
 ): Promise<ReviewRecord> {
-  // #region agent log
-  fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'reviews.ts:16',message:'Creating review record',data:{reviewId:review.id,vocabId:review.vocabId,lastReviewDate:review.lastReviewDate,createdAt:review.createdAt,updatedAt:review.updatedAt,totalReviews:review.totalReviews},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'A,D'})}).catch(()=>{});
-  // #endregion
   const db = await getDB();
   await db.add(DB_CONFIG.STORES.REVIEWS, review);
   return review;
@@ -91,9 +88,6 @@ export async function getDueReviews(
 export async function updateReviewRecord(
   review: ReviewRecord
 ): Promise<ReviewRecord> {
-  // #region agent log
-  fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'reviews.ts:91',message:'Updating review record',data:{reviewId:review.id,vocabId:review.vocabId,lastReviewDate:review.lastReviewDate,createdAt:review.createdAt,updatedAt:review.updatedAt,totalReviews:review.totalReviews},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'A,D'})}).catch(()=>{});
-  // #endregion
   const db = await getDB();
   await db.put(DB_CONFIG.STORES.REVIEWS, review);
   return review;
