@@ -45,6 +45,32 @@ export function ReviewSessionEnhanced({
   // Scroll to top when component mounts (fixes inherited scroll position from config page)
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'instant' });
+    // #region agent log
+    const logLayout = () => {
+      const rootContainer = document.querySelector('.flex.flex-col.h-screen') as HTMLElement;
+      const header = document.querySelector('[role="banner"]') || document.querySelector('.flex.items-center.justify-between');
+      const flashcardArea = document.querySelector('.flex-1.flex.items-center') as HTMLElement;
+      const footer = document.querySelector('.px-3.py-1\\.5') || document.querySelector('[class*="border-t"]');
+      const flashcardContainer = document.querySelector('.flashcard-container');
+      const viewportHeight = window.innerHeight;
+      const bodyScrollHeight = document.body.scrollHeight;
+      const htmlScrollHeight = document.documentElement.scrollHeight;
+      const bodyComputedStyle = window.getComputedStyle(document.body);
+      const htmlComputedStyle = window.getComputedStyle(document.documentElement);
+      if (header && footer && flashcardContainer && flashcardArea && rootContainer) {
+        const headerRect = (header as HTMLElement).getBoundingClientRect();
+        const footerRect = (footer as HTMLElement).getBoundingClientRect();
+        const flashcardAreaRect = flashcardArea.getBoundingClientRect();
+        const flashcardContainerRect = (flashcardContainer as HTMLElement).getBoundingClientRect();
+        const rootContainerRect = rootContainer.getBoundingClientRect();
+        const flashcardAreaStyle = window.getComputedStyle(flashcardArea);
+        const logData = {location:'review-session-enhanced.tsx:48',message:'Detailed layout measurement',data:{viewport:viewportHeight,bodyScroll:bodyScrollHeight,htmlScroll:htmlScrollHeight,overflow:bodyScrollHeight-viewportHeight,bodyMargin:`${bodyComputedStyle.marginTop} ${bodyComputedStyle.marginBottom}`,bodyPadding:`${bodyComputedStyle.paddingTop} ${bodyComputedStyle.paddingBottom}`,htmlMargin:`${htmlComputedStyle.marginTop} ${htmlComputedStyle.marginBottom}`,htmlPadding:`${htmlComputedStyle.paddingTop} ${htmlComputedStyle.paddingBottom}`,rootContainer:{height:rootContainerRect.height,top:rootContainerRect.top,bottom:rootContainerRect.bottom},header:{height:headerRect.height,top:headerRect.top,bottom:headerRect.bottom},flashcardArea:{height:flashcardAreaRect.height,top:flashcardAreaRect.top,bottom:flashcardAreaRect.bottom,padding:`${flashcardAreaStyle.paddingTop} ${flashcardAreaStyle.paddingBottom}`},flashcardContainer:{height:flashcardContainerRect.height,top:flashcardContainerRect.top,bottom:flashcardContainerRect.bottom},footer:{height:footerRect.height,top:footerRect.top,bottom:footerRect.bottom},totalCalculated:headerRect.height+flashcardAreaRect.height+footerRect.height},timestamp:Date.now(),sessionId:'debug-session',runId:'overflow-debug',hypothesisId:'H1,H2,H3,H4,H5'};
+        console.log('[DEBUG OVERFLOW]', logData);
+        fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(logData)}).catch(()=>{});
+      }
+    };
+    setTimeout(logLayout, 200);
+    // #endregion
   }, []);
   
   // Process words based on configuration
@@ -272,9 +298,9 @@ export function ReviewSessionEnhanced({
   }
 
   return (
-    <div className="flex flex-col h-screen max-h-screen overflow-hidden">
+    <div className="flex flex-col h-screen max-h-screen overflow-hidden" style={{maxHeight: '100vh', height: '100vh'}}>
       {/* Header */}
-      <div className="flex items-center justify-between px-3 py-2 md:px-4 md:py-2.5 border-b border-separator flex-shrink-0">
+      <div className="flex items-center justify-between px-3 py-2 md:px-4 border-b border-separator flex-shrink-0">
         <button
           onClick={handleCancel}
           className="p-1.5 rounded-full hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
@@ -324,9 +350,9 @@ export function ReviewSessionEnhanced({
         </button>
       </div>
 
-      {/* Flashcard Area - Clickable on mobile to flip */}
+      {/* Flashcard Area */}
       <div 
-        className="flex-1 flex items-center justify-center px-3 py-2 md:px-4 md:py-3 overflow-hidden"
+        className="flex-1 flex items-center justify-center px-3 py-2 md:px-4 md:py-3 overflow-hidden min-h-0"
         onClick={() => {
           // On mobile, clicking anywhere flips the card
           if (window.innerWidth < 768 && config.mode === 'recognition') {
@@ -343,56 +369,24 @@ export function ReviewSessionEnhanced({
           onAnswerSubmit={handleAnswerSubmit}
           onAudioPlay={handleAudioPlay}
           cardNumber={`Card ${currentIndex + 1} of ${processedWords.length}`}
-          onRate={config.mode === 'recognition' ? handleRating : undefined}
+          onRate={config.mode === 'recognition' && isFlipped ? handleRating : undefined}
         />
       </div>
 
-      {/* Navigation and Rating Controls */}
-      <div className="px-3 py-2 md:px-4 md:py-2.5 space-y-2 border-t border-separator flex-shrink-0 pb-safe">
-
-        {/* Rating Buttons - Show when flipped in recognition mode */}
-        {config.mode === 'recognition' && isFlipped && (
-          <div className="flex items-center justify-center gap-1.5 md:gap-2.5">
-            <button
-              onClick={() => handleRating("forgot")}
-              className="flex items-center gap-1 py-1.5 px-3 rounded-lg bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 transition-colors"
-            >
-              <span className="text-lg">😞</span>
-              <span className="text-xs font-medium text-text-secondary">Forgot</span>
-            </button>
-            <button
-              onClick={() => handleRating("hard")}
-              className="flex items-center gap-1 py-1.5 px-3 rounded-lg bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 transition-colors"
-            >
-              <span className="text-lg">🤔</span>
-              <span className="text-xs font-medium text-text-secondary">Hard</span>
-            </button>
-            <button
-              onClick={() => handleRating("good")}
-              className="flex items-center gap-1 py-1.5 px-3 rounded-lg bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 transition-colors"
-            >
-              <span className="text-lg">😊</span>
-              <span className="text-xs font-medium text-text-secondary">Good</span>
-            </button>
-            <button
-              onClick={() => handleRating("easy")}
-              className="flex items-center gap-1 py-1.5 px-3 rounded-lg bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 transition-colors"
-            >
-              <span className="text-lg">🎉</span>
-              <span className="text-xs font-medium text-text-secondary">Easy</span>
-            </button>
-          </div>
-        )}
-
-        {/* Keyboard Hints - Only show when rating buttons are not visible */}
-        {!(config.mode === 'recognition' && isFlipped) && (
-          <div className="flex flex-wrap justify-center gap-2.5 text-[10px] text-text-tertiary py-1">
-            {config.mode === 'recognition' && <span>Space/Enter Flip</span>}
-            <span>← → Navigate</span>
-            <span>Esc Exit</span>
-          </div>
-        )}
+      {/* Keyboard Hints - Below divider */}
+      <div className="px-3 pt-2 pb-16 md:px-4 md:pt-3 md:pb-20 border-t border-separator flex-shrink-0">
+        <div className="flex flex-wrap justify-center gap-3 text-[11px] text-text-tertiary">
+          {config.mode === 'recognition' && !isFlipped && <span className="px-2 py-0.5 rounded-md bg-black/5 dark:bg-white/5">Space/Enter Flip</span>}
+          {config.mode === 'recognition' && isFlipped && <span className="px-2 py-0.5 rounded-md bg-black/5 dark:bg-white/5">Tap or press Enter to reveal</span>}
+          {!(config.mode === 'recognition' && isFlipped) && (
+            <>
+              <span className="px-2 py-0.5 rounded-md bg-black/5 dark:bg-white/5">← → Navigate</span>
+              <span className="px-2 py-0.5 rounded-md bg-black/5 dark:bg-white/5">Esc Exit</span>
+            </>
+          )}
+        </div>
       </div>
+
     </div>
   );
 }

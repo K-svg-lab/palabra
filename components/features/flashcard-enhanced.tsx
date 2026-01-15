@@ -72,6 +72,18 @@ export function FlashcardEnhanced({
     const timer = setTimeout(() => {
       if (cardRef.current && mode === 'recognition') {
         cardRef.current.focus();
+        // #region agent log
+        const container = document.querySelector('.flashcard-container') as HTMLElement;
+        const card = document.querySelector('.flashcard-simple') as HTMLElement;
+        if (container && card) {
+          const containerRect = container.getBoundingClientRect();
+          const cardRect = card.getBoundingClientRect();
+          const computedStyle = window.getComputedStyle(cardRef.current);
+          const logData = {location:'flashcard-enhanced.tsx:75',message:'Card focused - checking outline',data:{outline:computedStyle.outline,outlineWidth:computedStyle.outlineWidth,outlineColor:computedStyle.outlineColor,hasFocus:document.activeElement===cardRef.current,containerHeight:containerRect.height,cardHeight:cardRect.height},timestamp:Date.now(),sessionId:'debug-session',runId:'post-fix',hypothesisId:'H1'};
+          console.log('[DEBUG POST-FIX]', logData);
+          fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(logData)}).catch(()=>{});
+        }
+        // #endregion
       }
     }, 100); // Small delay to ensure DOM is ready
     return () => clearTimeout(timer);
@@ -203,6 +215,11 @@ export function FlashcardEnhanced({
     const handleKeyDown = (e: React.KeyboardEvent) => {
       if (e.key === "Enter" || e.key === " ") {
         e.preventDefault();
+        // #region agent log
+        const logData = {location:'flashcard-enhanced.tsx:206',message:'Enter/Space pressed on card',data:{key:e.key,activeElement:document.activeElement?.className,isFlipped},timestamp:Date.now(),sessionId:'debug-session',runId:'post-fix',hypothesisId:'H1'};
+        console.log('[DEBUG POST-FIX]', logData);
+        fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(logData)}).catch(()=>{});
+        // #endregion
         onFlip?.();
       }
     };
@@ -219,23 +236,14 @@ export function FlashcardEnhanced({
             onKeyDown={handleKeyDown}
             role="button"
             tabIndex={0}
-            ref={cardRef}>
-            
-            {/* Audio button - top right */}
-            <button
-              onClick={handlePlayAudio}
-              disabled={isPlaying}
-              className="absolute top-4 right-4 p-2 rounded-full bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 transition-colors disabled:opacity-50 pointer-events-auto"
-              aria-label="Play pronunciation"
-            >
-              <Volume2 className={`w-5 h-5 ${isPlaying ? "text-accent" : "text-text-secondary"} pointer-events-none`} />
-            </button>
+            ref={cardRef}
+            style={{outline: 'none'}}>
 
             {/* Main content area - ABSOLUTE centered for pixel-perfect alignment */}
             <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 pointer-events-none px-6">
               <div className="text-center space-y-4 max-w-xl mx-auto">
-                {/* Main word with gender - FIXED HEIGHT WRAPPER */}
-                <div className="h-[90px] flex flex-col items-center justify-center gap-2">
+                {/* Main word area - consistent height to prevent shift */}
+                <div className="flex flex-col items-center justify-center gap-2 min-h-[120px]">
                   <div className="flex items-center justify-center gap-2">
                     <h2 className="text-5xl sm:text-6xl md:text-7xl font-bold text-text leading-none">
                       {frontContent}
@@ -246,6 +254,20 @@ export function FlashcardEnhanced({
                       </span>
                     )}
                   </div>
+                  {/* Audio button - ALWAYS RENDERED to prevent layout shift */}
+                  {isSpanishToEnglish ? (
+                    <button
+                      onClick={handlePlayAudio}
+                      disabled={isPlaying}
+                      tabIndex={-1}
+                      className="p-1.5 rounded-full bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 transition-colors disabled:opacity-50 pointer-events-auto flex-shrink-0"
+                      aria-label="Play pronunciation"
+                    >
+                      <Volume2 className={`w-5 h-5 ${isPlaying ? "text-accent" : "text-text-secondary"} pointer-events-none`} />
+                    </button>
+                  ) : (
+                    <div className="p-1.5 flex-shrink-0 h-[32px]" aria-hidden="true"></div>
+                  )}
                   
                   {/* Part of speech badge */}
                   {isSpanishToEnglish && getSpanishPartOfSpeech() && (
@@ -267,7 +289,7 @@ export function FlashcardEnhanced({
 
                 {/* Example sentence */}
                 {word.examples && word.examples.length > 0 && (
-                  <div className="pt-6 mt-4 border-t border-separator/30">
+                  <div className="pt-4 mt-3 border-t border-separator/20">
                     <p className="text-base sm:text-lg text-text-secondary italic leading-relaxed px-4">
                       &ldquo;{isSpanishToEnglish ? word.examples[0].spanish : word.examples[0].english}&rdquo;
                     </p>
@@ -291,13 +313,14 @@ export function FlashcardEnhanced({
             onKeyDown={handleKeyDown}
             role="button"
             tabIndex={0}
-            ref={cardRef}>
+            ref={cardRef}
+            style={{outline: 'none'}}>
 
           {/* Main content area - ABSOLUTE centered for pixel-perfect alignment */}
           <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 pointer-events-none px-6">
             <div className="text-center space-y-4 max-w-xl mx-auto">
-              {/* Main answer with gender - FIXED HEIGHT WRAPPER */}
-              <div className="h-[90px] flex flex-col items-center justify-center gap-2">
+              {/* Main answer area - consistent height to prevent shift */}
+              <div className="flex flex-col items-center justify-center gap-2 min-h-[120px]">
                 <div className="flex items-center justify-center gap-2">
                   <h3 className="text-5xl sm:text-6xl md:text-7xl font-bold text-text leading-none">
                     {backContent}
@@ -308,6 +331,8 @@ export function FlashcardEnhanced({
                     </span>
                   )}
                 </div>
+                {/* Invisible placeholder to match front side speaker button - ALWAYS RENDERED */}
+                <div className="p-1.5 flex-shrink-0 h-[32px]" aria-hidden="true"></div>
                 
                 {/* Part of speech badge */}
                 {!isSpanishToEnglish && getSpanishPartOfSpeech() && (
@@ -329,19 +354,57 @@ export function FlashcardEnhanced({
 
                 {/* Example sentence */}
                 {word.examples && word.examples.length > 0 && (
-                  <div className="pt-6 mt-4 border-t border-separator/30">
+                  <div className="pt-4 mt-3 border-t border-separator/20">
                     <p className="text-base sm:text-lg text-text-secondary italic leading-relaxed px-4">
                       &ldquo;{isSpanishToEnglish ? word.examples[0].english : word.examples[0].spanish}&rdquo;
                     </p>
                   </div>
                 )}
+
+                {/* Rating Buttons - Integrated below example sentence */}
+                {onRate && (
+                  <div className="pt-4 mt-1 pointer-events-auto">
+                    <div className="flex items-center justify-center gap-1.5 sm:gap-2">
+                      <button
+                        onClick={(e) => { e.stopPropagation(); onRate("forgot"); }}
+                        className="flex items-center gap-1 py-2 px-2.5 sm:px-3 rounded-xl bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 active:scale-95 transition-all shadow-sm border border-black/5 dark:border-white/5 min-w-0"
+                      >
+                        <span className="text-base sm:text-lg">😞</span>
+                        <span className="text-[10px] sm:text-xs font-medium text-text-secondary whitespace-nowrap">Forgot</span>
+                      </button>
+                      <button
+                        onClick={(e) => { e.stopPropagation(); onRate("hard"); }}
+                        className="flex items-center gap-1 py-2 px-2.5 sm:px-3 rounded-xl bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 active:scale-95 transition-all shadow-sm border border-black/5 dark:border-white/5 min-w-0"
+                      >
+                        <span className="text-base sm:text-lg">🤔</span>
+                        <span className="text-[10px] sm:text-xs font-medium text-text-secondary whitespace-nowrap">Hard</span>
+                      </button>
+                      <button
+                        onClick={(e) => { e.stopPropagation(); onRate("good"); }}
+                        className="flex items-center gap-1 py-2 px-2.5 sm:px-3 rounded-xl bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 active:scale-95 transition-all shadow-sm border border-black/5 dark:border-white/5 min-w-0"
+                      >
+                        <span className="text-base sm:text-lg">😊</span>
+                        <span className="text-[10px] sm:text-xs font-medium text-text-secondary whitespace-nowrap">Good</span>
+                      </button>
+                      <button
+                        onClick={(e) => { e.stopPropagation(); onRate("easy"); }}
+                        className="flex items-center gap-1 py-2 px-2.5 sm:px-3 rounded-xl bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 active:scale-95 transition-all shadow-sm border border-black/5 dark:border-white/5 min-w-0"
+                      >
+                        <span className="text-base sm:text-lg">🎉</span>
+                        <span className="text-[10px] sm:text-xs font-medium text-text-secondary whitespace-nowrap">Easy</span>
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
 
-            {/* Tap hint at bottom - absolutely positioned */}
-            <p className="absolute bottom-6 inset-x-0 text-center text-sm text-text-tertiary font-medium pointer-events-none">
-              Tap or press Enter to reveal
-            </p>
+            {/* Tap hint at bottom - absolutely positioned - only show when no rating buttons */}
+            {!onRate && (
+              <p className="absolute bottom-6 inset-x-0 text-center text-sm text-text-tertiary font-medium pointer-events-none">
+                Tap or press Enter to reveal
+              </p>
+            )}
           </div>
         </div>
         )}
@@ -560,14 +623,26 @@ export function FlashcardEnhanced({
           width: 100%;
           max-width: 650px;
           height: 100%;
-          max-height: 450px;
+          max-height: 320px;
           margin: 0 auto;
         }
 
         @media (max-width: 640px) {
           .flashcard-container {
-            max-height: 400px;
+            max-height: 300px;
             max-width: 92vw;
+          }
+        }
+        
+        @media (min-height: 750px) {
+          .flashcard-container {
+            max-height: 380px;
+          }
+        }
+        
+        @media (min-height: 950px) {
+          .flashcard-container {
+            max-height: 420px;
           }
         }
 
@@ -588,10 +663,18 @@ export function FlashcardEnhanced({
           height: 100%;
           border-radius: 20px;
           background: var(--bg-primary);
-          box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12), 0 0 1px rgba(0, 0, 0, 0.1);
+          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08), 0 4px 16px rgba(0, 0, 0, 0.08);
+          border: 1px solid rgba(0, 0, 0, 0.04);
           cursor: pointer;
           user-select: none;
           -webkit-user-select: none;
+          overflow: visible;
+        }
+        
+        @media (prefers-color-scheme: dark) {
+          .flashcard-simple {
+            border: 1px solid rgba(255, 255, 255, 0.06);
+          }
         }
 
         .flashcard-content {
@@ -604,14 +687,14 @@ export function FlashcardEnhanced({
         }
 
         .flashcard-simple:focus-visible {
-          outline: 3px solid var(--accent);
-          outline-offset: 4px;
-          border-radius: 20px;
+          outline: none;
         }
 
         @media (hover: hover) {
           .flashcard-simple:hover {
-            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.18);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.10), 0 8px 20px rgba(0, 0, 0, 0.12);
+            transform: translateY(-1px);
+            transition: all 0.2s ease;
           }
         }
       `}</style>
