@@ -193,13 +193,33 @@ export class CloudSyncService implements SyncService {
       await this.updateState({ isSyncing: true, syncStatus: 'syncing' });
       status = 'syncing';
       
-      // Get last sync time (null for full sync to upload everything)
-      const lastSyncTime = type === 'full' ? null : await this.getLastSyncTime();
-      console.log(`📅 Last sync time: ${lastSyncTime || 'never (full sync)'}`);
+      // Check if client has any local data (vocabulary AND reviews)
+      // MUST check BEFORE any downloads to detect fresh client state
+      const localVocabCount = (await getAllVocabularyWords()).length;
+      const localReviewCount = (await getAllReviews()).length;
+      const storedLastSyncTime = await this.getLastSyncTime();
+      
+      console.log(`🔍 Pre-sync state check: vocab=${localVocabCount}, reviews=${localReviewCount}, storedLastSyncTime=${storedLastSyncTime?.toISOString() || 'null'}`);
+      
+      // Force full sync if client has no data (fresh login after clearing browser data)
+      const shouldForceFullSync = localVocabCount === 0 || localReviewCount === 0;
+      
+      // Get last sync time (null for full sync to download everything)
+      let lastSyncTime: Date | null = null;
+      if (type === 'full' || shouldForceFullSync) {
+        lastSyncTime = null;
+        console.log(`📅 Performing FULL sync (${shouldForceFullSync ? `no local data detected (vocab:${localVocabCount}, reviews:${localReviewCount})` : 'requested'})`);
+      } else {
+        lastSyncTime = storedLastSyncTime;
+        console.log(`📅 Performing INCREMENTAL sync (last sync: ${lastSyncTime?.toISOString() || 'never'})`);
+      }
       
       // Collect local changes
       const operations = await this.collectLocalChanges(lastSyncTime);
       console.log(`📤 Uploading: ${operations.vocabulary.length} vocab, ${operations.reviews.length} reviews, ${operations.stats.length} stats`);
+      // #region agent log H2
+      fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'sync.ts:uploadOps',message:'Vocab operations being uploaded',data:{count:operations.vocabulary.length,operations:operations.vocabulary.slice(0,10).map(v=>({id:v.data.id,spanish:v.data.spanishWord||v.data.spanish,status:v.data.status,operation:v.operation}))},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H2',runId:'sync-debug'})}).catch(()=>{});
+      // #endregion
       
       // Sync vocabulary
       const vocabResult = await this.syncVocabulary(operations.vocabulary, lastSyncTime);
@@ -207,8 +227,14 @@ export class CloudSyncService implements SyncService {
       // Apply remote vocabulary changes to local database
       if (vocabResult.operations && vocabResult.operations.length > 0) {
         console.log(`📥 Applying ${vocabResult.operations.length} remote vocabulary items...`);
+        // #region agent log H2
+        fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'sync.ts:209',message:'Remote vocab status distribution',data:{count:vocabResult.operations.length,statusCounts:{new:vocabResult.operations.filter((o:any)=>o.data.status==='new').length,learning:vocabResult.operations.filter((o:any)=>o.data.status==='learning').length,mastered:vocabResult.operations.filter((o:any)=>o.data.status==='mastered').length}},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H2',runId:'metrics-verify'})}).catch(()=>{});
+        // #endregion
         for (const operation of vocabResult.operations) {
           try {
+            // #region agent log H2
+            fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'sync.ts:214',message:'Applying remote vocab item',data:{word:operation.data.spanish,status:operation.data.status},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H2',runId:'metrics-verify'})}).catch(()=>{});
+            // #endregion
             await updateVocabularyWord(operation.data);
             console.log(`✅ Applied: ${operation.data.spanish}`);
           } catch (error) {
@@ -230,11 +256,57 @@ export class CloudSyncService implements SyncService {
           try {
             await updateReviewRecord(review);
             console.log(`✅ Applied review for vocab: ${review.vocabId}`);
+            // #region agent log H5
+            fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'sync.ts:237',message:'Applied remote review, now updating vocab status',data:{vocabId:review.vocabId,reviews:review.totalReviews,repetitions:review.repetition,accuracy:review.totalReviews>0?(review.correctCount/review.totalReviews):0},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H5',runId:'status-fix'})}).catch(()=>{});
+            // #endregion
+            
+            // Update vocabulary item status based on review progress
+            try {
+              const { getVocabularyWord, updateVocabularyWord } = await import('@/lib/db/vocabulary');
+              const { determineVocabularyStatus } = await import('@/lib/utils/spaced-repetition');
+              const vocabularyWord = await getVocabularyWord(review.vocabId);
+              if (vocabularyWord) {
+                const newStatus = determineVocabularyStatus(review);
+                if (vocabularyWord.status !== newStatus) {
+                  await updateVocabularyWord({
+                    ...vocabularyWord,
+                    status: newStatus,
+                    updatedAt: Date.now(),
+                  });
+                  console.log(`✅ Updated vocab "${vocabularyWord.spanishWord || vocabularyWord.spanish}" status from sync: ${vocabularyWord.status} → ${newStatus}`);
+                }
+              }
+            } catch (statusError) {
+              console.error('Failed to update vocabulary status from remote review:', statusError);
+            }
           } catch (error) {
             // If update fails, try creating it
             try {
               await createReviewRecord(review);
               console.log(`✅ Created review for vocab: ${review.vocabId}`);
+              // #region agent log H5
+              fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'sync.ts:243',message:'Created remote review, now updating vocab status',data:{vocabId:review.vocabId,reviews:review.totalReviews,repetitions:review.repetition},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H5',runId:'status-fix'})}).catch(()=>{});
+              // #endregion
+              
+              // Update vocabulary item status based on review progress
+              try {
+                const { getVocabularyWord, updateVocabularyWord } = await import('@/lib/db/vocabulary');
+                const { determineVocabularyStatus } = await import('@/lib/utils/spaced-repetition');
+                const vocabularyWord = await getVocabularyWord(review.vocabId);
+                if (vocabularyWord) {
+                  const newStatus = determineVocabularyStatus(review);
+                  if (vocabularyWord.status !== newStatus) {
+                    await updateVocabularyWord({
+                      ...vocabularyWord,
+                      status: newStatus,
+                      updatedAt: Date.now(),
+                    });
+                    console.log(`✅ Updated vocab "${vocabularyWord.spanishWord || vocabularyWord.spanish}" status from sync: ${vocabularyWord.status} → ${newStatus}`);
+                  }
+                }
+              } catch (statusError) {
+                console.error('Failed to update vocabulary status from remote review:', statusError);
+              }
             } catch (createError) {
               console.error('Failed to apply remote review:', createError);
             }
@@ -349,6 +421,7 @@ export class CloudSyncService implements SyncService {
     const response = await fetch('/api/sync/vocabulary', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
+      credentials: 'include', // Include cookies for authentication
       body: JSON.stringify({
         lastSyncTime: lastSyncTime?.toISOString(),
         operations,
@@ -373,6 +446,7 @@ export class CloudSyncService implements SyncService {
     const response = await fetch('/api/sync/reviews', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
+      credentials: 'include', // Include cookies for authentication
       body: JSON.stringify({
         lastSyncTime: lastSyncTime?.toISOString(),
         operations,
@@ -396,6 +470,7 @@ export class CloudSyncService implements SyncService {
     const response = await fetch('/api/sync/stats', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
+      credentials: 'include', // Include cookies for authentication
       body: JSON.stringify({
         lastSyncTime: lastSyncTime?.toISOString(),
         operations,
@@ -425,15 +500,27 @@ export class CloudSyncService implements SyncService {
     const vocabItems = await getAllVocabularyWords();
     console.log(`[Sync] Found ${vocabItems.length} local vocabulary items`);
     
+    // #region agent log H1
+    fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'sync.ts:428',message:'Local vocab status distribution',data:{total:vocabItems.length,statusCounts:{new:vocabItems.filter((i:any)=>i.status==='new').length,learning:vocabItems.filter((i:any)=>i.status==='learning').length,mastered:vocabItems.filter((i:any)=>i.status==='mastered').length}},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H1',runId:'metrics-verify'})}).catch(()=>{});
+    // #endregion
+    
     for (const item of vocabItems) {
       // Check both createdAt and updatedAt to catch all changes
       const itemTime = Math.max(item.createdAt, item.updatedAt);
       const itemDate = new Date(itemTime);
-      const shouldSync = !lastSyncTime || itemDate > lastSyncTime;
+      
+      // Include items updated within last 60 seconds of lastSyncTime to handle race conditions
+      // where vocabulary updates happen during/right after a sync
+      const syncBuffer = 60000; // 60 seconds in milliseconds
+      const effectiveSyncTime = lastSyncTime ? new Date(lastSyncTime.getTime() - syncBuffer) : null;
+      const shouldSync = !effectiveSyncTime || itemDate > effectiveSyncTime;
       
       console.log(`[Sync] Item "${item.spanishWord || (item as any).spanish || item.id}" - created: ${new Date(item.createdAt).toISOString()}, updated: ${new Date(item.updatedAt).toISOString()}, lastSync: ${lastSyncTime?.toISOString() || 'never'}, shouldSync: ${shouldSync}`);
       
       if (shouldSync) {
+        // #region agent log H1
+        fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'sync.ts:446',message:'Vocab item to upload',data:{word:item.spanishWord||(item as any).spanish||item.id,status:item.status||'unknown',fullItem:item},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H1',runId:'metrics-verify'})}).catch(()=>{});
+        // #endregion
         vocabulary.push({
           id: item.id,
           entityType: 'vocabulary',
@@ -448,29 +535,54 @@ export class CloudSyncService implements SyncService {
     
     // Get reviews since last sync
     const reviewItems = await getAllReviews();
+    // #region agent log
+    fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'sync.ts:453',message:'Found reviews in IndexedDB',data:{count:reviewItems.length,lastSyncTime:lastSyncTime?.toISOString(),reviews:reviewItems.map(r=>({id:r.id,vocabId:r.vocabId,lastReviewDate:r.lastReviewDate}))},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'A,B,C',runId:'post-fix'})}).catch(()=>{});
+    // #endregion
     for (const review of reviewItems) {
-      const reviewDate = review.lastReviewDate || Date.now();
-      if (!lastSyncTime || new Date(reviewDate) > lastSyncTime) {
+      // Use lastReviewDate if available, otherwise include the review (it's new)
+      const reviewDate = review.lastReviewDate;
+      const shouldInclude = !reviewDate || !lastSyncTime || new Date(reviewDate) > lastSyncTime;
+      // #region agent log
+      fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'sync.ts:456',message:'Review sync decision',data:{reviewId:review.id,vocabId:review.vocabId,reviewDate:reviewDate,reviewDateISO:reviewDate ? new Date(reviewDate).toISOString() : null,lastSyncTime:lastSyncTime?.toISOString(),shouldInclude:shouldInclude},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'A,B,C',runId:'post-fix'})}).catch(()=>{});
+      // #endregion
+      if (shouldInclude) {
         reviews.push({
           id: review.id,
           entityType: 'review',
           operation: 'create',
           data: review,
-          timestamp: new Date(reviewDate).toISOString(),
+          timestamp: reviewDate ? new Date(reviewDate).toISOString() : new Date().toISOString(),
         });
       }
     }
     
     // Get stats since last sync
     const statsItems = await getAllStats();
+    // #region agent log
+    fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'sync.ts:468',message:'Found stats in IndexedDB',data:{count:statsItems.length,lastSyncTime:lastSyncTime?.toISOString(),stats:statsItems},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'A,B,C,E',runId:'post-fix'})}).catch(()=>{});
+    // #endregion
     for (const stat of statsItems) {
-      if (!lastSyncTime || new Date(stat.date) > lastSyncTime) {
+      // For stats, check if it's from today or if we have no lastSyncTime
+      // Stats are keyed by date (YYYY-MM-DD), so we sync all stats that were modified today
+      // or any stats if this is a first sync
+      const statDateObj = new Date(stat.date + 'T00:00:00.000Z'); // Parse as UTC midnight
+      const today = new Date();
+      const todayDateStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+      
+      // Include if: no lastSyncTime (first sync), stat is from today, or stat's date is from today or after last sync date
+      const isToday = stat.date === todayDateStr;
+      const shouldInclude = !lastSyncTime || isToday;
+      
+      // #region agent log
+      fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'sync.ts:506',message:'Stats sync decision',data:{statDate:stat.date,todayDateStr:todayDateStr,isToday:isToday,lastSyncTime:lastSyncTime?.toISOString(),shouldInclude:shouldInclude,cardsReviewed:stat.cardsReviewed,studyTime:(stat as any).studyTime||0,totalStudyTime:(stat as any).totalStudyTime||0},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H3',runId:'metrics-verify'})}).catch(()=>{});
+      // #endregion
+      if (shouldInclude) {
         stats.push({
           id: stat.date,
           entityType: 'stats',
           operation: 'update',
           data: stat,
-          timestamp: new Date(stat.date).toISOString(),
+          timestamp: new Date().toISOString(), // Use current time as modification timestamp
         });
       }
     }
@@ -483,7 +595,9 @@ export class CloudSyncService implements SyncService {
    */
   private async checkAuth(): Promise<boolean> {
     try {
-      const response = await fetch('/api/auth/me');
+      const response = await fetch('/api/auth/me', {
+        credentials: 'include', // Include cookies for authentication
+      });
       return response.ok;
     } catch (error) {
       console.log('[Sync] Not authenticated, skipping sync');

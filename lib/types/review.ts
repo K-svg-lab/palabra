@@ -42,6 +42,9 @@ export interface StudySessionConfig {
   
   /** Randomize card order */
   randomize: boolean;
+  
+  /** Practice mode: include cards that aren't due yet */
+  practiceMode?: boolean;
 }
 
 /**

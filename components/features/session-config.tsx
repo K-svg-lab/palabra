@@ -43,6 +43,7 @@ export function SessionConfig({
   const [weakWordsOnly, setWeakWordsOnly] = useState(defaultConfig.weakWordsOnly || false);
   const [weakWordsThreshold, setWeakWordsThreshold] = useState(defaultConfig.weakWordsThreshold || 70);
   const [randomize, setRandomize] = useState(defaultConfig.randomize ?? true);
+  const [practiceMode, setPracticeMode] = useState(defaultConfig.practiceMode || false);
 
   const handleStart = () => {
     const config: StudySessionConfig = {
@@ -54,6 +55,7 @@ export function SessionConfig({
       weakWordsOnly: weakWordsOnly || undefined,
       weakWordsThreshold: weakWordsOnly ? weakWordsThreshold : undefined,
       randomize,
+      practiceMode: practiceMode || undefined,
     };
     onStart(config);
   };
@@ -297,6 +299,33 @@ export function SessionConfig({
               className="w-full"
             />
           </div>
+        )}
+      </div>
+
+      {/* Practice Mode */}
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
+          <label className="text-sm font-medium text-text flex items-center gap-2">
+            <Zap className="w-4 h-4 text-orange-500" />
+            Practice Mode (Include Future Reviews)
+          </label>
+          <button
+            onClick={() => setPracticeMode(!practiceMode)}
+            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+              practiceMode ? 'bg-orange-500' : 'bg-black/10 dark:bg-white/10'
+            }`}
+          >
+            <span
+              className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                practiceMode ? 'translate-x-6' : 'translate-x-1'
+              }`}
+            />
+          </button>
+        </div>
+        {practiceMode && (
+          <p className="text-xs text-text-secondary pl-6">
+            ⚠️ Includes all cards, even those not due yet. Use for testing or extra practice.
+          </p>
         )}
       </div>
 

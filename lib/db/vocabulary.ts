@@ -69,7 +69,11 @@ export async function getVocabularyWord(
  */
 export async function getAllVocabularyWords(): Promise<VocabularyWord[]> {
   const db = await getDB();
-  return db.getAll(DB_CONFIG.STORES.VOCABULARY);
+  const words = await db.getAll(DB_CONFIG.STORES.VOCABULARY);
+  // #region agent log H1
+  fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'vocabulary.ts:72',message:'getAllVocabularyWords called',data:{total:words.length,statuses:words.map(w=>({spanish:w.spanish||w.spanishWord,status:w.status}))},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H1',runId:'status-fix'})}).catch(()=>{});
+  // #endregion
+  return words;
 }
 
 /**

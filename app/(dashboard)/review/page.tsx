@@ -11,6 +11,7 @@ import { updateStatsAfterSession } from "@/lib/db/stats";
 import { getVocabularyWord, updateVocabularyWord } from "@/lib/db/vocabulary";
 import { updateReviewRecord as updateReviewSM2, createInitialReviewRecord, determineVocabularyStatus } from "@/lib/utils/spaced-repetition";
 import { updateBadge } from "@/lib/services/notifications";
+import { getSyncService } from "@/lib/services/sync";
 import type { VocabularyWord, ReviewRecord, ReviewSession as ReviewSessionType } from "@/lib/types/vocabulary";
 import type { StudySessionConfig, ExtendedReviewResult } from "@/lib/types/review";
 import { DEFAULT_SESSION_CONFIG } from "@/lib/types/review";
@@ -114,11 +115,13 @@ export default function ReviewPage() {
       const dueVocabIds = new Set(dueReviews.map(r => r.vocabId));
 
       // Start with due words or all words based on config
-      let wordsToReview = allWords.filter(word => {
-        const hasReview = reviewMap.has(word.id);
-        const isDue = dueVocabIds.has(word.id);
-        return !hasReview || isDue;
-      });
+      let wordsToReview = config.practiceMode 
+        ? [...allWords] // Practice mode: include all cards
+        : allWords.filter(word => {
+            const hasReview = reviewMap.has(word.id);
+            const isDue = dueVocabIds.has(word.id);
+            return !hasReview || isDue;
+          });
 
       // Apply status filter if configured
       if (config.statusFilter && config.statusFilter.length > 0) {
@@ -228,12 +231,16 @@ export default function ReviewPage() {
           const vocabularyWord = await getVocabularyWord(result.vocabularyId);
           if (vocabularyWord) {
             const newStatus = determineVocabularyStatus(updatedReview);
+            console.log(`🔄 Status check for "${vocabularyWord.spanish}": current=${vocabularyWord.status}, new=${newStatus}, reviews=${updatedReview.totalReviews}, repetitions=${updatedReview.repetition}, accuracy=${Math.round((updatedReview.correctCount/updatedReview.totalReviews)*100)}%`);
             if (vocabularyWord.status !== newStatus) {
               await updateVocabularyWord({
                 ...vocabularyWord,
                 status: newStatus,
                 updatedAt: Date.now(),
               });
+              console.log(`✅ Updated "${vocabularyWord.spanish}" status: ${vocabularyWord.status} → ${newStatus}`);
+            } else {
+              console.log(`⏭️  Skipped "${vocabularyWord.spanish}" - status unchanged`);
             }
           }
         } catch (error) {
@@ -264,6 +271,9 @@ export default function ReviewPage() {
         
         // Update daily stats
         const timeSpent = sessionEndTime - currentSession.startTime;
+        // #region agent log H3
+        fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'review/page.tsx:267',message:'Session time calculated',data:{timeSpentMs:timeSpent,timeSpentMin:Math.round(timeSpent/60000),cardsReviewed:results.length,accuracy:accuracyRate},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H3',runId:'metrics-verify'})}).catch(()=>{});
+        // #endregion
         await updateStatsAfterSession(results.length, accuracyRate, timeSpent);
       }
 
@@ -273,6 +283,16 @@ export default function ReviewPage() {
       } catch (error) {
         console.error("Failed to update badge:", error);
         // Don't fail the session if badge update fails
+      }
+
+      // Trigger sync to upload reviews and stats to cloud
+      try {
+        const syncService = getSyncService();
+        await syncService.sync('incremental');
+        console.log('✅ Session data synced to cloud');
+      } catch (error) {
+        console.error("Failed to sync session data:", error);
+        // Don't fail the session if sync fails - it will retry later
       }
 
       // Navigate back to home with success message
@@ -332,10 +352,11 @@ export default function ReviewPage() {
       <SessionConfig
         defaultConfig={{
           ...DEFAULT_SESSION_CONFIG,
-          sessionSize: Math.min(dueCount, 20),
+          sessionSize: Math.min(dueCount > 0 ? dueCount : allWords.length, 20),
+          practiceMode: dueCount === 0, // Auto-enable practice mode if no cards due
         }}
         availableTags={availableTags}
-        totalAvailable={dueCount}
+        totalAvailable={dueCount > 0 ? dueCount : allWords.length}
         onStart={startSession}
         onCancel={() => setShowConfig(false)}
       />
@@ -348,25 +369,39 @@ export default function ReviewPage() {
       <div className="flex items-center justify-center min-h-[calc(100vh-120px)] p-6">
         <div className="max-w-md text-center space-y-6">
           <div className="text-6xl mb-4">🎴</div>
-          <h2 className="text-2xl font-semibold text-text">Ready to Review</h2>
+          <h2 className="text-2xl font-semibold text-text">
+            {dueCount > 0 ? 'Ready to Review' : 'Practice Mode'}
+          </h2>
           <div className="space-y-2">
-            <p className="text-text-secondary">
-              You have <span className="font-semibold text-accent">{dueCount}</span> {dueCount === 1 ? 'word' : 'words'} due for review
-            </p>
-            {dueCount < allWords.length && (
-              <p className="text-sm text-text-tertiary">
-                {allWords.length - dueCount} {allWords.length - dueCount === 1 ? 'word' : 'words'} not due yet
-              </p>
+            {dueCount > 0 ? (
+              <>
+                <p className="text-text-secondary">
+                  You have <span className="font-semibold text-accent">{dueCount}</span> {dueCount === 1 ? 'word' : 'words'} due for review
+                </p>
+                {dueCount < allWords.length && (
+                  <p className="text-sm text-text-tertiary">
+                    {allWords.length - dueCount} {allWords.length - dueCount === 1 ? 'word' : 'words'} not due yet
+                  </p>
+                )}
+              </>
+            ) : (
+              <>
+                <p className="text-text-secondary">
+                  No cards are due right now
+                </p>
+                <p className="text-sm text-orange-600 dark:text-orange-400">
+                  You can practice all <span className="font-semibold">{allWords.length}</span> {allWords.length === 1 ? 'card' : 'cards'} anytime
+                </p>
+              </>
             )}
           </div>
 
           <div className="space-y-3 pt-4">
             <button
               onClick={showSessionConfig}
-              disabled={dueCount === 0}
-              className="w-full px-6 py-4 bg-accent text-white rounded-xl font-medium hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full px-6 py-4 bg-accent text-white rounded-xl font-medium hover:opacity-90 transition-opacity"
             >
-              {dueCount > 0 ? '⚙️ Configure & Start Session' : 'No Cards Due'}
+              ⚙️ Configure & Start {dueCount > 0 ? 'Review' : 'Practice Session'}
             </button>
             <button
               onClick={() => router.push("/")}

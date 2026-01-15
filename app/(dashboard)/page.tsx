@@ -46,12 +46,18 @@ export default function HomePage() {
   useEffect(() => {
     async function loadData() {
       try {
+        // #region agent log H3
+        fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'page.tsx:47',message:'Dashboard loadData called',data:{hasVocabulary,stats},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H3',runId:'status-fix'})}).catch(()=>{});
+        // #endregion
         const [count, today] = await Promise.all([
           getDueForReviewCount(),
           getTodayStats(),
         ]);
         setDueCount(count);
         setTodayStats(today);
+        // #region agent log H3
+        fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'page.tsx:54',message:'Dashboard data loaded',data:{dueCount:count,stats},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H3',runId:'status-fix'})}).catch(()=>{});
+        // #endregion
       } catch (error) {
         console.error("Failed to load data:", error);
       }
@@ -194,13 +200,8 @@ export default function HomePage() {
                 className={`flex items-center justify-between p-4 text-white rounded-xl transition-colors shadow-lg ${
                   dueCount > 0 
                     ? 'bg-green-600 dark:bg-green-500 hover:bg-green-700 dark:hover:bg-green-600' 
-                    : 'bg-gray-400 dark:bg-gray-600 cursor-default'
+                    : 'bg-orange-500 dark:bg-orange-600 hover:bg-orange-600 dark:hover:bg-orange-700'
                 }`}
-                onClick={(e) => {
-                  if (dueCount === 0) {
-                    e.preventDefault();
-                  }
-                }}
               >
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
@@ -208,12 +209,12 @@ export default function HomePage() {
                   </div>
                   <div>
                     <div className="font-semibold">
-                      {dueCount > 0 ? 'Start Review' : 'No Cards Due'}
+                      {dueCount > 0 ? 'Start Review' : 'Practice Mode'}
                     </div>
                     <div className="text-sm opacity-90">
                       {dueCount > 0 
                         ? `${dueCount} ${dueCount === 1 ? 'card' : 'cards'} ready` 
-                        : 'Check back later'}
+                        : 'Review cards anytime'}
                     </div>
                   </div>
                 </div>

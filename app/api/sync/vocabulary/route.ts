@@ -38,29 +38,24 @@ async function handler(request: NextRequest) {
     const conflicts: SyncConflict[] = [];
     const processed: SyncOperation[] = [];
     const errors: any[] = [];
+    const modifiedItemIds: Set<string> = new Set(); // Track items modified in this request
     
-    // Get remote changes since last sync
-    const remoteChanges = await prisma.vocabularyItem.findMany({
-      where: {
-        userId,
-        lastSyncedAt: lastSyncTime ? {
-          gt: new Date(lastSyncTime),
-        } : undefined,
-      },
-    });
-    
-    // Process incoming operations
+    // Process incoming operations FIRST before querying remote changes
+    // This ensures the client gets back the latest data including their own updates
     for (const operation of operations) {
       try {
         switch (operation.operation) {
           case 'create':
             await handleCreate(userId, operation, conflicts);
+            modifiedItemIds.add(operation.id);
             break;
           case 'update':
             await handleUpdate(userId, operation, conflicts);
+            modifiedItemIds.add(operation.id);
             break;
           case 'delete':
             await handleDelete(userId, operation, conflicts);
+            modifiedItemIds.add(operation.id);
             break;
         }
         processed.push(operation);
@@ -71,6 +66,24 @@ async function handler(request: NextRequest) {
         });
       }
     }
+    
+    // Get remote changes since last sync AFTER processing incoming operations
+    // Include items that were either updated OR synced since lastSyncTime
+    // ALSO include items that were just modified in this request (to avoid race condition)
+    const remoteChanges = await prisma.vocabularyItem.findMany({
+      where: {
+        userId,
+        OR: lastSyncTime ? [
+          { lastSyncedAt: { gt: new Date(lastSyncTime) } },
+          { updatedAt: { gt: new Date(lastSyncTime) } },
+          { id: { in: Array.from(modifiedItemIds) } }, // Include items just modified
+        ] : undefined,
+      },
+      take: 1000, // Limit to prevent huge responses
+      orderBy: {
+        updatedAt: 'desc',
+      },
+    });
     
     // Update device info
     await updateDeviceInfo(userId, deviceId);
@@ -90,10 +103,13 @@ async function handler(request: NextRequest) {
       },
     });
     
+    // #region agent log Backend Response
+    console.log(`[Vocab Sync] Sending ${remoteChanges.length} items to client, statuses: ${remoteChanges.map((i: any) => `${i.spanish}:${i.status}`).join(', ')}`);
+    // #endregion
     return apiResponse({
       success: true,
       timestamp: new Date().toISOString(),
-      operations: remoteChanges.map(item => ({
+      operations: remoteChanges.map((item: any) => ({
         id: item.id,
         entityType: 'vocabulary',
         operation: 'update',
@@ -228,31 +244,41 @@ async function handleUpdate(
   
   // Update item
   // Map field names from client to database
-  await prisma.vocabularyItem.update({
+  // #region agent log Backend Update
+  console.log(`[Vocab Sync] Updating item ${data.id}, incoming status: ${data.status}, spanish: ${data.spanishWord || data.spanish}`);
+  // #endregion
+  const updateData = {
+    spanish: data.spanishWord || data.spanish,
+    english: data.englishTranslation || data.english,
+    partOfSpeech: data.partOfSpeech,
+    gender: data.gender,
+    level: data.level,
+    examples: data.examples,
+    notes: data.notes,
+    images: data.images,
+    audio: data.audio || data.audioUrl,
+    synonyms: data.relationships?.synonyms || data.synonyms,
+    antonyms: data.relationships?.antonyms || data.antonyms,
+    relatedWords: data.relationships?.related || data.relatedWords,
+    status: data.status,
+    difficulty: data.difficulty,
+    easeFactor: data.easeFactor,
+    interval: data.interval,
+    repetitions: data.repetitions,
+    updatedAt: data.updatedAt ? new Date(data.updatedAt) : undefined,
+    version: { increment: 1 },
+    lastSyncedAt: new Date(),
+  };
+  // #region agent log Backend Update Data
+  console.log(`[Vocab Sync] Update data for ${data.id}:`, JSON.stringify({status: updateData.status, spanish: updateData.spanish}));
+  // #endregion
+  const updated = await prisma.vocabularyItem.update({
     where: { id: data.id },
-    data: {
-      spanish: data.spanishWord || data.spanish,
-      english: data.englishTranslation || data.english,
-      partOfSpeech: data.partOfSpeech,
-      gender: data.gender,
-      level: data.level,
-      examples: data.examples,
-      notes: data.notes,
-      images: data.images,
-      audio: data.audio || data.audioUrl,
-      synonyms: data.relationships?.synonyms || data.synonyms,
-      antonyms: data.relationships?.antonyms || data.antonyms,
-      relatedWords: data.relationships?.related || data.relatedWords,
-      status: data.status,
-      difficulty: data.difficulty,
-      easeFactor: data.easeFactor,
-      interval: data.interval,
-      repetitions: data.repetitions,
-      updatedAt: data.updatedAt ? new Date(data.updatedAt) : undefined,
-      version: { increment: 1 },
-      lastSyncedAt: new Date(),
-    },
+    data: updateData,
   });
+  // #region agent log Backend After Update
+  console.log(`[Vocab Sync] After DB update ${data.id}, status in DB:`, updated.status);
+  // #endregion
 }
 
 async function handleDelete(

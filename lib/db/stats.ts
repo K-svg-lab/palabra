@@ -27,6 +27,9 @@ export function formatDateKey(date: Date = new Date()): string {
  * @returns Promise resolving to the saved stats
  */
 export async function saveStats(stats: DailyStats): Promise<DailyStats> {
+  // #region agent log
+  fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'stats.ts:29',message:'Saving stats to IndexedDB',data:{date:stats.date,cardsReviewed:stats.cardsReviewed,sessionsCompleted:stats.sessionsCompleted,accuracyRate:stats.accuracyRate,timeSpent:stats.timeSpent,createdAt:stats.createdAt,updatedAt:stats.updatedAt},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'A,D,E'})}).catch(()=>{});
+  // #endregion
   const db = await getDB();
   await db.put(DB_CONFIG.STORES.STATS, stats);
   console.log('📊 Stats saved:', stats);

@@ -37,20 +37,27 @@ async function handler(request: NextRequest) {
     const processed: string[] = [];
     const errors: any[] = [];
     
-    // Process incoming reviews
+    // Process incoming review progress (ReviewRecords)
+    // These contain SM-2 algorithm data for vocabulary items
     for (const operation of operations) {
       try {
         const { data } = operation;
         
-        if (operation.operation === 'create') {
-          await prisma.review.create({
-            data: {
-              ...data,
-              userId,
-              lastSyncedAt: new Date(),
-            },
-          });
-        }
+        // Update the vocabulary item with review progress
+        await prisma.vocabularyItem.update({
+          where: {
+            id: data.vocabId,
+            userId,
+          },
+          data: {
+            easeFactor: data.easeFactor,
+            interval: data.interval,
+            repetitions: data.repetition,
+            lastReviewDate: data.lastReviewDate ? new Date(data.lastReviewDate) : null,
+            nextReviewDate: data.nextReviewDate ? new Date(data.nextReviewDate) : null,
+            lastSyncedAt: new Date(),
+          },
+        });
         
         processed.push(operation.id);
       } catch (error: any) {
@@ -61,19 +68,46 @@ async function handler(request: NextRequest) {
       }
     }
     
-    // Get remote changes since last sync
-    const remoteReviews = await prisma.review.findMany({
+    // Get vocabulary items with review progress updated since last sync
+    // Return as ReviewRecords for the client
+    const updatedVocab = await prisma.vocabularyItem.findMany({
       where: {
         userId,
         lastSyncedAt: lastSyncTime ? {
           gt: new Date(lastSyncTime),
         } : undefined,
+        // Only include items that have been reviewed (have review data)
+        lastReviewDate: {
+          not: null,
+        },
       },
-      take: 1000, // Limit to prevent huge payloads
+      select: {
+        id: true,
+        easeFactor: true,
+        interval: true,
+        repetitions: true,
+        lastReviewDate: true,
+        nextReviewDate: true,
+      },
+      take: 1000,
       orderBy: {
-        reviewDate: 'desc',
+        lastReviewDate: 'desc',
       },
     });
+    
+    // Transform to ReviewRecord format
+    const remoteReviews = updatedVocab.map(v => ({
+      id: `review-${v.id}`,
+      vocabId: v.id,
+      easeFactor: v.easeFactor,
+      interval: v.interval,
+      repetition: v.repetitions,
+      lastReviewDate: v.lastReviewDate?.getTime() || null,
+      nextReviewDate: v.nextReviewDate?.getTime() || null,
+      totalReviews: v.repetitions, // Approximate
+      correctCount: v.repetitions, // Approximate
+      incorrectCount: 0, // Not tracked in VocabularyItem
+    }));
     
     return apiResponse({
       success: true,
