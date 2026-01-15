@@ -172,7 +172,6 @@ export function VocabularyEntryFormEnhanced({ onSuccess, onCancel }: Props) {
         examplesArray = [{
           spanish: data.exampleSpanish,
           english: data.exampleEnglish,
-          source: 'tatoeba',
           context: 'neutral',
         }];
       } else if (lookupData?.examples && lookupData.examples.length > 0) {
