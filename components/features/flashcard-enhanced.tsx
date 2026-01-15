@@ -72,18 +72,6 @@ export function FlashcardEnhanced({
     const timer = setTimeout(() => {
       if (cardRef.current && mode === 'recognition') {
         cardRef.current.focus();
-        // #region agent log
-        const container = document.querySelector('.flashcard-container') as HTMLElement;
-        const card = document.querySelector('.flashcard-simple') as HTMLElement;
-        if (container && card) {
-          const containerRect = container.getBoundingClientRect();
-          const cardRect = card.getBoundingClientRect();
-          const computedStyle = window.getComputedStyle(cardRef.current);
-          const logData = {location:'flashcard-enhanced.tsx:75',message:'Card focused - checking outline',data:{outline:computedStyle.outline,outlineWidth:computedStyle.outlineWidth,outlineColor:computedStyle.outlineColor,hasFocus:document.activeElement===cardRef.current,containerHeight:containerRect.height,cardHeight:cardRect.height},timestamp:Date.now(),sessionId:'debug-session',runId:'post-fix',hypothesisId:'H1'};
-          console.log('[DEBUG POST-FIX]', logData);
-          fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(logData)}).catch(()=>{});
-        }
-        // #endregion
       }
     }, 100); // Small delay to ensure DOM is ready
     return () => clearTimeout(timer);
@@ -215,17 +203,20 @@ export function FlashcardEnhanced({
     const handleKeyDown = (e: React.KeyboardEvent) => {
       if (e.key === "Enter" || e.key === " ") {
         e.preventDefault();
-        // #region agent log
-        const logData = {location:'flashcard-enhanced.tsx:206',message:'Enter/Space pressed on card',data:{key:e.key,activeElement:document.activeElement?.className,isFlipped},timestamp:Date.now(),sessionId:'debug-session',runId:'post-fix',hypothesisId:'H1'};
-        console.log('[DEBUG POST-FIX]', logData);
-        fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(logData)}).catch(()=>{});
-        // #endregion
         onFlip?.();
       }
     };
     
     return (
-      <div className="flashcard-simple">
+      <div 
+        className="flashcard-simple" 
+        style={{
+          height: '100%',
+          border: '2px solid rgba(255, 255, 255, 0.25)',
+          borderRadius: '20px',
+          boxShadow: '0 2px 8px rgba(0, 0, 0, 0.3), 0 8px 24px rgba(0, 0, 0, 0.4)',
+        }}
+      >
         {/* Conditionally render EITHER front OR back - no 3D transforms */}
         {!isFlipped ? (
         /* Front Side - Question */
@@ -289,12 +280,17 @@ export function FlashcardEnhanced({
 
                 {/* Example sentence */}
                 {word.examples && word.examples.length > 0 && (
-                  <div className="pt-4 mt-3 border-t border-separator/20">
+                  <div className="pt-4 mt-3 border-t border-separator/25">
                     <p className="text-base sm:text-lg text-text-secondary italic leading-relaxed px-4">
                       &ldquo;{isSpanishToEnglish ? word.examples[0].spanish : word.examples[0].english}&rdquo;
                     </p>
                   </div>
                 )}
+
+                {/* Placeholder for rating buttons - prevents layout shift */}
+                <div className="pt-4 mt-1">
+                  <div className="h-[40px] sm:h-[44px]" aria-hidden="true"></div>
+                </div>
               </div>
             </div>
 
@@ -354,7 +350,7 @@ export function FlashcardEnhanced({
 
                 {/* Example sentence */}
                 {word.examples && word.examples.length > 0 && (
-                  <div className="pt-4 mt-3 border-t border-separator/20">
+                  <div className="pt-4 mt-3 border-t border-separator/25">
                     <p className="text-base sm:text-lg text-text-secondary italic leading-relaxed px-4">
                       &ldquo;{isSpanishToEnglish ? word.examples[0].english : word.examples[0].spanish}&rdquo;
                     </p>
@@ -401,9 +397,9 @@ export function FlashcardEnhanced({
 
             {/* Tap hint at bottom - absolutely positioned - only show when no rating buttons */}
             {!onRate && (
-              <p className="absolute bottom-6 inset-x-0 text-center text-sm text-text-tertiary font-medium pointer-events-none">
-                Tap or press Enter to reveal
-              </p>
+            <p className="absolute bottom-6 inset-x-0 text-center text-sm text-text-tertiary font-medium pointer-events-none">
+              Tap or press Enter to reveal
+            </p>
             )}
           </div>
         </div>
@@ -663,8 +659,8 @@ export function FlashcardEnhanced({
           height: 100%;
           border-radius: 20px;
           background: var(--bg-primary);
-          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08), 0 4px 16px rgba(0, 0, 0, 0.08);
-          border: 1px solid rgba(0, 0, 0, 0.04);
+          border: 2px solid rgba(0, 0, 0, 0.15);
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08), 0 8px 24px rgba(0, 0, 0, 0.12);
           cursor: pointer;
           user-select: none;
           -webkit-user-select: none;
@@ -673,7 +669,8 @@ export function FlashcardEnhanced({
         
         @media (prefers-color-scheme: dark) {
           .flashcard-simple {
-            border: 1px solid rgba(255, 255, 255, 0.06);
+            border: 2px solid rgba(255, 255, 255, 0.25);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3), 0 8px 24px rgba(0, 0, 0, 0.4);
           }
         }
 
@@ -692,9 +689,17 @@ export function FlashcardEnhanced({
 
         @media (hover: hover) {
           .flashcard-simple:hover {
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.10), 0 8px 20px rgba(0, 0, 0, 0.12);
-            transform: translateY(-1px);
-            transition: all 0.2s ease;
+            border: 2px solid rgba(0, 0, 0, 0.2);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12), 0 12px 32px rgba(0, 0, 0, 0.16);
+            transform: translateY(-2px);
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+          }
+        }
+        
+        @media (hover: hover) and (prefers-color-scheme: dark) {
+          .flashcard-simple:hover {
+            border: 2px solid rgba(255, 255, 255, 0.35);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4), 0 12px 32px rgba(0, 0, 0, 0.5);
           }
         }
       `}</style>

@@ -45,32 +45,6 @@ export function ReviewSessionEnhanced({
   // Scroll to top when component mounts (fixes inherited scroll position from config page)
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'instant' });
-    // #region agent log
-    const logLayout = () => {
-      const rootContainer = document.querySelector('.flex.flex-col.h-screen') as HTMLElement;
-      const header = document.querySelector('[role="banner"]') || document.querySelector('.flex.items-center.justify-between');
-      const flashcardArea = document.querySelector('.flex-1.flex.items-center') as HTMLElement;
-      const footer = document.querySelector('.px-3.py-1\\.5') || document.querySelector('[class*="border-t"]');
-      const flashcardContainer = document.querySelector('.flashcard-container');
-      const viewportHeight = window.innerHeight;
-      const bodyScrollHeight = document.body.scrollHeight;
-      const htmlScrollHeight = document.documentElement.scrollHeight;
-      const bodyComputedStyle = window.getComputedStyle(document.body);
-      const htmlComputedStyle = window.getComputedStyle(document.documentElement);
-      if (header && footer && flashcardContainer && flashcardArea && rootContainer) {
-        const headerRect = (header as HTMLElement).getBoundingClientRect();
-        const footerRect = (footer as HTMLElement).getBoundingClientRect();
-        const flashcardAreaRect = flashcardArea.getBoundingClientRect();
-        const flashcardContainerRect = (flashcardContainer as HTMLElement).getBoundingClientRect();
-        const rootContainerRect = rootContainer.getBoundingClientRect();
-        const flashcardAreaStyle = window.getComputedStyle(flashcardArea);
-        const logData = {location:'review-session-enhanced.tsx:48',message:'Detailed layout measurement',data:{viewport:viewportHeight,bodyScroll:bodyScrollHeight,htmlScroll:htmlScrollHeight,overflow:bodyScrollHeight-viewportHeight,bodyMargin:`${bodyComputedStyle.marginTop} ${bodyComputedStyle.marginBottom}`,bodyPadding:`${bodyComputedStyle.paddingTop} ${bodyComputedStyle.paddingBottom}`,htmlMargin:`${htmlComputedStyle.marginTop} ${htmlComputedStyle.marginBottom}`,htmlPadding:`${htmlComputedStyle.paddingTop} ${htmlComputedStyle.paddingBottom}`,rootContainer:{height:rootContainerRect.height,top:rootContainerRect.top,bottom:rootContainerRect.bottom},header:{height:headerRect.height,top:headerRect.top,bottom:headerRect.bottom},flashcardArea:{height:flashcardAreaRect.height,top:flashcardAreaRect.top,bottom:flashcardAreaRect.bottom,padding:`${flashcardAreaStyle.paddingTop} ${flashcardAreaStyle.paddingBottom}`},flashcardContainer:{height:flashcardContainerRect.height,top:flashcardContainerRect.top,bottom:flashcardContainerRect.bottom},footer:{height:footerRect.height,top:footerRect.top,bottom:footerRect.bottom},totalCalculated:headerRect.height+flashcardAreaRect.height+footerRect.height},timestamp:Date.now(),sessionId:'debug-session',runId:'overflow-debug',hypothesisId:'H1,H2,H3,H4,H5'};
-        console.log('[DEBUG OVERFLOW]', logData);
-        fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(logData)}).catch(()=>{});
-      }
-    };
-    setTimeout(logLayout, 200);
-    // #endregion
   }, []);
   
   // Process words based on configuration
@@ -383,8 +357,8 @@ export function ReviewSessionEnhanced({
               <span className="px-2 py-0.5 rounded-md bg-black/5 dark:bg-white/5">← → Navigate</span>
               <span className="px-2 py-0.5 rounded-md bg-black/5 dark:bg-white/5">Esc Exit</span>
             </>
-          )}
-        </div>
+        )}
+          </div>
       </div>
 
     </div>

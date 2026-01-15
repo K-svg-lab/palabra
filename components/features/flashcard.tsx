@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Volume2 } from "lucide-react";
 import type { VocabularyWord, DifficultyRating } from "@/lib/types/vocabulary";
 import { playAudio } from "@/lib/services/audio";
@@ -35,12 +35,33 @@ interface FlashcardProps {
 export function Flashcard({ word, isFlipped = false, onFlip, cardNumber, onRate }: FlashcardProps) {
   const [isPlaying, setIsPlaying] = useState(false);
 
+  // #region agent log
+  useEffect(() => {
+    const logDimensions = () => {
+      const container = document.querySelector('.flashcard-container') as HTMLElement;
+      const flashcard = document.querySelector('.flashcard') as HTMLElement;
+      const front = document.querySelector('.flashcard-front') as HTMLElement;
+      if (container && flashcard && front) {
+        const containerRect = container.getBoundingClientRect();
+        const viewportHeight = window.innerHeight;
+        fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'flashcard.tsx:38',message:'Flashcard dimensions',data:{containerHeight:containerRect.height,containerMaxHeight:container.style.maxHeight,viewportHeight,minHeight:getComputedStyle(container).minHeight,maxHeight:getComputedStyle(container).maxHeight},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H6,H7,H8'})}).catch(()=>{});
+      }
+    };
+    logDimensions();
+    window.addEventListener('resize', logDimensions);
+    return () => window.removeEventListener('resize', logDimensions);
+  }, []);
+  // #endregion
+
   /**
    * Handles pronunciation playback
    * Prevents card flip during audio playback
    */
   const handlePlayAudio = async (e: React.MouseEvent) => {
     e.stopPropagation(); // Prevent card flip
+    // #region agent log
+    fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'flashcard.tsx:45',message:'Audio button clicked',data:{isPlaying,target:e.currentTarget.tagName},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H2'})}).catch(()=>{});
+    // #endregion
     
     try {
       setIsPlaying(true);
@@ -86,6 +107,11 @@ export function Flashcard({ word, isFlipped = false, onFlip, cardNumber, onRate 
         role="button"
         tabIndex={0}
         onKeyDown={(e) => {
+          // #region agent log
+          const logData = {location:'flashcard.tsx:89',message:'Key pressed on flashcard',data:{key:e.key,target:e.currentTarget.className,activeElement:document.activeElement?.tagName,activeElementClass:document.activeElement?.className},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H1,H2,H3,H4'};
+          console.log('[DEBUG]', logData);
+          fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(logData)}).catch((err)=>{console.log('[DEBUG] Fetch failed', err);});
+          // #endregion
           if (e.key === "Enter" || e.key === " ") {
             e.preventDefault();
             onFlip?.();
@@ -103,16 +129,6 @@ export function Flashcard({ word, isFlipped = false, onFlip, cardNumber, onRate 
               </div>
             )}
 
-            {/* Pronunciation Button */}
-            <button
-              onClick={handlePlayAudio}
-              disabled={isPlaying}
-              className="absolute top-4 right-4 p-2.5 rounded-full bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 transition-colors disabled:opacity-50"
-              aria-label="Play pronunciation"
-            >
-              <Volume2 className={`w-5 h-5 ${isPlaying ? "text-accent" : "text-text-secondary"}`} />
-            </button>
-
             {/* Spanish Word - Clean and Prominent */}
             <div className="text-center space-y-4">
               {getGenderDisplay() && (
@@ -120,9 +136,20 @@ export function Flashcard({ word, isFlipped = false, onFlip, cardNumber, onRate 
                   {getGenderDisplay()}
                 </p>
               )}
+              <div className="flex items-center justify-center gap-3">
               <h2 className="text-5xl sm:text-6xl md:text-7xl font-bold text-text leading-tight px-4">
                 {word.spanishWord}
               </h2>
+                {/* Pronunciation Button - Inside card content */}
+                <button
+                  onClick={handlePlayAudio}
+                  disabled={isPlaying}
+                  className="p-2 rounded-full bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 transition-colors disabled:opacity-50 flex-shrink-0"
+                  aria-label="Play pronunciation"
+                >
+                  <Volume2 className={`w-6 h-6 ${isPlaying ? "text-accent" : "text-text-secondary"}`} />
+                </button>
+              </div>
               {word.partOfSpeech && (
                 <p className="text-sm sm:text-base text-text-secondary uppercase tracking-wider mt-3">
                   {word.partOfSpeech}
@@ -230,15 +257,15 @@ export function Flashcard({ word, isFlipped = false, onFlip, cardNumber, onRate 
           width: 100%;
           max-width: 600px;
           height: 100%;
-          min-height: 500px;
-          max-height: calc(100vh - 180px);
+          min-height: 400px;
+          max-height: calc(100vh - 200px);
           margin: 0 auto;
         }
 
         @media (max-width: 640px) {
           .flashcard-container {
-            max-height: calc(100vh - 160px);
-            min-height: 450px;
+            max-height: calc(100vh - 180px);
+            min-height: 380px;
           }
         }
 
@@ -275,11 +302,9 @@ export function Flashcard({ word, isFlipped = false, onFlip, cardNumber, onRate 
           transform: rotateY(180deg);
         }
 
-        /* Focus styles */
+        /* Focus styles - Remove visible outline to prevent blue rectangle on Enter press */
         .flashcard:focus-visible {
-          outline: 3px solid var(--accent);
-          outline-offset: 4px;
-          border-radius: 20px;
+          outline: none;
         }
 
         /* Hover effect */
