@@ -10,6 +10,7 @@ import { useRouter } from 'next/navigation';
 import { getSyncService } from '@/lib/services/sync';
 import { clearAllUserData } from '@/lib/db/schema';
 import { completeOnboarding } from '@/lib/utils/onboarding';
+import { Logo } from '@/components/shared/logo';
 
 export default function SignInPage() {
   const router = useRouter();
@@ -75,6 +76,9 @@ export default function SignInPage() {
       <div className="max-w-md w-full">
         <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8">
           <div className="text-center mb-8">
+            <div className="flex justify-center mb-6">
+              <Logo size="large" />
+            </div>
             <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
               Welcome Back
             </h1>

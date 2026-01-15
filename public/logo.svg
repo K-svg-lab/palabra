@@ -1,0 +1,38 @@
+<svg viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="palabraGradient" x1="0%" y1="50%" x2="100%" y2="50%">
+      <stop offset="0%" style="stop-color:#FDB813;stop-opacity:1" />
+      <stop offset="45%" style="stop-color:#FF8A5B;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#E8384F;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- P shape with speech bubble cutout using fill-rule -->
+  <path 
+    fill-rule="evenodd"
+    d="M 100 150 
+       C 100 110, 130 80, 170 80
+       L 342 80
+       C 417 80, 478 141, 478 216
+       C 478 291, 417 352, 342 352
+       L 230 352
+       L 230 400
+       C 230 440, 200 470, 160 470
+       C 120 470, 90 440, 90 400
+       L 90 150
+       C 90 110, 120 80, 160 80
+       L 100 150
+       Z
+       M 230 170
+       C 230 150, 245 135, 265 135
+       L 320 135
+       C 365 135, 402 172, 402 217
+       C 402 262, 365 299, 320 299
+       C 320 299, 320 299, 320 299
+       L 265 299
+       C 245 299, 230 284, 230 264
+       L 230 170
+       Z"
+    fill="url(#palabraGradient)"
+  />
+</svg>

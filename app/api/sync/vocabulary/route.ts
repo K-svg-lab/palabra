@@ -1,6 +1,7 @@
 /**
  * API Route: Sync Vocabulary
  * Handles vocabulary synchronization between client and server
+ * Updated: 2026-01-15
  */
 
 import { NextRequest } from 'next/server';
@@ -59,7 +60,8 @@ async function handler(request: NextRequest) {
             break;
         }
         processed.push(operation);
-      } catch (error: any) {        errors.push({
+      } catch (error: any) {
+        errors.push({
           operation,
           error: error.message,
         });
@@ -87,7 +89,8 @@ async function handler(request: NextRequest) {
       orderBy: {
         updatedAt: 'desc',
       },
-    });    
+    });
+    
     // Update device info
     await updateDeviceInfo(userId, deviceId);
     
@@ -104,29 +107,33 @@ async function handler(request: NextRequest) {
         errors: errors.length > 0 ? errors : undefined,
         deviceId,
       },
-    });    return apiResponse({
+    });
+    
+    // Map remote changes to sync operations
+    const syncOperations = remoteChanges.map((item: any) => ({
+      id: item.id,
+      entityType: 'vocabulary' as const,
+      operation: 'update' as const,
+      data: {
+        ...item,
+        spanishWord: item.spanish,
+        englishTranslation: item.english,
+        audioUrl: item.audio,
+        relationships: {
+          synonyms: item.synonyms || [],
+          antonyms: item.antonyms || [],
+          related: item.relatedWords || [],
+        },
+        createdAt: new Date(item.createdAt).getTime(),
+        updatedAt: new Date(item.updatedAt).getTime(),
+      },
+      timestamp: item.updatedAt,
+    }));
+    
+    return apiResponse({
       success: true,
       timestamp: new Date().toISOString(),
-      operations: remoteChanges.map((item: any) => ({
-        id: item.id,
-        entityType: 'vocabulary',
-        operation: 'update',
-        // Map database field names back to client field names
-        data: {
-          ...item,
-          spanishWord: item.spanish,
-          englishTranslation: item.english,
-          audioUrl: item.audio,
-          relationships: {
-            synonyms: item.synonyms || [],
-            antonyms: item.antonyms || [],
-            related: item.relatedWords || [],
-          },
-          createdAt: new Date(item.createdAt).getTime(),
-          updatedAt: new Date(item.updatedAt).getTime(),
-        },
-        timestamp: item.updatedAt,
-      })),
+      operations: syncOperations,
       conflicts,
       processed: processed.length,
       errors,
@@ -207,21 +214,25 @@ async function handleUpdate(
   operation: SyncOperation,
   conflicts: SyncConflict[]
 ) {
-  const { data } = operation;  
+  const { data } = operation;
+  
   // Get existing item
   const existing = await prisma.vocabularyItem.findFirst({
     where: {
       id: data.id,
       userId,
     },
-  });  
+  });
+  
   if (!existing) {
-    // Item doesn't exist, create it    await handleCreate(userId, operation, conflicts);
+    // Item doesn't exist, create it
+    await handleCreate(userId, operation, conflicts);
     return;
   }
   
   // Check for conflict
-  if (existing.version > (operation.localVersion || 0)) {    conflicts.push({
+  if (existing.version > (operation.localVersion || 0)) {
+    conflicts.push({
       id: crypto.randomUUID(),
       entityType: 'vocabulary',
       entityId: data.id,
@@ -260,10 +271,13 @@ async function handleUpdate(
     updatedAt: data.updatedAt ? new Date(data.updatedAt) : undefined,
     version: { increment: 1 },
     lastSyncedAt: new Date(),
-  };  const updated = await prisma.vocabularyItem.update({
+  };
+  
+  const updated = await prisma.vocabularyItem.update({
     where: { id: data.id },
     data: updateData,
-  });}
+  });
+}
 
 async function handleDelete(
   userId: string,

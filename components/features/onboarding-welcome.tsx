@@ -12,6 +12,7 @@
 import { useState } from 'react';
 import { ChevronRight, BookOpen, Brain, TrendingUp, X, Cloud } from 'lucide-react';
 import Link from 'next/link';
+import { Logo } from '@/components/shared/logo';
 
 interface OnboardingWelcomeProps {
   onComplete: () => void;
@@ -88,7 +89,7 @@ export function OnboardingWelcome({ onComplete, onSkip }: OnboardingWelcomeProps
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-800">
           <div className="flex items-center gap-2">
-            <div className="text-2xl font-bold">Palabra</div>
+            <Logo size="medium" showText />
             <div className="px-2 py-0.5 text-xs font-medium bg-accent/10 text-accent rounded-full">
               Welcome
             </div>
