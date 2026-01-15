@@ -25,7 +25,7 @@ export function VocabularyList({ onAddNew, onEdit }: Props) {
   const [sortBy, setSortBy] = useState<'newest' | 'oldest' | 'alphabetical'>('newest');
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
 
-  const { data: vocabulary = [], isLoading } = useVocabulary();
+  const { data: vocabulary = [], isLoading } = useVocabulary() as { data: VocabularyWord[]; isLoading: boolean };
   const deleteMutation = useDeleteVocabulary();
 
   // Filter and sort vocabulary

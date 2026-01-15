@@ -65,11 +65,18 @@ export async function getVocabularyWord(
 /**
  * Retrieves all vocabulary words
  * 
+ * @param includeDeleted - Include soft-deleted items (for sync purposes)
  * @returns Promise resolving to array of all words
  */
-export async function getAllVocabularyWords(): Promise<VocabularyWord[]> {
+export async function getAllVocabularyWords(includeDeleted: boolean = false): Promise<VocabularyWord[]> {
   const db = await getDB();
   const words = await db.getAll(DB_CONFIG.STORES.VOCABULARY);
+  
+  // Filter out soft-deleted items unless explicitly requested
+  if (!includeDeleted) {
+    return words.filter(word => !word.isDeleted);
+  }
+  
   return words;
 }
 
@@ -105,7 +112,8 @@ export async function updateVocabularyWord(
 }
 
 /**
- * Deletes a vocabulary word and its associated review record
+ * Deletes a vocabulary word (soft delete for sync support)
+ * Marks the word as deleted instead of removing it, so sync can detect and upload the deletion
  * 
  * @param id - The word ID to delete
  * @returns Promise resolving when deletion is complete
@@ -113,10 +121,24 @@ export async function updateVocabularyWord(
 export async function deleteVocabularyWord(id: string): Promise<void> {
   const db = await getDB();
   
-  // Delete vocabulary word
-  await db.delete(DB_CONFIG.STORES.VOCABULARY, id);
+  // Get the existing word
+  const existingWord = await db.get(DB_CONFIG.STORES.VOCABULARY, id);
+  if (!existingWord) {
+    // Word doesn't exist, nothing to delete
+    return;
+  }
   
-  // Delete associated review record
+  // Soft delete: mark as deleted and update timestamp
+  // This allows sync to detect the deletion and upload it to the server
+  const deletedWord: VocabularyWord = {
+    ...existingWord,
+    isDeleted: true,
+    updatedAt: Date.now(),
+  };
+  
+  await db.put(DB_CONFIG.STORES.VOCABULARY, deletedWord);
+  
+  // Delete associated review record locally
   // Import dynamically to avoid circular dependency
   const { deleteReviewByVocabId } = await import('./reviews');
   try {

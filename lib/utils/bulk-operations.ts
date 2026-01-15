@@ -136,7 +136,8 @@ export async function bulkEditWords(
 }
 
 /**
- * Deletes multiple vocabulary words and their review records
+ * Deletes multiple vocabulary words (soft delete for sync support)
+ * Marks words as deleted instead of removing them, so sync can detect and upload the deletions
  * 
  * @param wordIds - Array of word IDs to delete
  * @returns Promise resolving to operation result
@@ -154,10 +155,32 @@ export async function bulkDeleteWords(
   
   for (const id of wordIds) {
     try {
-      // Delete vocabulary word
-      await db.delete(DB_CONFIG.STORES.VOCABULARY, id);
+      // Get the existing word
+      const existingWord = await db.get(DB_CONFIG.STORES.VOCABULARY, id);
       
-      // Delete associated review record
+      if (!existingWord) {
+        // Word doesn't exist, skip
+        result.failureCount++;
+        result.failedIds.push(id);
+        result.errors.push({
+          id,
+          error: 'Word not found',
+        });
+        continue;
+      }
+      
+      // Soft delete: mark as deleted and update timestamp
+      // This allows sync to detect the deletion and upload it to the server
+      const deletedWord: VocabularyWord = {
+        ...existingWord,
+        isDeleted: true,
+        updatedAt: Date.now(),
+      };
+      
+      // Save the soft-deleted word
+      await db.put(DB_CONFIG.STORES.VOCABULARY, deletedWord);
+      
+      // Delete associated review record (can be hard delete since reviews don't sync the same way)
       try {
         await deleteReviewByVocabId(id);
       } catch (error) {

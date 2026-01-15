@@ -173,6 +173,12 @@ export interface VocabularyWord {
   
   /** Custom tags for organization */
   tags?: string[];
+  
+  /** Soft delete flag for sync (true = deleted but not yet synced to server) */
+  isDeleted?: boolean;
+  
+  /** Version number for conflict resolution during sync */
+  version?: number;
 }
 
 /**

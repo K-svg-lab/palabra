@@ -26,7 +26,7 @@ import {
 export function useVocabulary() {
   return useQuery({
     queryKey: ['vocabulary'],
-    queryFn: getAllVocabularyWords,
+    queryFn: () => getAllVocabularyWords(),
   });
 }
 
@@ -117,10 +117,23 @@ export function useUpdateVocabulary() {
       
       return updateVocabularyWord(updatedWord);
     },
-    onSuccess: (_, variables) => {
+    onSuccess: async (_, variables) => {
       // Invalidate specific word and list
       queryClient.invalidateQueries({ queryKey: ['vocabulary', variables.id] });
       queryClient.invalidateQueries({ queryKey: ['vocabulary'] });
+      
+      // Trigger immediate sync to prevent data loss
+      try {
+        const { getSyncService } = await import('@/lib/services/sync');
+        const syncService = getSyncService();
+        
+        // Trigger sync without awaiting to avoid blocking UI
+        syncService.sync('incremental').catch((error) => {
+          console.warn('Background sync after vocabulary update failed:', error);
+        });
+      } catch (error) {
+        console.warn('Failed to trigger sync after vocabulary update:', error);
+      }
     },
   });
 }
@@ -132,10 +145,25 @@ export function useDeleteVocabulary() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: deleteVocabularyWord,
-    onSuccess: () => {
-      // Invalidate vocabulary list
+    mutationFn: async (id: string) => {
+      return deleteVocabularyWord(id);
+    },
+    onSuccess: async (_, deletedId) => {
+      // Invalidate vocabulary list to immediately update UI
       queryClient.invalidateQueries({ queryKey: ['vocabulary'] });
+      
+      // Trigger background sync without blocking UI
+      try {
+        const { getSyncService } = await import('@/lib/services/sync');
+        const syncService = getSyncService();
+        
+        // Trigger sync without awaiting to avoid blocking UI
+        syncService.sync('incremental').catch((error) => {
+          console.error('Background sync after vocabulary deletion failed:', error);
+        });
+      } catch (error) {
+        console.warn('Failed to trigger sync after vocabulary deletion:', error);
+      }
     },
   });
 }

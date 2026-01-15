@@ -40,7 +40,7 @@ export default function VocabularyPage() {
   // Bulk operations state
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   
-  const { data: vocabulary = [], refetch } = useVocabulary();
+  const { data: vocabulary = [], refetch } = useVocabulary() as { data: VocabularyWord[]; refetch: () => void };
 
   // Load available tags
   useEffect(() => {
@@ -74,9 +74,21 @@ export default function VocabularyPage() {
     refetch();
   };
   
-  const handleBulkOperationComplete = () => {
+  const handleBulkOperationComplete = async () => {
+    // Refetch to update UI immediately
     refetch();
     setSelectedIds([]);
+    
+    // Trigger background sync to persist changes to server
+    try {
+      const { getSyncService } = await import('@/lib/services/sync');
+      const syncService = getSyncService();
+      syncService.sync('incremental').catch((error) => {
+        console.warn('Background sync after bulk operation failed:', error);
+      });
+    } catch (error) {
+      console.warn('Failed to trigger sync after bulk operation:', error);
+    }
   };
   
   const handleResetFilters = () => {

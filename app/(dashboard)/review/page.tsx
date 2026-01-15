@@ -52,7 +52,7 @@ export default function ReviewPage() {
    */
   useEffect(() => {
     async function loadDueWords() {
-      if (!allWords || allWords.length === 0) return;
+      if (!allWords || !Array.isArray(allWords) || allWords.length === 0) return;
 
       try {
         // Get all review records
@@ -79,7 +79,7 @@ export default function ReviewPage() {
         // Extract unique tags from all words
         const tagsSet = new Set<string>();
         allWords.forEach(word => {
-          word.tags?.forEach(tag => tagsSet.add(tag));
+          word.tags?.forEach((tag: string) => tagsSet.add(tag));
         });
         setAvailableTags(Array.from(tagsSet).sort());
       } catch (error) {
@@ -103,7 +103,7 @@ export default function ReviewPage() {
    * Start a review session with custom configuration
    */
   const startSession = async (config: StudySessionConfig) => {
-    if (!allWords || allWords.length === 0) return;
+    if (!allWords || !Array.isArray(allWords) || allWords.length === 0) return;
 
     try {
       // Get all review records for filtering
@@ -133,7 +133,7 @@ export default function ReviewPage() {
       // Apply tag filter if configured
       if (config.tagFilter && config.tagFilter.length > 0) {
         wordsToReview = wordsToReview.filter(word =>
-          word.tags?.some(tag => config.tagFilter!.includes(tag))
+          word.tags?.some((tag: string) => config.tagFilter!.includes(tag))
         );
       }
 
@@ -326,7 +326,7 @@ export default function ReviewPage() {
   }
 
   // Empty state
-  if (!allWords || allWords.length === 0) {
+  if (!allWords || !Array.isArray(allWords) || allWords.length === 0) {
     return (
       <div className="flex items-center justify-center min-h-[calc(100vh-120px)] p-6">
         <div className="max-w-md text-center space-y-6">

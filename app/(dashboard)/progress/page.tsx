@@ -66,7 +66,7 @@ export default function ProgressPage() {
       setIsLoading(true);
       
       try {
-        if (!allWords || allWords.length === 0) {
+        if (!allWords || !Array.isArray(allWords) || allWords.length === 0) {
           setIsLoading(false);
           return;
         }

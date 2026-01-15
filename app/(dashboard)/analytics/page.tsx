@@ -9,6 +9,7 @@ import { useEffect, useState } from 'react';
 import { useVocabulary } from '@/lib/hooks/use-vocabulary';
 import { getAllReviews } from '@/lib/db/reviews';
 import { getAllStats, getRecentStats } from '@/lib/db/stats';
+import type { VocabularyWord } from '@/lib/types/vocabulary';
 import {
   calculateLearningVelocity,
   calculateRetentionMetrics,
@@ -64,7 +65,7 @@ export default function AnalyticsPage() {
       setIsLoading(true);
       
       try {
-        if (!allWords || allWords.length === 0) {
+        if (!allWords || !Array.isArray(allWords) || allWords.length === 0) {
           setIsLoading(false);
           return;
         }
@@ -132,7 +133,7 @@ export default function AnalyticsPage() {
   }
 
   // Empty state
-  if (!allWords || allWords.length === 0) {
+  if (!allWords || !Array.isArray(allWords) || allWords.length === 0) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-black">
         <header className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800">
