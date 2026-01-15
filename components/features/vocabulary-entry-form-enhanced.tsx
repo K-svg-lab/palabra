@@ -233,7 +233,7 @@ export function VocabularyEntryFormEnhanced({ onSuccess, onCancel }: Props) {
           />
           <button
             type="button"
-            onClick={handleLookup}
+            onClick={() => handleLookup()}
             disabled={!spanishWord || isLoading}
             className="px-4 py-3 bg-accent text-white rounded-lg hover:bg-accent/90 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
           >
