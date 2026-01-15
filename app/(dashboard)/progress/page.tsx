@@ -189,7 +189,7 @@ export default function ProgressPage() {
             </div>
             <a
               href="/analytics"
-              className="px-4 py-2 bg-accent text-white rounded-lg text-sm font-medium hover:bg-accent/90 transition-colors"
+              className="px-4 py-2 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg text-sm font-medium hover:border-gray-300 dark:hover:border-gray-700 transition-colors"
             >
               Advanced Analytics →
             </a>
@@ -202,20 +202,20 @@ export default function ProgressPage() {
         <section>
           <h2 className="text-xl font-semibold mb-4">Today</h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="bg-white dark:bg-gray-900 rounded-xl p-4 border border-gray-200 dark:border-gray-800">
-              <div className="text-3xl font-bold text-accent mb-1">{stats.cardsReviewedToday}</div>
+            <div className="bg-white dark:bg-gray-900 rounded-xl p-4 border border-gray-200 dark:border-gray-800 shadow-sm">
+              <div className="text-3xl font-bold mb-1">{stats.cardsReviewedToday}</div>
               <div className="text-sm text-gray-600 dark:text-gray-400">Cards reviewed</div>
             </div>
-            <div className="bg-white dark:bg-gray-900 rounded-xl p-4 border border-gray-200 dark:border-gray-800">
-              <div className="text-3xl font-bold text-blue-600 dark:text-blue-400 mb-1">{stats.newWordsAddedToday}</div>
+            <div className="bg-white dark:bg-gray-900 rounded-xl p-4 border border-gray-200 dark:border-gray-800 shadow-sm">
+              <div className="text-3xl font-bold mb-1">{stats.newWordsAddedToday}</div>
               <div className="text-sm text-gray-600 dark:text-gray-400">Words added</div>
             </div>
-            <div className="bg-white dark:bg-gray-900 rounded-xl p-4 border border-gray-200 dark:border-gray-800">
-              <div className="text-3xl font-bold text-green-600 dark:text-green-400 mb-1">{stats.todayAccuracy}%</div>
+            <div className="bg-white dark:bg-gray-900 rounded-xl p-4 border border-gray-200 dark:border-gray-800 shadow-sm">
+              <div className="text-3xl font-bold mb-1">{stats.todayAccuracy}%</div>
               <div className="text-sm text-gray-600 dark:text-gray-400">Accuracy</div>
             </div>
-            <div className="bg-white dark:bg-gray-900 rounded-xl p-4 border border-gray-200 dark:border-gray-800">
-              <div className="text-3xl font-bold text-orange-600 dark:text-orange-400 mb-1">
+            <div className="bg-white dark:bg-gray-900 rounded-xl p-4 border border-gray-200 dark:border-gray-800 shadow-sm">
+              <div className="text-3xl font-bold mb-1">
                 {formatStudyTime(stats.todayStudyTime)}
               </div>
               <div className="text-sm text-gray-600 dark:text-gray-400">Study time</div>
@@ -227,20 +227,20 @@ export default function ProgressPage() {
         <section>
           <h2 className="text-xl font-semibold mb-4">Overall Statistics</h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="bg-white dark:bg-gray-900 rounded-xl p-4 border border-gray-200 dark:border-gray-800">
+            <div className="bg-white dark:bg-gray-900 rounded-xl p-4 border border-gray-200 dark:border-gray-800 shadow-sm">
               <div className="text-3xl font-bold mb-1">{stats.totalWords}</div>
               <div className="text-sm text-gray-600 dark:text-gray-400">Total words</div>
             </div>
-            <div className="bg-white dark:bg-gray-900 rounded-xl p-4 border border-gray-200 dark:border-gray-800">
+            <div className="bg-white dark:bg-gray-900 rounded-xl p-4 border border-gray-200 dark:border-gray-800 shadow-sm">
               <div className="text-3xl font-bold mb-1">{stats.totalReviews}</div>
               <div className="text-sm text-gray-600 dark:text-gray-400">Total reviews</div>
             </div>
-            <div className="bg-white dark:bg-gray-900 rounded-xl p-4 border border-gray-200 dark:border-gray-800">
-              <div className="text-3xl font-bold text-green-600 dark:text-green-400 mb-1">{stats.overallAccuracy}%</div>
+            <div className="bg-white dark:bg-gray-900 rounded-xl p-4 border border-gray-200 dark:border-gray-800 shadow-sm">
+              <div className="text-3xl font-bold mb-1">{stats.overallAccuracy}%</div>
               <div className="text-sm text-gray-600 dark:text-gray-400">Overall accuracy</div>
             </div>
-            <div className="bg-white dark:bg-gray-900 rounded-xl p-4 border border-gray-200 dark:border-gray-800">
-              <div className="text-3xl font-bold text-orange-600 dark:text-orange-400 mb-1">
+            <div className="bg-white dark:bg-gray-900 rounded-xl p-4 border border-gray-200 dark:border-gray-800 shadow-sm">
+              <div className="text-3xl font-bold mb-1">
                 {formatStudyTime(stats.totalStudyTime)}
               </div>
               <div className="text-sm text-gray-600 dark:text-gray-400">Total study time</div>
@@ -251,14 +251,14 @@ export default function ProgressPage() {
         {/* Vocabulary Status */}
         <section>
           <h2 className="text-xl font-semibold mb-4">Vocabulary Status</h2>
-          <div className="bg-white dark:bg-gray-900 rounded-xl p-6 border border-gray-200 dark:border-gray-800">
+          <div className="bg-white dark:bg-gray-900 rounded-xl p-6 border border-gray-200 dark:border-gray-800 shadow-sm">
             <BarChart
               data={[
                 { label: 'New', value: stats.newWords },
                 { label: 'Learning', value: stats.learningWords },
                 { label: 'Mastered', value: stats.masteredWords },
               ]}
-              color="bg-gradient-to-r from-blue-600 via-orange-600 to-green-600"
+              color="bg-gray-900 dark:bg-gray-300"
             />
           </div>
         </section>
@@ -268,7 +268,7 @@ export default function ProgressPage() {
           {/* Reviews Chart */}
           <section>
             <h2 className="text-xl font-semibold mb-4">{getDateRangeLabel(7)}</h2>
-            <div className="bg-white dark:bg-gray-900 rounded-xl p-6 border border-gray-200 dark:border-gray-800">
+            <div className="bg-white dark:bg-gray-900 rounded-xl p-6 border border-gray-200 dark:border-gray-800 shadow-sm">
               <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-4">Cards Reviewed</h3>
               <BarChart
                 data={reviewsChartData.map(d => ({ label: d.label || '', value: d.value }))}
@@ -280,11 +280,11 @@ export default function ProgressPage() {
           {/* Accuracy Chart */}
           <section>
             <h2 className="text-xl font-semibold mb-4">{getDateRangeLabel(7)}</h2>
-            <div className="bg-white dark:bg-gray-900 rounded-xl p-6 border border-gray-200 dark:border-gray-800">
+            <div className="bg-white dark:bg-gray-900 rounded-xl p-6 border border-gray-200 dark:border-gray-800 shadow-sm">
               <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-4">Accuracy Rate</h3>
               <BarChart
                 data={accuracyChartData.map(d => ({ label: d.label || '', value: d.value }))}
-                color="bg-green-600 dark:bg-green-500"
+                color="bg-gray-900 dark:bg-gray-300"
               />
             </div>
           </section>
@@ -294,17 +294,17 @@ export default function ProgressPage() {
         <section>
           <h2 className="text-xl font-semibold mb-4">Study Streaks</h2>
           <div className="grid md:grid-cols-2 gap-4">
-            <div className="bg-gradient-to-br from-orange-500 to-red-600 rounded-xl p-6 text-white">
+            <div className="bg-white dark:bg-gray-900 rounded-xl p-6 border border-gray-200 dark:border-gray-800 shadow-sm">
               <div className="text-5xl font-bold mb-2">{stats.currentStreak}</div>
-              <div className="text-lg opacity-90">Current Streak</div>
-              <div className="text-sm opacity-75 mt-1">
+              <div className="text-lg font-medium text-gray-900 dark:text-white">Current Streak</div>
+              <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">
                 {stats.currentStreak === 0 ? 'Start reviewing to begin your streak' : 'Keep it up! 🔥'}
               </div>
             </div>
-            <div className="bg-gradient-to-br from-purple-500 to-indigo-600 rounded-xl p-6 text-white">
+            <div className="bg-white dark:bg-gray-900 rounded-xl p-6 border border-gray-200 dark:border-gray-800 shadow-sm">
               <div className="text-5xl font-bold mb-2">{stats.longestStreak}</div>
-              <div className="text-lg opacity-90">Longest Streak</div>
-              <div className="text-sm opacity-75 mt-1">
+              <div className="text-lg font-medium text-gray-900 dark:text-white">Longest Streak</div>
+              <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">
                 {stats.longestStreak === 0 ? 'No streak yet' : 'Personal best! 🏆'}
               </div>
             </div>
@@ -315,7 +315,7 @@ export default function ProgressPage() {
         {milestones.length > 0 && (
           <section>
             <h2 className="text-xl font-semibold mb-4">Milestones</h2>
-            <div className="bg-white dark:bg-gray-900 rounded-xl p-6 border border-gray-200 dark:border-gray-800">
+            <div className="bg-white dark:bg-gray-900 rounded-xl p-6 border border-gray-200 dark:border-gray-800 shadow-sm">
               <div className="flex flex-wrap gap-2">
                 {milestones.map((milestone, index) => (
                   <div

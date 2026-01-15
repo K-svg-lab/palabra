@@ -122,66 +122,29 @@ export default function HomePage() {
               <h2 className="text-xl font-semibold mb-4">Today</h2>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 {/* Cards Reviewed Today */}
-                <div className="bg-gradient-to-br from-accent to-accent/80 rounded-xl p-4 shadow-lg text-white">
+                <div className="bg-white dark:bg-gray-900 rounded-xl p-4 border border-gray-200 dark:border-gray-800 shadow-sm">
                   <div className="text-3xl font-bold mb-1">{todayStats?.cardsReviewed || 0}</div>
-                  <div className="text-sm opacity-90">Cards reviewed</div>
+                  <div className="text-sm text-gray-600 dark:text-gray-400">Cards reviewed</div>
                 </div>
 
                 {/* New Words Added Today */}
-                <div className="bg-gradient-to-br from-blue-600 to-blue-700 rounded-xl p-4 shadow-lg text-white">
+                <div className="bg-white dark:bg-gray-900 rounded-xl p-4 border border-gray-200 dark:border-gray-800 shadow-sm">
                   <div className="text-3xl font-bold mb-1">{todayStats?.newWordsAdded || 0}</div>
-                  <div className="text-sm opacity-90">Words added</div>
+                  <div className="text-sm text-gray-600 dark:text-gray-400">Words added</div>
                 </div>
 
                 {/* Cards Due Today */}
-                <div className="bg-gradient-to-br from-green-600 to-green-700 rounded-xl p-4 shadow-lg text-white">
+                <div className="bg-white dark:bg-gray-900 rounded-xl p-4 border border-gray-200 dark:border-gray-800 shadow-sm">
                   <div className="text-3xl font-bold mb-1">{dueCount}</div>
-                  <div className="text-sm opacity-90">Cards due</div>
+                  <div className="text-sm text-gray-600 dark:text-gray-400">Cards due</div>
                 </div>
 
                 {/* Today's Accuracy */}
-                <div className="bg-gradient-to-br from-purple-600 to-purple-700 rounded-xl p-4 shadow-lg text-white">
+                <div className="bg-white dark:bg-gray-900 rounded-xl p-4 border border-gray-200 dark:border-gray-800 shadow-sm">
                   <div className="text-3xl font-bold mb-1">
                     {todayStats?.accuracyRate ? Math.round(todayStats.accuracyRate * 100) : 0}%
                   </div>
-                  <div className="text-sm opacity-90">Accuracy</div>
-                </div>
-              </div>
-            </section>
-
-            {/* Overall Progress */}
-            <section>
-              <h2 className="text-xl font-semibold mb-4">Your Progress</h2>
-              
-              <div className="grid grid-cols-2 gap-4">
-                {/* Total Words */}
-                <div className="bg-white dark:bg-gray-900 rounded-xl p-6 border border-gray-200 dark:border-gray-800 shadow-sm">
-                  <div className="text-4xl font-bold mb-1">{stats?.total || 0}</div>
-                  <div className="text-sm text-gray-600 dark:text-gray-400">Total words</div>
-                </div>
-
-                {/* New Words */}
-                <div className="bg-white dark:bg-gray-900 rounded-xl p-6 border border-gray-200 dark:border-gray-800 shadow-sm">
-                  <div className="text-4xl font-bold text-blue-600 dark:text-blue-400 mb-1">
-                    {stats?.new || 0}
-                  </div>
-                  <div className="text-sm text-gray-600 dark:text-gray-400">New</div>
-                </div>
-
-                {/* Learning */}
-                <div className="bg-white dark:bg-gray-900 rounded-xl p-6 border border-gray-200 dark:border-gray-800 shadow-sm">
-                  <div className="text-4xl font-bold text-orange-600 dark:text-orange-400 mb-1">
-                    {stats?.learning || 0}
-                  </div>
-                  <div className="text-sm text-gray-600 dark:text-gray-400">Learning</div>
-                </div>
-
-                {/* Mastered */}
-                <div className="bg-white dark:bg-gray-900 rounded-xl p-6 border border-gray-200 dark:border-gray-800 shadow-sm">
-                  <div className="text-4xl font-bold text-green-600 dark:text-green-400 mb-1">
-                    {stats?.mastered || 0}
-                  </div>
-                  <div className="text-sm text-gray-600 dark:text-gray-400">Mastered</div>
+                  <div className="text-sm text-gray-600 dark:text-gray-400">Accuracy</div>
                 </div>
               </div>
             </section>
@@ -197,27 +160,28 @@ export default function HomePage() {
             {hasVocabulary && (
               <Link
                 href="/review"
-                className={`flex items-center justify-between p-4 text-white rounded-xl transition-colors shadow-lg ${
-                  dueCount > 0 
-                    ? 'bg-green-600 dark:bg-green-500 hover:bg-green-700 dark:hover:bg-green-600' 
-                    : 'bg-orange-500 dark:bg-orange-600 hover:bg-orange-600 dark:hover:bg-orange-700'
-                }`}
+                className="flex items-center justify-between p-4 bg-white dark:bg-gray-900 border-2 border-gray-200 dark:border-gray-800 rounded-xl hover:border-accent transition-colors shadow-sm"
               >
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
+                  <div className="w-10 h-10 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center">
                     <span className="text-2xl">🎴</span>
                   </div>
                   <div>
                     <div className="font-semibold">
                       {dueCount > 0 ? 'Start Review' : 'Practice Mode'}
                     </div>
-                    <div className="text-sm opacity-90">
+                    <div className="text-sm text-gray-600 dark:text-gray-400">
                       {dueCount > 0 
                         ? `${dueCount} ${dueCount === 1 ? 'card' : 'cards'} ready` 
                         : 'Review cards anytime'}
                     </div>
                   </div>
                 </div>
+                {dueCount > 0 && (
+                  <div className="w-8 h-8 bg-accent/10 rounded-full flex items-center justify-center">
+                    <span className="text-sm font-bold text-accent">{dueCount}</span>
+                  </div>
+                )}
               </Link>
             )}
 
@@ -229,7 +193,7 @@ export default function HomePage() {
                 // Will be handled by vocabulary page modal
                 window.location.href = '/vocabulary';
               }}
-              className="flex items-center justify-between p-4 bg-accent text-white rounded-xl hover:bg-accent/90 transition-colors shadow-lg"
+              className="flex items-center justify-between p-4 bg-accent text-white rounded-xl hover:bg-accent/90 transition-all shadow-md hover:shadow-lg"
             >
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
@@ -242,20 +206,6 @@ export default function HomePage() {
                   </div>
                 </div>
               </div>
-            </Link>
-
-            {/* View All Vocabulary */}
-            <Link
-              href="/vocabulary"
-              className="flex items-center justify-between p-4 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl hover:border-accent transition-colors shadow-sm"
-            >
-              <div>
-                <div className="font-semibold">View Vocabulary</div>
-                <div className="text-sm text-gray-600 dark:text-gray-400">
-                  Browse all words
-                </div>
-              </div>
-              <div className="text-2xl font-bold text-accent">{stats?.total || 0}</div>
             </Link>
           </div>
         </section>

@@ -225,38 +225,42 @@ export function BulkOperationsPanel({
         </div>
         
         {selectedIds.length > 0 && (
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1 sm:gap-2">
             <button
               onClick={() => setShowEditModal(true)}
-              className="flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
+              className="flex items-center justify-center gap-1 w-11 h-11 sm:w-auto sm:h-auto sm:px-3 sm:py-1.5 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
+              aria-label="Edit selected words"
             >
-              <Edit className="h-4 w-4" />
-              Edit
+              <Edit className="h-4 w-4 flex-shrink-0" />
+              <span className="hidden sm:inline">Edit</span>
             </button>
             
             <button
               onClick={handleBulkExport}
-              className="flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
+              className="flex items-center justify-center gap-1 w-11 h-11 sm:w-auto sm:h-auto sm:px-3 sm:py-1.5 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
+              aria-label="Export selected words"
             >
-              <Download className="h-4 w-4" />
-              Export
+              <Download className="h-4 w-4 flex-shrink-0" />
+              <span className="hidden sm:inline">Export</span>
             </button>
             
             <button
               onClick={handleBulkDuplicate}
               disabled={isProcessing}
-              className="flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors disabled:opacity-50"
+              className="flex items-center justify-center gap-1 w-11 h-11 sm:w-auto sm:h-auto sm:px-3 sm:py-1.5 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors disabled:opacity-50"
+              aria-label="Duplicate selected words"
             >
-              <Copy className="h-4 w-4" />
-              Duplicate
+              <Copy className="h-4 w-4 flex-shrink-0" />
+              <span className="hidden sm:inline">Duplicate</span>
             </button>
             
             <button
               onClick={() => setShowDeleteConfirm(true)}
-              className="flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-red-600 dark:text-red-400 bg-white dark:bg-gray-700 border border-red-300 dark:border-red-600 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+              className="flex items-center justify-center gap-1 w-11 h-11 sm:w-auto sm:h-auto sm:px-3 sm:py-1.5 text-sm font-medium text-red-600 dark:text-red-400 bg-white dark:bg-gray-700 border border-red-300 dark:border-red-600 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+              aria-label="Delete selected words"
             >
-              <Trash2 className="h-4 w-4" />
-              Delete
+              <Trash2 className="h-4 w-4 flex-shrink-0" />
+              <span className="hidden sm:inline">Delete</span>
             </button>
           </div>
         )}

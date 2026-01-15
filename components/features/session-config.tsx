@@ -79,22 +79,22 @@ export function SessionConfig({
   const effectiveSessionSize = Math.min(sessionSize, totalAvailable);
 
   return (
-    <div className="max-w-2xl mx-auto p-6 space-y-6">
+    <div className="max-w-2xl mx-auto p-4 sm:p-6 space-y-4 sm:space-y-6">
       {/* Header */}
-      <div className="text-center space-y-2">
+      <div className="text-center space-y-1">
         <div className="flex items-center justify-center gap-2 text-accent">
-          <Settings className="w-6 h-6" />
+          <Settings className="w-5 h-5" />
         </div>
-        <h2 className="text-2xl font-semibold text-text">
+        <h2 className="text-xl sm:text-2xl font-semibold text-text">
           Configure Study Session
         </h2>
-        <p className="text-sm text-text-secondary">
+        <p className="text-xs sm:text-sm text-text-secondary">
           Customize your learning experience
         </p>
       </div>
 
       {/* Session Size */}
-      <div className="space-y-3">
+      <div className="space-y-2">
         <label className="block text-sm font-medium text-text">
           Session Size: <span className="text-accent">{effectiveSessionSize}</span> cards
         </label>
@@ -115,242 +115,236 @@ export function SessionConfig({
       </div>
 
       {/* Review Direction */}
-      <div className="space-y-3">
+      <div className="space-y-2">
         <label className="block text-sm font-medium text-text">
           Review Direction
         </label>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+        <div className="grid grid-cols-3 gap-1.5 sm:gap-2">
           <button
             onClick={() => setDirection('spanish-to-english')}
-            className={`p-4 rounded-xl border-2 transition-all ${
+            className={`p-2 sm:p-4 rounded-lg sm:rounded-xl border-2 transition-all ${
               direction === 'spanish-to-english'
                 ? 'border-accent bg-accent/10 text-accent'
                 : 'border-separator hover:border-accent/50'
             }`}
           >
-            <div className="flex flex-col items-center gap-2">
-              <ArrowRight className="w-5 h-5" />
-              <span className="text-sm font-medium">ES → EN</span>
-              <span className="text-xs text-text-secondary">Spanish to English</span>
+            <div className="flex flex-col items-center gap-0.5 sm:gap-2">
+              <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5" />
+              <span className="text-xs sm:text-sm font-medium">ES → EN</span>
+              <span className="text-[10px] sm:text-xs text-text-secondary hidden sm:block">Spanish to English</span>
             </div>
           </button>
           <button
             onClick={() => setDirection('english-to-spanish')}
-            className={`p-4 rounded-xl border-2 transition-all ${
+            className={`p-2 sm:p-4 rounded-lg sm:rounded-xl border-2 transition-all ${
               direction === 'english-to-spanish'
                 ? 'border-accent bg-accent/10 text-accent'
                 : 'border-separator hover:border-accent/50'
             }`}
           >
-            <div className="flex flex-col items-center gap-2">
-              <ArrowRight className="w-5 h-5 rotate-180" />
-              <span className="text-sm font-medium">EN → ES</span>
-              <span className="text-xs text-text-secondary">English to Spanish</span>
+            <div className="flex flex-col items-center gap-0.5 sm:gap-2">
+              <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 rotate-180" />
+              <span className="text-xs sm:text-sm font-medium">EN → ES</span>
+              <span className="text-[10px] sm:text-xs text-text-secondary hidden sm:block">English to Spanish</span>
             </div>
           </button>
           <button
             onClick={() => setDirection('mixed')}
-            className={`p-4 rounded-xl border-2 transition-all ${
+            className={`p-2 sm:p-4 rounded-lg sm:rounded-xl border-2 transition-all ${
               direction === 'mixed'
                 ? 'border-accent bg-accent/10 text-accent'
                 : 'border-separator hover:border-accent/50'
             }`}
           >
-            <div className="flex flex-col items-center gap-2">
-              <ArrowLeftRight className="w-5 h-5" />
-              <span className="text-sm font-medium">Mixed</span>
-              <span className="text-xs text-text-secondary">Both directions</span>
+            <div className="flex flex-col items-center gap-0.5 sm:gap-2">
+              <ArrowLeftRight className="w-4 h-4 sm:w-5 sm:h-5" />
+              <span className="text-xs sm:text-sm font-medium">Mixed</span>
+              <span className="text-[10px] sm:text-xs text-text-secondary hidden sm:block">Both directions</span>
             </div>
           </button>
         </div>
       </div>
 
       {/* Review Mode */}
-      <div className="space-y-3">
+      <div className="space-y-2">
         <label className="block text-sm font-medium text-text">
           Review Mode
         </label>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+        <div className="grid grid-cols-3 gap-1.5 sm:gap-2">
           <button
             onClick={() => setMode('recognition')}
-            className={`p-4 rounded-xl border-2 transition-all ${
+            className={`p-2 sm:p-4 rounded-lg sm:rounded-xl border-2 transition-all ${
               mode === 'recognition'
                 ? 'border-accent bg-accent/10 text-accent'
                 : 'border-separator hover:border-accent/50'
             }`}
           >
-            <div className="flex flex-col items-center gap-2">
-              <Eye className="w-5 h-5" />
-              <span className="text-sm font-medium">Recognition</span>
-              <span className="text-xs text-text-secondary">Flip cards</span>
+            <div className="flex flex-col items-center gap-0.5 sm:gap-2">
+              <Eye className="w-4 h-4 sm:w-5 sm:h-5" />
+              <span className="text-xs sm:text-sm font-medium">Recognition</span>
+              <span className="text-[10px] sm:text-xs text-text-secondary hidden sm:block">Flip cards</span>
             </div>
           </button>
           <button
             onClick={() => setMode('recall')}
-            className={`p-4 rounded-xl border-2 transition-all ${
+            className={`p-2 sm:p-4 rounded-lg sm:rounded-xl border-2 transition-all ${
               mode === 'recall'
                 ? 'border-accent bg-accent/10 text-accent'
                 : 'border-separator hover:border-accent/50'
             }`}
           >
-            <div className="flex flex-col items-center gap-2">
-              <Keyboard className="w-5 h-5" />
-              <span className="text-sm font-medium">Recall</span>
-              <span className="text-xs text-text-secondary">Type answer</span>
+            <div className="flex flex-col items-center gap-0.5 sm:gap-2">
+              <Keyboard className="w-4 h-4 sm:w-5 sm:h-5" />
+              <span className="text-xs sm:text-sm font-medium">Recall</span>
+              <span className="text-[10px] sm:text-xs text-text-secondary hidden sm:block">Type answer</span>
             </div>
           </button>
           <button
             onClick={() => setMode('listening')}
-            className={`p-4 rounded-xl border-2 transition-all ${
+            className={`p-2 sm:p-4 rounded-lg sm:rounded-xl border-2 transition-all ${
               mode === 'listening'
                 ? 'border-accent bg-accent/10 text-accent'
                 : 'border-separator hover:border-accent/50'
             }`}
           >
-            <div className="flex flex-col items-center gap-2">
-              <Headphones className="w-5 h-5" />
-              <span className="text-sm font-medium">Listening</span>
-              <span className="text-xs text-text-secondary">Audio first</span>
+            <div className="flex flex-col items-center gap-0.5 sm:gap-2">
+              <Headphones className="w-4 h-4 sm:w-5 sm:h-5" />
+              <span className="text-xs sm:text-sm font-medium">Listening</span>
+              <span className="text-[10px] sm:text-xs text-text-secondary hidden sm:block">Audio first</span>
             </div>
           </button>
         </div>
       </div>
 
-      {/* Status Filter */}
-      <div className="space-y-3">
-        <label className="block text-sm font-medium text-text">
-          Filter by Status <span className="text-text-tertiary">(optional)</span>
-        </label>
-        <div className="flex flex-wrap gap-2">
-          {(['new', 'learning', 'mastered'] as VocabularyStatus[]).map((status) => (
-            <button
-              key={status}
-              onClick={() => toggleStatus(status)}
-              className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
-                statusFilter.includes(status)
-                  ? 'bg-accent text-white'
-                  : 'bg-black/5 dark:bg-white/5 text-text-secondary hover:bg-black/10 dark:hover:bg-white/10'
-              }`}
-            >
-              {status === 'new' && '🆕 New'}
-              {status === 'learning' && '📚 Learning'}
-              {status === 'mastered' && '✅ Mastered'}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Tag Filter */}
-      {availableTags.length > 0 && (
-        <div className="space-y-3">
-          <label className="block text-sm font-medium text-text">
-            Filter by Tags <span className="text-text-tertiary">(optional)</span>
+      {/* Advanced Options - Compact Layout */}
+      <div className="space-y-2 p-3 rounded-xl bg-black/5 dark:bg-white/5">
+        {/* Status Filter */}
+        <div className="space-y-2">
+          <label className="block text-xs font-medium text-text">
+            Filter by Status <span className="text-text-tertiary">(optional)</span>
           </label>
-          <div className="flex flex-wrap gap-2">
-            {availableTags.map((tag) => (
+          <div className="flex flex-wrap gap-1.5">
+            {(['new', 'learning', 'mastered'] as VocabularyStatus[]).map((status) => (
               <button
-                key={tag}
-                onClick={() => toggleTag(tag)}
+                key={status}
+                onClick={() => toggleStatus(status)}
                 className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
-                  tagFilter.includes(tag)
+                  statusFilter.includes(status)
                     ? 'bg-accent text-white'
                     : 'bg-black/5 dark:bg-white/5 text-text-secondary hover:bg-black/10 dark:hover:bg-white/10'
                 }`}
               >
-                {tag}
+                {status === 'new' && '🆕 New'}
+                {status === 'learning' && '📚 Learning'}
+                {status === 'mastered' && '✅ Mastered'}
               </button>
             ))}
           </div>
         </div>
-      )}
 
-      {/* Weak Words Filter */}
-      <div className="space-y-3">
-        <div className="flex items-center justify-between">
-          <label className="text-sm font-medium text-text flex items-center gap-2">
-            <Zap className="w-4 h-4 text-accent" />
-            Practice Weak Words Only
-          </label>
-          <button
-            onClick={() => setWeakWordsOnly(!weakWordsOnly)}
-            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-              weakWordsOnly ? 'bg-accent' : 'bg-black/10 dark:bg-white/10'
-            }`}
-          >
-            <span
-              className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                weakWordsOnly ? 'translate-x-6' : 'translate-x-1'
-              }`}
-            />
-          </button>
-        </div>
-        {weakWordsOnly && (
-          <div className="space-y-2 pl-6">
-            <label className="block text-xs text-text-secondary">
-              Accuracy threshold: {weakWordsThreshold}%
+        {/* Tag Filter */}
+        {availableTags.length > 0 && (
+          <div className="space-y-2 pt-2 border-t border-separator">
+            <label className="block text-xs font-medium text-text">
+              Filter by Tags <span className="text-text-tertiary">(optional)</span>
             </label>
-            <input
-              type="range"
-              min="50"
-              max="90"
-              step="5"
-              value={weakWordsThreshold}
-              onChange={(e) => setWeakWordsThreshold(Number(e.target.value))}
-              className="w-full"
-            />
+            <div className="flex flex-wrap gap-1.5">
+              {availableTags.map((tag) => (
+                <button
+                  key={tag}
+                  onClick={() => toggleTag(tag)}
+                  className={`px-2.5 py-1 rounded-full text-xs font-medium transition-all ${
+                    tagFilter.includes(tag)
+                      ? 'bg-accent text-white'
+                      : 'bg-black/5 dark:bg-white/5 text-text-secondary hover:bg-black/10 dark:hover:bg-white/10'
+                  }`}
+                >
+                  {tag}
+                </button>
+              ))}
+            </div>
           </div>
         )}
-      </div>
 
-      {/* Practice Mode */}
-      <div className="space-y-3">
-        <div className="flex items-center justify-between">
-          <label className="text-sm font-medium text-text flex items-center gap-2">
-            <Zap className="w-4 h-4 text-orange-500" />
-            Practice Mode (Include Future Reviews)
+        {/* Weak Words & Practice Mode - Compact Toggles */}
+        <div className="space-y-2 pt-2 border-t border-separator">
+          <div className="flex items-center justify-between">
+            <label className="text-xs font-medium text-text flex items-center gap-1.5">
+              <Zap className="w-3.5 h-3.5 text-accent" />
+              Weak Words Only
+            </label>
+            <button
+              onClick={() => setWeakWordsOnly(!weakWordsOnly)}
+              className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${
+                weakWordsOnly ? 'bg-accent' : 'bg-black/10 dark:bg-white/10'
+              }`}
+            >
+              <span
+                className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${
+                  weakWordsOnly ? 'translate-x-5' : 'translate-x-0.5'
+                }`}
+              />
+            </button>
+          </div>
+          {weakWordsOnly && (
+            <div className="space-y-1 pl-5">
+              <label className="block text-xs text-text-secondary">
+                Threshold: {weakWordsThreshold}%
+              </label>
+              <input
+                type="range"
+                min="50"
+                max="90"
+                step="5"
+                value={weakWordsThreshold}
+                onChange={(e) => setWeakWordsThreshold(Number(e.target.value))}
+                className="w-full"
+              />
+            </div>
+          )}
+        </div>
+
+        <div className="flex items-center justify-between pt-2 border-t border-separator">
+          <label className="text-xs font-medium text-text flex items-center gap-1.5">
+            <Zap className="w-3.5 h-3.5 text-orange-500" />
+            Practice Mode
           </label>
           <button
             onClick={() => setPracticeMode(!practiceMode)}
-            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+            className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${
               practiceMode ? 'bg-orange-500' : 'bg-black/10 dark:bg-white/10'
             }`}
           >
             <span
-              className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                practiceMode ? 'translate-x-6' : 'translate-x-1'
+              className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${
+                practiceMode ? 'translate-x-5' : 'translate-x-0.5'
               }`}
             />
           </button>
         </div>
-        {practiceMode && (
-          <p className="text-xs text-text-secondary pl-6">
-            ⚠️ Includes all cards, even those not due yet. Use for testing or extra practice.
-          </p>
-        )}
-      </div>
 
-      {/* Randomize */}
-      <div className="flex items-center justify-between p-4 rounded-xl bg-black/5 dark:bg-white/5">
-        <label className="text-sm font-medium text-text">
-          Randomize card order
-        </label>
-        <button
-          onClick={() => setRandomize(!randomize)}
-          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-            randomize ? 'bg-accent' : 'bg-black/10 dark:bg-white/10'
-          }`}
-        >
-          <span
-            className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-              randomize ? 'translate-x-6' : 'translate-x-1'
+        <div className="flex items-center justify-between pt-2 border-t border-separator">
+          <label className="text-xs font-medium text-text">
+            Randomize Order
+          </label>
+          <button
+            onClick={() => setRandomize(!randomize)}
+            className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${
+              randomize ? 'bg-accent' : 'bg-black/10 dark:bg-white/10'
             }`}
-          />
-        </button>
+          >
+            <span
+              className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${
+                randomize ? 'translate-x-5' : 'translate-x-0.5'
+              }`}
+            />
+          </button>
+        </div>
       </div>
 
       {/* Summary */}
-      <div className="p-4 rounded-xl bg-accent/10 border border-accent/20">
-        <p className="text-sm text-center text-text-secondary">
+      <div className="p-3 rounded-xl bg-accent/10 border border-accent/20">
+        <p className="text-xs sm:text-sm text-center text-text-secondary">
           <span className="font-semibold text-accent">{effectiveSessionSize}</span> cards available
           {statusFilter.length > 0 && ` • ${statusFilter.join(', ')}`}
           {tagFilter.length > 0 && ` • Tags: ${tagFilter.join(', ')}`}
@@ -359,17 +353,17 @@ export function SessionConfig({
       </div>
 
       {/* Action Buttons */}
-      <div className="flex gap-3">
+      <div className="flex gap-2 sm:gap-3 pt-2">
         <button
           onClick={onCancel}
-          className="flex-1 py-3 px-6 rounded-xl font-medium bg-black/5 dark:bg-white/5 text-text hover:bg-black/10 dark:hover:bg-white/10 transition-colors"
+          className="flex-1 py-2.5 sm:py-3 px-4 sm:px-6 rounded-xl text-sm font-medium bg-black/5 dark:bg-white/5 text-text hover:bg-black/10 dark:hover:bg-white/10 transition-colors"
         >
           Cancel
         </button>
         <button
           onClick={handleStart}
           disabled={effectiveSessionSize === 0}
-          className="flex-1 py-3 px-6 rounded-xl font-medium bg-accent text-white hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
+          className="flex-1 py-2.5 sm:py-3 px-4 sm:px-6 rounded-xl text-sm font-medium bg-accent text-white hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
         >
           Start Session
         </button>
