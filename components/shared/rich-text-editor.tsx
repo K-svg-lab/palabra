@@ -36,15 +36,24 @@ export function RichTextEditor({
   const [isFocused, setIsFocused] = useState(false);
   const editorRef = useRef<HTMLDivElement>(null);
 
-  // Update content when value prop changes
+  // Update content when value prop changes (only when not focused)
   useEffect(() => {
     if (value !== content) {
       setContent(value);
+      // Only update DOM when not focused to avoid cursor issues
       if (editorRef.current && !isFocused) {
         editorRef.current.textContent = value;
       }
     }
-  }, [value]);
+  }, [value, content, isFocused]);
+  
+  // Initialize content when component mounts
+  useEffect(() => {
+    if (editorRef.current && value) {
+      editorRef.current.textContent = value;
+      setContent(value);
+    }
+  }, []);
 
   const handleInput = () => {
     if (editorRef.current) {
@@ -147,9 +156,8 @@ export function RichTextEditor({
         aria-label="Rich text editor"
         role="textbox"
         aria-multiline="true"
-      >
-        {content}
-      </div>
+      />
+      
 
       <style jsx>{`
         [contenteditable]:empty:before {

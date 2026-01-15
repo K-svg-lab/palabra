@@ -31,6 +31,8 @@ interface VocabularyFormData {
   englishTranslation: string;
   gender?: Gender;
   partOfSpeech?: PartOfSpeech;
+  exampleSpanish?: string;
+  exampleEnglish?: string;
   notes?: string;
 }
 
@@ -78,10 +80,11 @@ export function VocabularyEntryFormEnhanced({ onSuccess, onCancel }: Props) {
     return () => clearTimeout(timer);
   }, []);
 
-  const handleLookup = async () => {
-    if (!spanishWord || spanishWord.trim().length === 0) return;
+  const handleLookup = async (wordOverride?: string) => {
+    const wordToUse = wordOverride || spanishWord;
+    if (!wordToUse || wordToUse.trim().length === 0) return;
 
-    const cleanWord = spanishWord.trim();
+    const cleanWord = wordToUse.trim();
 
     try {
       // First, check spelling
@@ -104,6 +107,12 @@ export function VocabularyEntryFormEnhanced({ onSuccess, onCancel }: Props) {
       setValue('englishTranslation', data.translation);
       setValue('gender', data.gender);
       setValue('partOfSpeech', data.partOfSpeech);
+      
+      // Auto-fill first example if available
+      if (data.examples && data.examples.length > 0) {
+        setValue('exampleSpanish', data.examples[0].spanish);
+        setValue('exampleEnglish', data.examples[0].english);
+      }
     } catch (error) {
       console.error('Lookup error:', error);
     }
@@ -115,7 +124,7 @@ export function VocabularyEntryFormEnhanced({ onSuccess, onCancel }: Props) {
     setValue('spanishWord', suggestion);
     setSpellCheckResult(null);
     // Trigger lookup immediately with the corrected word
-    handleLookup();
+    handleLookup(suggestion);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -156,12 +165,27 @@ export function VocabularyEntryFormEnhanced({ onSuccess, onCancel }: Props) {
     try {
       const allImages = [...(lookupData?.images || []), ...customImages];
       
+      // Use custom example if provided, otherwise fall back to lookup data examples
+      let examplesArray: ExampleSentence[] = [];
+      if (data.exampleSpanish && data.exampleEnglish) {
+        // User provided custom example
+        examplesArray = [{
+          spanish: data.exampleSpanish,
+          english: data.exampleEnglish,
+          source: 'tatoeba',
+          context: 'neutral',
+        }];
+      } else if (lookupData?.examples && lookupData.examples.length > 0) {
+        // Use lookup data examples
+        examplesArray = lookupData.examples;
+      }
+      
       const vocabularyWord: Omit<VocabularyWord, 'id' | 'createdAt' | 'updatedAt'> = {
         spanishWord: data.spanishWord.trim(),
         englishTranslation: data.englishTranslation.trim(),
         gender: data.gender,
         partOfSpeech: data.partOfSpeech,
-        examples: lookupData?.examples || [],
+        examples: examplesArray,
         relationships: lookupData?.relationships,
         conjugation: lookupData?.conjugation,
         images: allImages.length > 0 ? allImages : undefined,
@@ -393,15 +417,37 @@ export function VocabularyEntryFormEnhanced({ onSuccess, onCancel }: Props) {
             />
           </div>
 
-          {/* Example Sentences Carousel */}
-          {lookupData.examples && lookupData.examples.length > 0 && (
-            <div>
-              <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-2">
-                Example Sentences
-              </label>
-              <ExamplesCarousel examples={lookupData.examples} showContext={true} />
-            </div>
-          )}
+          {/* Example Sentences - Editable */}
+          <div className="space-y-2">
+            <label className="block text-sm font-medium">
+              Example Sentence (Optional)
+            </label>
+            <input
+              type="text"
+              {...register('exampleSpanish')}
+              placeholder="Spanish example sentence"
+              className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-black focus:ring-2 focus:ring-accent focus:border-transparent"
+            />
+            <input
+              type="text"
+              {...register('exampleEnglish')}
+              placeholder="English translation"
+              className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-black focus:ring-2 focus:ring-accent focus:border-transparent"
+            />
+            
+            {/* Show suggested examples as reference */}
+            {lookupData.examples && lookupData.examples.length > 1 && (
+              <div className="mt-3">
+                <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">
+                  More suggestions from lookup:
+                </p>
+                <ExamplesCarousel 
+                  examples={lookupData.examples.slice(1)} 
+                  showContext={true} 
+                />
+              </div>
+            )}
+          </div>
 
           {/* Word Relationships & Conjugations */}
           {(lookupData.relationships || lookupData.conjugation) && (

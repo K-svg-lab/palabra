@@ -214,74 +214,76 @@ export function FlashcardEnhanced({
         /* Front Side - Question */
         <div className="flashcard-content">
           <div 
-            className="flex flex-col items-center justify-center h-full p-6 sm:p-8"
+            className="flex flex-col h-full p-6 sm:p-8"
             onClick={handleClick}
             onKeyDown={handleKeyDown}
             role="button"
             tabIndex={0}
             ref={cardRef}>
-            {cardNumber && (
-              <div className="absolute top-4 left-0 right-0 text-center text-xs text-text-tertiary font-medium pointer-events-none">
-                {cardNumber}
-              </div>
-            )}
-
+            
+            {/* Audio button - top right */}
             <button
               onClick={handlePlayAudio}
               disabled={isPlaying}
-              className="absolute top-4 right-4 p-2.5 rounded-full bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 transition-colors disabled:opacity-50 pointer-events-auto"
+              className="absolute top-4 right-4 p-2 rounded-full bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 transition-colors disabled:opacity-50 pointer-events-auto"
               aria-label="Play pronunciation"
             >
               <Volume2 className={`w-5 h-5 ${isPlaying ? "text-accent" : "text-text-secondary"} pointer-events-none`} />
             </button>
 
-            <div className="text-center space-y-5 max-w-xl pointer-events-none">
-              {/* Main word with gender */}
-              <div className="space-y-3">
-                <div className="flex items-baseline justify-center gap-1.5 flex-wrap px-4">
-                  <h2 className="text-4xl sm:text-5xl md:text-6xl font-bold text-text leading-tight">
-                    {frontContent}
-                  </h2>
-                  {isSpanishToEnglish && getGenderAbbreviation() && (
-                    <span className="text-2xl sm:text-3xl md:text-4xl text-text-tertiary/70 font-normal">
-                      {getGenderAbbreviation()}
-                    </span>
+            {/* Main content area - ABSOLUTE centered for pixel-perfect alignment */}
+            <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 pointer-events-none px-6">
+              <div className="text-center space-y-4 max-w-xl mx-auto">
+                {/* Main word with gender - FIXED HEIGHT WRAPPER */}
+                <div className="h-[90px] flex flex-col items-center justify-center gap-2">
+                  <div className="flex items-center justify-center gap-2">
+                    <h2 className="text-5xl sm:text-6xl md:text-7xl font-bold text-text leading-none">
+                      {frontContent}
+                    </h2>
+                    {isSpanishToEnglish && getGenderAbbreviation() && (
+                      <span className="text-xl sm:text-2xl text-text-secondary font-normal">
+                        {getGenderAbbreviation()}
+                      </span>
+                    )}
+                  </div>
+                  
+                  {/* Part of speech badge */}
+                  {isSpanishToEnglish && getSpanishPartOfSpeech() && (
+                    <div className="flex justify-center">
+                      <span className="px-3 py-1 text-xs rounded-full bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300 font-medium uppercase tracking-wider">
+                        {getSpanishPartOfSpeech()}
+                      </span>
+                    </div>
+                  )}
+                  
+                  {!isSpanishToEnglish && word.partOfSpeech && (
+                    <div className="flex justify-center">
+                      <span className="px-3 py-1 text-xs rounded-full bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300 font-medium uppercase tracking-wider">
+                        {word.partOfSpeech}
+                      </span>
+                    </div>
                   )}
                 </div>
-                
-                {/* Part of speech in Spanish (if front is Spanish) */}
-                {isSpanishToEnglish && getSpanishPartOfSpeech() && (
-                  <p className="text-xs sm:text-sm text-text-secondary/80 font-medium tracking-[0.05em] uppercase">
-                    {getSpanishPartOfSpeech()}
-                  </p>
-                )}
-                
-                {/* Part of speech in English (if front is English) */}
-                {!isSpanishToEnglish && word.partOfSpeech && (
-                  <p className="text-xs sm:text-sm text-text-secondary/80 font-medium tracking-[0.05em] uppercase">
-                    {word.partOfSpeech}
-                  </p>
+
+                {/* Example sentence */}
+                {word.examples && word.examples.length > 0 && (
+                  <div className="pt-6 mt-4 border-t border-separator/30">
+                    <p className="text-base sm:text-lg text-text-secondary italic leading-relaxed px-4">
+                      &ldquo;{isSpanishToEnglish ? word.examples[0].spanish : word.examples[0].english}&rdquo;
+                    </p>
+                  </div>
                 )}
               </div>
-
-              {/* Example sentence */}
-              {word.examples && word.examples.length > 0 && (
-                <div className="pt-4 mt-1">
-                  <div className="h-px w-16 bg-separator/40 mx-auto mb-4"></div>
-                  <p className="text-sm sm:text-base text-text-secondary/90 italic leading-relaxed px-6 font-light">
-                    {isSpanishToEnglish ? word.examples[0].spanish : word.examples[0].english}
-                  </p>
-                </div>
-              )}
             </div>
 
-            <p className="absolute bottom-6 text-sm text-text-tertiary font-medium pointer-events-none">
+            {/* Tap hint at bottom - absolutely positioned */}
+            <p className="absolute bottom-6 inset-x-0 text-center text-sm text-text-tertiary font-medium pointer-events-none">
               Tap or press Enter to reveal
             </p>
           </div>
         </div>
       ) : (
-        /* Back Side - Answer with Rating Buttons */
+        /* Back Side - Answer */
         <div className="flashcard-content">
           <div 
             className="flex flex-col h-full p-6 sm:p-8"
@@ -290,52 +292,56 @@ export function FlashcardEnhanced({
             role="button"
             tabIndex={0}
             ref={cardRef}>
-          {cardNumber && (
-            <div className="absolute top-4 left-0 right-0 text-center text-xs text-text-tertiary font-medium">
-              {cardNumber}
-            </div>
-          )}
 
-          <div className="flex-1 flex flex-col items-center justify-center space-y-5 max-w-xl mx-auto pointer-events-none">
-            <div className="text-center space-y-5">
-              {/* Main answer with gender (only for English to Spanish) */}
-              <div className="space-y-3">
-                <div className="flex items-baseline justify-center gap-1.5 flex-wrap px-4">
-                  <h3 className="text-4xl sm:text-5xl md:text-6xl font-bold text-text leading-tight">
+          {/* Main content area - ABSOLUTE centered for pixel-perfect alignment */}
+          <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 pointer-events-none px-6">
+            <div className="text-center space-y-4 max-w-xl mx-auto">
+              {/* Main answer with gender - FIXED HEIGHT WRAPPER */}
+              <div className="h-[90px] flex flex-col items-center justify-center gap-2">
+                <div className="flex items-center justify-center gap-2">
+                  <h3 className="text-5xl sm:text-6xl md:text-7xl font-bold text-text leading-none">
                     {backContent}
                   </h3>
                   {!isSpanishToEnglish && getGenderAbbreviation() && (
-                    <span className="text-2xl sm:text-3xl md:text-4xl text-text-tertiary/70 font-normal">
+                    <span className="text-xl sm:text-2xl text-text-secondary font-normal">
                       {getGenderAbbreviation()}
                     </span>
                   )}
                 </div>
                 
-                {/* Part of speech on back side */}
+                {/* Part of speech badge */}
                 {!isSpanishToEnglish && getSpanishPartOfSpeech() && (
-                  <p className="text-xs sm:text-sm text-text-secondary/80 font-medium tracking-[0.05em] uppercase">
-                    {getSpanishPartOfSpeech()}
-                  </p>
+                  <div className="flex justify-center">
+                    <span className="px-3 py-1 text-xs rounded-full bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300 font-medium uppercase tracking-wider">
+                      {getSpanishPartOfSpeech()}
+                    </span>
+                  </div>
                 )}
                 
                 {isSpanishToEnglish && word.partOfSpeech && (
-                  <p className="text-xs sm:text-sm text-text-secondary/80 font-medium tracking-[0.05em] uppercase">
-                    {word.partOfSpeech}
-                  </p>
+                  <div className="flex justify-center">
+                    <span className="px-3 py-1 text-xs rounded-full bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300 font-medium uppercase tracking-wider">
+                      {word.partOfSpeech}
+                    </span>
+                  </div>
                 )}
               </div>
-              
-              {/* Example sentence in target language */}
-              {word.examples && word.examples.length > 0 && (
-                <div className="pt-4 mt-1">
-                  <div className="h-px w-16 bg-separator/40 mx-auto mb-4"></div>
-                  <p className="text-sm sm:text-base text-text-secondary/90 italic px-6 leading-relaxed font-light">
-                    {isSpanishToEnglish ? word.examples[0].english : word.examples[0].spanish}
-                  </p>
-                </div>
-              )}
+
+                {/* Example sentence */}
+                {word.examples && word.examples.length > 0 && (
+                  <div className="pt-6 mt-4 border-t border-separator/30">
+                    <p className="text-base sm:text-lg text-text-secondary italic leading-relaxed px-4">
+                      &ldquo;{isSpanishToEnglish ? word.examples[0].english : word.examples[0].spanish}&rdquo;
+                    </p>
+                  </div>
+                )}
+              </div>
             </div>
-          </div>
+
+            {/* Tap hint at bottom - absolutely positioned */}
+            <p className="absolute bottom-6 inset-x-0 text-center text-sm text-text-tertiary font-medium pointer-events-none">
+              Tap or press Enter to reveal
+            </p>
           </div>
         </div>
         )}
@@ -349,12 +355,6 @@ export function FlashcardEnhanced({
   const renderRecallMode = () => (
     <div className="flashcard-recall">
       <div className="flex flex-col items-center justify-center h-full p-6 space-y-6">
-        {cardNumber && (
-          <div className="absolute top-4 left-0 right-0 text-center text-xs text-text-tertiary font-medium">
-            {cardNumber}
-          </div>
-        )}
-
         {/* Question */}
         <div className="text-center space-y-5 max-w-md">
           <p className="text-xs sm:text-sm text-text-tertiary/90 font-medium uppercase tracking-wider">
@@ -468,12 +468,6 @@ export function FlashcardEnhanced({
   const renderListeningMode = () => (
     <div className="flashcard-listening">
       <div className="flex flex-col items-center justify-center h-full p-6 space-y-8">
-        {cardNumber && (
-          <div className="absolute top-4 left-0 right-0 text-center text-xs text-text-tertiary font-medium">
-            {cardNumber}
-          </div>
-        )}
-
         {/* Instructions */}
         <div className="text-center space-y-3">
           <p className="text-base sm:text-lg text-text-secondary font-medium">
@@ -564,15 +558,16 @@ export function FlashcardEnhanced({
       <style jsx>{`
         .flashcard-container {
           width: 100%;
-          max-width: 700px;
-          height: 400px;
+          max-width: 650px;
+          height: 100%;
+          max-height: 450px;
           margin: 0 auto;
         }
 
         @media (max-width: 640px) {
           .flashcard-container {
-            height: 340px;
-            max-width: 90vw;
+            max-height: 400px;
+            max-width: 92vw;
           }
         }
 

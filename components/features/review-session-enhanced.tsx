@@ -284,24 +284,30 @@ export function ReviewSessionEnhanced({
         </button>
 
         <div className="flex-1 mx-2 md:mx-3">
-          <div className="flex items-center justify-between mb-0.5">
-            <span className="text-sm font-medium text-text-secondary">
-              {results.length} / {processedWords.length}
-            </span>
+          <div className="flex items-center justify-between mb-1.5">
+            {/* Card counter - left */}
             <div className="flex items-center gap-2">
-              <span className="text-xs text-text-tertiary">
-                {config.mode === 'recognition' ? '👁️ Recognition' : config.mode === 'recall' ? '⌨️ Recall' : '🎧 Listening'}
+              <span className="text-sm font-semibold text-text">
+                Card {currentIndex + 1}
               </span>
               <span className="text-xs text-text-tertiary">
-                {currentDirection === 'spanish-to-english' ? 'ES→EN' : currentDirection === 'english-to-spanish' ? 'EN→ES' : 'Mixed'}
+                of {processedWords.length}
               </span>
             </div>
-            <span className="text-sm font-medium text-text-secondary">
+            
+            {/* Mode and direction - center (smaller and less prominent) */}
+            <div className="hidden sm:flex items-center gap-1.5 text-[10px] text-text-tertiary">
+              <span>{config.mode === 'recognition' ? '👁️' : config.mode === 'recall' ? '⌨️' : '🎧'}</span>
+              <span>{currentDirection === 'spanish-to-english' ? 'ES→EN' : 'EN→ES'}</span>
+            </div>
+            
+            {/* Progress percentage - right */}
+            <span className="text-sm font-semibold text-accent">
               {Math.round(progress)}%
             </span>
           </div>
           {/* Progress Bar */}
-          <div className="h-1 bg-black/10 dark:bg-white/10 rounded-full overflow-hidden">
+          <div className="h-1.5 bg-black/10 dark:bg-white/10 rounded-full overflow-hidden">
             <div
               className="h-full bg-accent transition-all duration-300 ease-out rounded-full"
               style={{ width: `${progress}%` }}
