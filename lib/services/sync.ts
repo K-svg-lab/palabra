@@ -222,9 +222,26 @@ export class CloudSyncService implements SyncService {
       
       // Apply remote vocabulary changes to local database
       if (vocabResult.operations && vocabResult.operations.length > 0) {
-        console.log(`📥 Applying ${vocabResult.operations.length} remote vocabulary items...`);        for (const operation of vocabResult.operations) {
-          try {            await updateVocabularyWord(operation.data);
-            console.log(`✅ Applied: ${operation.data.spanish}`);
+        console.log(`📥 Applying ${vocabResult.operations.length} remote vocabulary items...`);
+        for (const operation of vocabResult.operations) {
+          try {
+            // Check if local version is newer before overwriting
+            const { getVocabularyWord } = await import('@/lib/db/vocabulary');
+            const localWord = await getVocabularyWord(operation.data.id);
+            
+            if (localWord) {
+              // Compare timestamps - only overwrite if server version is newer
+              if (operation.data.updatedAt > localWord.updatedAt) {
+                await updateVocabularyWord(operation.data);
+                console.log(`✅ Applied newer remote version: ${operation.data.spanish || operation.data.spanishWord}`);
+              } else {
+                console.log(`⏭️  Skipped ${operation.data.spanish || operation.data.spanishWord} - local version is newer`);
+              }
+            } else {
+              // Word doesn't exist locally, create it
+              await updateVocabularyWord(operation.data);
+              console.log(`✅ Created from remote: ${operation.data.spanish || operation.data.spanishWord}`);
+            }
           } catch (error) {
             console.error('Failed to apply remote vocabulary:', error);
           }

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useQueryClient } from "@tanstack/react-query";
 import { ReviewSessionEnhanced } from "@/components/features/review-session-enhanced";
 import { SessionConfig } from "@/components/features/session-config";
 import { useVocabulary } from "@/lib/hooks/use-vocabulary";
@@ -37,6 +38,7 @@ import { DEFAULT_SESSION_CONFIG } from "@/lib/types/review";
 
 export default function ReviewPage() {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const { data: allWords, isLoading } = useVocabulary();
   const [showConfig, setShowConfig] = useState(false);
   const [isInSession, setIsInSession] = useState(false);
@@ -211,6 +213,7 @@ export default function ReviewPage() {
             result.rating,
             reviewDate
           );
+          
           await updateReviewRecordDB(updatedReview);
         } else {
           // Create initial review record
@@ -249,6 +252,9 @@ export default function ReviewPage() {
         }
       }
 
+      // Invalidate React Query cache to force UI refresh with updated vocabulary status
+      queryClient.invalidateQueries({ queryKey: ['vocabulary'] });
+      
       // Update session record with completion data
       if (currentSession) {
         const correctCount = results.filter(r => r.rating !== 'forgot').length;
@@ -271,9 +277,6 @@ export default function ReviewPage() {
         
         // Update daily stats
         const timeSpent = sessionEndTime - currentSession.startTime;
-        // #region agent log H3
-        fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'review/page.tsx:267',message:'Session time calculated',data:{timeSpentMs:timeSpent,timeSpentMin:Math.round(timeSpent/60000),cardsReviewed:results.length,accuracy:accuracyRate},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H3',runId:'metrics-verify'})}).catch(()=>{});
-        // #endregion
         await updateStatsAfterSession(results.length, accuracyRate, timeSpent);
       }
 

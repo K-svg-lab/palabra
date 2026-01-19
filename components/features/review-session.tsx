@@ -40,29 +40,6 @@ export function ReviewSession({ words, onComplete, onCancel }: ReviewSessionProp
   const [isFlipped, setIsFlipped] = useState(false);
   const [results, setResults] = useState<ReviewResult[]>([]);
   
-  // #region agent log
-  useEffect(() => {
-    const logLayout = () => {
-      const header = document.querySelector('.flex.items-center.justify-between.p-4') as HTMLElement;
-      const footer = document.querySelector('.p-3.border-t') as HTMLElement;
-      const container = document.querySelector('.flex.flex-col.h-screen') as HTMLElement;
-      const flashcardArea = document.querySelector('.flex-1.flex.items-center') as HTMLElement;
-      if (header && footer && container && flashcardArea) {
-        const headerHeight = header.getBoundingClientRect().height;
-        const footerHeight = footer.getBoundingClientRect().height;
-        const flashcardHeight = flashcardArea.getBoundingClientRect().height;
-        const totalHeight = headerHeight + footerHeight + flashcardHeight;
-        const viewportHeight = window.innerHeight;
-        const isOverflowing = totalHeight > viewportHeight;
-        fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'review-session.tsx:42',message:'Layout measurements',data:{headerHeight,footerHeight,flashcardHeight,totalHeight,viewportHeight,isOverflowing,scrollHeight:document.body.scrollHeight},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H6,H7,H8'})}).catch(()=>{});
-      }
-    };
-    logLayout();
-    window.addEventListener('resize', logLayout);
-    return () => window.removeEventListener('resize', logLayout);
-  }, []);
-  // #endregion
-  
   // Randomize card order once on mount
   const shuffledWords = useMemo(() => {
     return [...words].sort(() => Math.random() - 0.5);
@@ -125,13 +102,6 @@ export function ReviewSession({ words, onComplete, onCancel }: ReviewSessionProp
    * Toggle card flip state
    */
   const handleFlip = () => {
-    // #region agent log
-    const activeEl = document.activeElement as HTMLElement;
-    const focusedElementInfo = activeEl ? {tag: activeEl.tagName, className: activeEl.className, id: activeEl.id, rect: activeEl.getBoundingClientRect()} : null;
-    const logData = {location:'review-session.tsx:105',message:'handleFlip called',data:{isFlipped,focusedElement:focusedElementInfo},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H1,H2,H3,H4'};
-    console.log('[DEBUG]', logData);
-    fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(logData)}).catch((err)=>{console.log('[DEBUG] Fetch failed', err);});
-    // #endregion
     setIsFlipped(!isFlipped);
   };
 
@@ -182,11 +152,6 @@ export function ReviewSession({ words, onComplete, onCancel }: ReviewSessionProp
         handleNext();
       } else if (e.key === " " || e.key === "Enter") {
         e.preventDefault();
-        // #region agent log
-        const logData = {location:'review-session.tsx:154',message:'Enter/Space key in session handler',data:{key:e.key,isFlipped,activeElement:document.activeElement?.tagName,activeElementClass:document.activeElement?.className,target:e.target},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H1,H2,H3'};
-        console.log('[DEBUG]', logData);
-        fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(logData)}).catch((err)=>{console.log('[DEBUG] Fetch failed', err);});
-        // #endregion
         handleFlip();
       } else if (e.key === "Escape") {
         handleCancel();
