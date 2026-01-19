@@ -275,6 +275,22 @@ npm run build
 npx vercel logs
 ```
 
+**Issue: "Warning: Failed to fetch one or more git submodules"**
+```bash
+# Create .gitmodules file with submodule configuration
+cat > .gitmodules << 'EOF'
+[submodule "palabra"]
+	path = palabra
+	url = https://github.com/K-svg-lab/palabra.git
+EOF
+
+# Commit and push
+git add .gitmodules
+git commit -m "Add .gitmodules for Vercel submodule support"
+git push origin main
+```
+**Note:** This ensures Vercel can properly fetch the palabra submodule during deployment. Resolved in commit 59dca5c (Jan 19, 2026).
+
 ---
 
 ## 💾 Backup & Recovery

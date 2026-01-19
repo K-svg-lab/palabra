@@ -503,3 +503,55 @@ if (direction === 'english-to-spanish') {
 
 **Deployment Date:** January 19, 2026  
 **Deployment Method:** Git push to main → Vercel auto-deploy
+
+---
+
+### Deployment Issue: Vercel Submodule Warning
+
+**Date:** January 19, 2026  
+**Issue:** Vercel deployment warning during build
+
+**Warning Message:**
+```
+16:15:33.013 Warning: Failed to fetch one or more git submodules
+```
+
+**Root Cause:**  
+The `palabra` directory was tracked as a git submodule (mode 160000 in git index), but the `.gitmodules` configuration file was missing from the repository root. This prevented Vercel from properly fetching the submodule during deployment.
+
+**Diagnosis:**
+```bash
+# Check how palabra is tracked
+git ls-files --stage palabra
+# Output: 160000 f81fa6669f16017447f08c6da45c51af7948372e 0 palabra
+
+# Check for .gitmodules
+ls -la .gitmodules
+# Output: No such file or directory
+
+# Check submodule status
+git submodule status
+# Output: fatal: no submodule mapping found in .gitmodules for path 'palabra'
+```
+
+**Solution:**  
+Created `.gitmodules` file with proper submodule configuration:
+
+```ini
+[submodule "palabra"]
+	path = palabra
+	url = https://github.com/K-svg-lab/palabra.git
+```
+
+**Files Modified:**
+- `.gitmodules` (created)
+
+**Commit:** `59dca5c` - Add .gitmodules to fix Vercel submodule fetch warning
+
+**Verification:**  
+Vercel will now successfully fetch the submodule during deployment without warnings.
+
+**Impact:**  
+- ✅ Resolves Vercel deployment warning
+- ✅ Enables proper submodule fetching during CI/CD
+- ✅ No changes to application code required

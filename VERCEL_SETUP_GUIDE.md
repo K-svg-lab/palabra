@@ -146,6 +146,31 @@ postgresql://username:password@host:port/database?sslmode=require
 npm run prisma:push
 ```
 
+### Issue: "Warning: Failed to fetch one or more git submodules"
+
+**Symptom:** During Vercel deployment, you see a warning about failing to fetch git submodules.
+
+**Cause:** The project uses git submodules but is missing the `.gitmodules` configuration file.
+
+**Solution:** Create a `.gitmodules` file in the repository root:
+
+```ini
+[submodule "palabra"]
+	path = palabra
+	url = https://github.com/K-svg-lab/palabra.git
+```
+
+Then commit and push:
+```bash
+git add .gitmodules
+git commit -m "Add .gitmodules for Vercel submodule support"
+git push origin main
+```
+
+**Verification:** The next Vercel deployment should complete without submodule warnings.
+
+**Note:** This issue was resolved in commit `59dca5c` on January 19, 2026.
+
 ## Post-Deployment Configuration
 
 ### Enable Automatic Deployments
