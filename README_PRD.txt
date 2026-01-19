@@ -20,6 +20,42 @@ PAIN POINTS:
 - No systematic approach to reviewing learned words leads to forgetting
 - Lack of context (gender, usage, pronunciation) when reviewing vocabulary later
 - Missing personalized review schedules based on individual retention patterns
+Spanish language learners encounter new vocabulary from various sources (classes, 
+conversations, media, apps, books) but lack a centralized system to capture, 
+organize, and systematically review this vocabulary.
+
+PAIN POINTS:
+- Vocabulary scattered across notebooks, apps, and loose papers
+- No systematic approach to reviewing learned words leads to forgetting
+- Lack of context (gender, usage, pronunciation) when reviewing vocabulary later
+- Missing personalized review schedules based on individual retention patterns
+Spanish language learners encounter new vocabulary from various sources (classes, 
+conversations, media, apps, books) but lack a centralized system to capture, 
+organize, and systematically review this vocabulary.
+
+PAIN POINTS:
+- Vocabulary scattered across notebooks, apps, and loose papers
+- No systematic approach to reviewing learned words leads to forgetting
+- Lack of context (gender, usage, pronunciation) when reviewing vocabulary later
+- Missing personalized review schedules based on individual retention patterns
+Spanish language learners encounter new vocabulary from various sources (classes, 
+conversations, media, apps, books) but lack a centralized system to capture, 
+organize, and systematically review this vocabulary.
+
+PAIN POINTS:
+- Vocabulary scattered across notebooks, apps, and loose papers
+- No systematic approach to reviewing learned words leads to forgetting
+- Lack of context (gender, usage, pronunciation) when reviewing vocabulary later
+- Missing personalized review schedules based on individual retention patterns
+Spanish language learners encounter new vocabulary from various sources (classes, 
+conversations, media, apps, books) but lack a centralized system to capture, 
+organize, and systematically review this vocabulary.
+
+PAIN POINTS:
+- Vocabulary scattered across notebooks, apps, and loose papers
+- No systematic approach to reviewing learned words leads to forgetting
+- Lack of context (gender, usage, pronunciation) when reviewing vocabulary later
+- Missing personalized review schedules based on individual retention patterns
 - Difficulty accessing vocabulary across different devices and contexts
 - Manual vocabulary entry is tedious and time-consuming
 - Risk of incorrect translations or missing example sentences when entering manually
