@@ -4,7 +4,12 @@
  * Enhanced for Phase 12 with better offline support and sync capabilities
  */
 
-const CACHE_VERSION = 'v2';
+// #region agent log
+fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'sw.js:7',message:'SW file loaded - checking cache version',data:{cacheVersion:'v3-'+Date.now(),loadTime:Date.now()},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H1'})}).catch(()=>{});
+// #endregion
+// CRITICAL: Increment cache version to bust old caches
+// Use timestamp-based versioning to force cache refresh on every deployment
+const CACHE_VERSION = 'v3-20260119';
 const CACHE_NAME = `palabra-${CACHE_VERSION}`;
 const STATIC_CACHE = `palabra-static-${CACHE_VERSION}`;
 const DYNAMIC_CACHE = `palabra-dynamic-${CACHE_VERSION}`;
@@ -51,7 +56,7 @@ self.addEventListener('install', (event) => {
 });
 
 /**
- * Activate event - clean up old caches
+ * Activate event - clean up old caches and take control immediately
  */
 self.addEventListener('activate', (event) => {
   console.log('Service Worker: Activating...');
@@ -59,16 +64,28 @@ self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys()
       .then((cacheNames) => {
+        // Delete ALL old caches (different versions)
         return Promise.all(
           cacheNames.map((cacheName) => {
-            if (cacheName !== CACHE_NAME && cacheName !== STATIC_CACHE) {
+            if (!cacheName.includes(CACHE_VERSION)) {
               console.log('Service Worker: Deleting old cache:', cacheName);
               return caches.delete(cacheName);
             }
           })
         );
       })
-      .then(() => self.clients.claim())
+      .then(() => {
+        console.log('Service Worker: Taking control of all clients');
+        return self.clients.claim();
+      })
+      .then(() => {
+        // Notify all clients that new SW is active
+        return self.clients.matchAll().then(clients => {
+          clients.forEach(client => {
+            client.postMessage({ type: 'SW_UPDATED' });
+          });
+        });
+      })
   );
 });
 
@@ -90,7 +107,7 @@ self.addEventListener('fetch', (event) => {
 
   // Choose caching strategy based on request type
   if (isAPIRoute(url.pathname)) {
-    // API routes: Network-first, fallback to cache
+    // API routes: ALWAYS network-first (critical for data freshness)
     event.respondWith(networkFirstStrategy(request));
   } else if (isImageRequest(request)) {
     // Images: Cache-first, fallback to network
@@ -102,8 +119,9 @@ self.addEventListener('fetch', (event) => {
     // Static files: Cache-first
     event.respondWith(cacheFirstStrategy(request, STATIC_CACHE));
   } else {
-    // Everything else: Stale-while-revalidate
-    event.respondWith(staleWhileRevalidateStrategy(request));
+    // HTML pages: Network-first to always get latest deployment
+    // CRITICAL FIX: Don't serve stale HTML from cache
+    event.respondWith(networkFirstStrategy(request));
   }
 });
 
@@ -211,6 +229,10 @@ async function cacheFirstStrategy(request, cacheName) {
  */
 async function staleWhileRevalidateStrategy(request) {
   const cachedResponse = await caches.match(request);
+  
+  // #region agent log
+  fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'sw.js:212',message:'staleWhileRevalidate - returning cached first',data:{url:request.url,hasCached:!!cachedResponse},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H1'})}).catch(()=>{});
+  // #endregion
   
   const fetchPromise = fetch(request).then(async (networkResponse) => {
     if (networkResponse.ok) {
@@ -458,6 +480,21 @@ self.addEventListener('message', (event) => {
   
   if (event.data && event.data.type === 'SKIP_WAITING') {
     self.skipWaiting();
+  }
+
+  // Handle manual refresh requests (pull-to-refresh)
+  if (event.data && event.data.type === 'FORCE_REFRESH') {
+    console.log('[SW] Force refresh requested - clearing caches');
+    event.waitUntil(
+      caches.keys().then(cacheNames => {
+        return Promise.all(
+          cacheNames.map(cacheName => caches.delete(cacheName))
+        );
+      }).then(() => {
+        // Notify client that caches are cleared
+        event.source.postMessage({ type: 'CACHES_CLEARED' });
+      })
+    );
   }
 
   if (event.data && event.data.type === 'UPDATE_BADGE') {
