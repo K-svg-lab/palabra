@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import { useRouter } from "next/navigation";
 import { Volume2, Check, X, AlertCircle } from "lucide-react";
 import type { VocabularyWord, DifficultyRating } from "@/lib/types/vocabulary";
 import type { ReviewMode, ReviewDirection } from "@/lib/types/review";
@@ -58,6 +59,7 @@ export function FlashcardEnhanced({
   cardNumber,
   onRate,
 }: FlashcardEnhancedProps) {
+  const router = useRouter();
   const [isPlaying, setIsPlaying] = useState(false);
   const [userAnswer, setUserAnswer] = useState("");
   const [answerChecked, setAnswerChecked] = useState(false);
@@ -731,40 +733,49 @@ export function FlashcardEnhanced({
       style={{ outline: 'none' }}
     >
       <div className="flex flex-col items-center justify-center h-full p-6 space-y-8">
-        {/* TTS Error Banner */}
-        {ttsErrorShown && (
-          <div className="w-full max-w-md p-4 mb-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
-            <div className="flex items-start gap-3">
-              <AlertCircle className="w-5 h-5 text-yellow-600 dark:text-yellow-400 flex-shrink-0 mt-0.5" />
-              <div className="flex-1 text-left">
-                <h4 className="text-sm font-semibold text-yellow-800 dark:text-yellow-300 mb-1">
-                  Audio Not Available
-                </h4>
-                <p className="text-xs text-yellow-700 dark:text-yellow-400 mb-2">
-                  Your device's text-to-speech is not working. You can continue without audio.
-                </p>
-                <p className="text-xs text-yellow-600 dark:text-yellow-500">
-                  <strong>To fix:</strong> Install "Google Text-to-Speech" from Play Store and enable Spanish voices in Settings → Accessibility → Text-to-Speech
-                </p>
+        {/* TTS Error - Complete Blocking Message */}
+        {ttsErrorShown ? (
+          <div className="flex flex-col items-center justify-center h-full space-y-6 max-w-md mx-auto px-6">
+            <div className="p-6 bg-red-50 dark:bg-red-900/20 border-2 border-red-200 dark:border-red-800 rounded-xl">
+              <div className="flex flex-col items-center gap-4 text-center">
+                <AlertCircle className="w-16 h-16 text-red-600 dark:text-red-400" />
+                <div>
+                  <h3 className="text-xl font-bold text-red-800 dark:text-red-300 mb-2">
+                    Audio Required
+                  </h3>
+                  <p className="text-sm text-red-700 dark:text-red-400 mb-4">
+                    Listening mode requires working audio. Your device's text-to-speech is not functioning.
+                  </p>
+                  <div className="text-left bg-white/50 dark:bg-black/20 p-4 rounded-lg space-y-2">
+                    <p className="text-sm font-semibold text-red-800 dark:text-red-300">
+                      To enable audio:
+                    </p>
+                    <ol className="text-xs text-red-700 dark:text-red-400 space-y-1 list-decimal list-inside">
+                      <li>Open <strong>Google Play Store</strong></li>
+                      <li>Search for <strong>"Google Text-to-Speech"</strong></li>
+                      <li>Install or update the app</li>
+                      <li>Go to Settings → Language & input → Text-to-speech</li>
+                      <li>Select Google TTS Engine</li>
+                      <li>Tap Settings → Install voice data</li>
+                      <li>Download <strong>Spanish</strong> voices</li>
+                      <li>Restart Chrome and try again</li>
+                    </ol>
+                  </div>
+                </div>
               </div>
             </div>
+            <button
+              onClick={() => router.push('/review')}
+              className="px-6 py-3 bg-accent text-white rounded-xl font-medium hover:opacity-90 transition-opacity"
+            >
+              ← Exit Listening Mode
+            </button>
           </div>
-        )}
-        
+        ) : (
+          <>
         {/* Instructions */}
         <div className="text-center space-y-3">
-          {ttsErrorShown ? (
-            <div className="space-y-2">
-              <p className="text-base sm:text-lg text-text-secondary font-medium">
-                Type the Spanish word you see below
-              </p>
-              <div className="p-4 bg-accent/10 rounded-lg">
-                <p className="text-2xl font-bold text-accent">
-                  {word.spanishWord}
-                </p>
-              </div>
-            </div>
-          ) : isFirstCardRef.current && !audioUnlocked ? (
+          {isFirstCardRef.current && !audioUnlocked ? (
             <div className="space-y-2">
               <p className="text-base sm:text-lg text-accent font-semibold">
                 👆 Tap the speaker to start
@@ -870,12 +881,14 @@ export function FlashcardEnhanced({
           )}
         </div>
 
-        {!answerChecked && (
+        {!answerChecked && !ttsErrorShown && (
           <p className="text-xs text-text-tertiary text-center">
             Click the speaker icon to replay the audio
           </p>
         )}
       </div>
+      </>
+        )}
     </div>
   );
 
