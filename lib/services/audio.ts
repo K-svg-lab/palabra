@@ -167,9 +167,12 @@ function getBrowserTTS(
  * @param audioUrl - Audio URL or empty for browser TTS
  * @param text - Text to speak (if using browser TTS)
  */
+// Track if we've had a synthesis failure before
+let hadSynthesisFailure = false;
+
 export function playAudio(audioUrl: string, text?: string): void {
   // #region agent log
-  fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'audio.ts:playAudio',message:'playAudio called',data:{hasAudioUrl:!!audioUrl,hasText:!!text,text:text?.substring(0,20),userAgent:navigator.userAgent,speechSynthesisAvailable:'speechSynthesis' in window,speaking:typeof speechSynthesis !== 'undefined' ? speechSynthesis.speaking : 'N/A',pending:typeof speechSynthesis !== 'undefined' ? speechSynthesis.pending : 'N/A'},timestamp:Date.now(),sessionId:'debug-session',runId:'android-debug',hypothesisId:'A'})}).catch(()=>{});
+  fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'audio.ts:playAudio',message:'playAudio called',data:{hasAudioUrl:!!audioUrl,hasText:!!text,text:text?.substring(0,20),hadSynthesisFailure,userAgent:navigator.userAgent,speechSynthesisAvailable:'speechSynthesis' in window,speaking:typeof speechSynthesis !== 'undefined' ? speechSynthesis.speaking : 'N/A',pending:typeof speechSynthesis !== 'undefined' ? speechSynthesis.pending : 'N/A'},timestamp:Date.now(),sessionId:'debug-session',runId:'android-debug',hypothesisId:'A'})}).catch(()=>{});
   // #endregion
   
   if (audioUrl) {
@@ -225,7 +228,15 @@ export function playAudio(audioUrl: string, text?: string): void {
     fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'audio.ts:voiceSelected',message:'Voice selected',data:{bestVoiceName:bestVoice?.name,bestVoiceLang:bestVoice?.lang,bestVoiceLocalService:bestVoice?.localService,totalVoices:voices.length,spanishVoices:voices.filter(v=>v.lang.startsWith('es')).length,allSpanishVoiceNames:voices.filter(v=>v.lang.startsWith('es')).map(v=>({name:v.name,lang:v.lang,local:v.localService}))},timestamp:Date.now(),sessionId:'debug-session',runId:'android-debug',hypothesisId:'D'})}).catch(()=>{});
     // #endregion
     
-    if (bestVoice) {
+    // If we've had synthesis failures before, don't set a specific voice - use system default
+    // This is more reliable on Android devices with TTS issues
+    if (hadSynthesisFailure) {
+      // #region agent log
+      fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'audio.ts:usingDefaultVoice',message:'Using default voice due to previous failure',data:{},timestamp:Date.now(),sessionId:'debug-session',runId:'android-debug',hypothesisId:'D2'})}).catch(()=>{});
+      // #endregion
+      console.log('🎙️ Using system default voice (previous synthesis failure)');
+      // Don't set utterance.voice - let browser choose
+    } else if (bestVoice) {
       utterance.voice = bestVoice;
       console.log(`🎙️ Playing with voice: ${bestVoice.name}`);
     } else {
@@ -236,6 +247,14 @@ export function playAudio(audioUrl: string, text?: string): void {
     }
     
     utterance.onerror = (event) => {
+      // Mark that we've had a failure so next time we use default voice
+      if (event.error === 'synthesis-failed' || event.error === 'synthesis-unavailable') {
+        hadSynthesisFailure = true;
+        // #region agent log
+        fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'audio.ts:markedFailure',message:'Marked synthesis failure - will use default voice next time',data:{error:event.error},timestamp:Date.now(),sessionId:'debug-session',runId:'android-debug',hypothesisId:'E1'})}).catch(()=>{});
+        // #endregion
+      }
+      
       // #region agent log
       fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'audio.ts:speechError',message:'Speech synthesis error',data:{error:event.error,errorType:typeof event.error,charIndex:event.charIndex,elapsedTime:event.elapsedTime,name:event.name,voiceName:bestVoice?.name,text:text?.substring(0,30)},timestamp:Date.now(),sessionId:'debug-session',runId:'android-debug',hypothesisId:'E'})}).catch(()=>{});
       // #endregion
