@@ -1,0 +1,3 @@
+[submodule "palabra"]
+	path = palabra
+	url = https://github.com/K-svg-lab/palabra.git
