@@ -269,13 +269,230 @@ Prevents the sync service from overwriting newer local changes with older server
 
 ---
 
+---
+
+## Follow-up: SM-2 Testing Infrastructure
+
+### Development Tools Created
+
+After resolving the bug, created comprehensive testing infrastructure to verify SM-2 algorithm behavior and prevent future regressions.
+
+#### **Password-Protected Debug Panel** 
+
+**Location:** `/debug-sm2`  
+**Password:** `Reaper789`  
+**Status:** ✅ Deployed to production
+
+**Features:**
+- Real-time SM-2 parameter viewing for all vocabulary words
+- Time simulation (fast-forward days/weeks/months)
+- Interactive schedule preview for all rating outcomes
+- One-click test reviews with immediate feedback
+- Status transition verification (new → learning → mastered)
+- Timestamp inspection and interval tracking
+
+**Security:**
+- Session-based password authentication
+- Failed attempt tracking (max 5 attempts)
+- Auto-logout on browser close
+- Exit button (top-right) for manual logout
+- No navigation links (direct URL access only)
+
+**Files Created:**
+1. `palabra/app/(dashboard)/debug-sm2/page.tsx` (352 lines)
+   - Main debug panel interface
+   - SM-2 parameter display
+   - Time simulation controls
+   - Schedule preview component
+
+2. `palabra/app/(dashboard)/debug-sm2/layout.tsx` (191 lines)
+   - Password protection wrapper
+   - Authentication UI
+   - Session management
+
+**Documentation:**
+1. `DEBUG_PANEL_SETUP.md` (543 lines)
+   - Complete authentication setup
+   - Password management
+   - Security considerations
+   - Troubleshooting guide
+
+2. `SM2_TESTING_GUIDE.md` (698 lines)
+   - 10 detailed test scenarios
+   - Expected SM-2 behavior reference
+   - Database inspection methods
+   - Known issues documentation
+
+**Purpose:**
+- Verify SM-2 algorithm works as designed
+- Test scheduling without waiting for days
+- Quick validation during development
+- Troubleshoot user-reported scheduling issues
+- Training tool for new developers
+
+**Access:**
+- Production: `https://palabra-nu.vercel.app/debug-sm2`
+- Local: `http://localhost:3000/debug-sm2`
+- Password: `Reaper789`
+
+---
+
 ## Sign-off
 
-**Status:** ✅ Production-ready  
-**Deployment:** Ready for Vercel deployment  
+**Status:** ✅ Production-ready with debugging tools  
+**Deployment:** ✅ Deployed to Vercel (commits f1fbb9b, 23df78a)  
 **Build Status:** ✅ No TypeScript errors  
 **Test Coverage:** Manual testing completed, all scenarios passing  
 
 **Resolved By:** AI Debug Session  
 **Verified By:** User acceptance testing  
 **Date:** January 19, 2026
+
+**Deliverables:**
+- ✅ Bug fixes (cache invalidation, sync timestamps)
+- ✅ Password-protected debug panel
+- ✅ Comprehensive testing documentation
+- ✅ All changes deployed to production
+
+---
+
+## Follow-up: Directional Accuracy UI Bug Fixes
+
+### Date: January 19, 2026 (continued)
+
+#### Bug #3: Weak Words Filter Not Updating on Direction Change
+
+**Location:** `palabra/components/features/session-config.tsx`
+
+**Problem:**  
+The "Weak Words Only" filter card count was not updating when users clicked direction buttons (ES→EN, EN→ES, Mixed). The count only updated when the threshold slider was moved, creating a confusing UX where direction changes appeared to have no effect.
+
+**Root Cause:**  
+The `useEffect` hook that calculates `actualAvailable` was missing `direction` in its dependency array (line 155). This meant React didn't re-run the calculation when direction state changed.
+
+**Evidence:**  
+User reported: "the number of available words to review is not updating on button click (en→es or es→en) but only when the user changes the weak word threshold slider."
+
+**Fix:**
+```typescript
+// Before
+}, [allWords, practiceMode, statusFilter, tagFilter, weakWordsOnly, weakWordsThreshold, totalAvailable]);
+
+// After
+}, [allWords, practiceMode, statusFilter, tagFilter, weakWordsOnly, weakWordsThreshold, totalAvailable, direction]);
+```
+
+**Impact:**  
+Direction changes now immediately trigger card count recalculation, providing instant visual feedback to users.
+
+---
+
+#### Bug #4: Untested Directions Incorrectly Marked as "Strong"
+
+**Location:** `palabra/components/features/session-config.tsx` (lines 88-119)
+
+**Problem:**  
+Words with 0 reviews in a specific direction (e.g., never tested in EN→ES) were falling back to overall accuracy calculation, which could be 100% if the word was only tested in the opposite direction. This incorrectly excluded them from the "weak words" filter when they should have been included as "untested" in that direction.
+
+**Root Cause:**  
+The directional accuracy logic lacked explicit handling for the untested case (when `esToEnTotal === 0` or `enToEsTotal === 0`). Instead of treating these as "weak" (0% accuracy), the code fell through to use overall accuracy as a fallback.
+
+**Example:**
+- Word "casa" tested 5 times ES→EN with 100% accuracy
+- Never tested EN→ES (`enToEsTotal: 0`)
+- Filter set to EN→ES direction with 75% threshold
+- **Before fix:** Used overall accuracy (100%), excluded from weak words
+- **After fix:** Explicitly sets accuracy to 0%, included as a weak word needing practice
+
+**Fix:**
+```typescript
+// Phase 8 Enhancement: Use directional accuracy based on current direction
+let accuracy: number;
+if (direction === 'english-to-spanish') {
+  // EN→ES direction: use productive accuracy (typically harder)
+  if (review.enToEsTotal > 0) {
+    accuracy = review.enToEsCorrect / review.enToEsTotal;
+  } else {
+    // Never tested in this direction = needs practice (treat as 0% accuracy)
+    accuracy = 0;
+  }
+} else if (direction === 'spanish-to-english') {
+  // ES→EN direction: use receptive accuracy
+  if (review.esToEnTotal > 0) {
+    accuracy = review.esToEnCorrect / review.esToEnTotal;
+  } else {
+    // Never tested in this direction = needs practice (treat as 0% accuracy)
+    accuracy = 0;
+  }
+} else {
+  // Mixed direction: use overall accuracy
+  accuracy = review.correctCount / review.totalReviews;
+}
+```
+
+**Impact:**  
+- Encourages balanced practice across both directions
+- Prevents false confidence from one-directional mastery
+- Aligns with language learning best practices (productive vs. receptive skills)
+- User can now practice weak words in specific directions effectively
+
+---
+
+### Files Modified (Directional Bug Fixes)
+
+1. `palabra/components/features/session-config.tsx` (+1 line)
+   - Added `direction` to useEffect dependency array (line 155)
+   - Simplified directional accuracy logic to explicitly handle untested directions (lines 88-119)
+
+2. Instrumentation cleanup:
+   - Removed debug logs from `palabra/app/(dashboard)/page.tsx`
+   - Removed debug logs from `palabra/components/features/flashcard.tsx`
+   - Removed debug logs from `palabra/components/features/session-config.tsx`
+   - Cleared `.cursor/debug.log`
+
+---
+
+### Verification
+
+✅ **Test 1: Direction Button Updates Count**
+- Weak Words Only enabled, 65% threshold
+- Click ES→EN: Shows 20 cards
+- Click EN→ES: Immediately updates to 2 cards
+- Click Mixed: Immediately updates to different count
+
+✅ **Test 2: Untested Directions Included**
+- Words tested only in ES→EN direction
+- Filter set to EN→ES with 60% threshold
+- Previously excluded words now correctly appear as weak words (0% accuracy in that direction)
+
+✅ **Test 3: Directional Accuracy Logic**
+- Words show different counts for ES→EN vs EN→ES
+- Mixed direction uses overall accuracy
+- Threshold slider updates count dynamically
+- All filters work together correctly
+
+---
+
+### Performance Impact
+
+**Minimal:**
+- Adding `direction` dependency triggers existing calculation logic (no new overhead)
+- Simplified directional accuracy logic (removed unused `accuracySource` variable)
+- No additional database queries
+
+---
+
+### Deployment
+
+**Status:** ✅ Ready for Production  
+**Build Status:** ✅ No TypeScript errors  
+**Instrumentation:** ✅ All debug logs removed  
+**Commit:** Pending
+
+**Deliverables:**
+- ✅ Bug fixes (cache invalidation, sync timestamps)
+- ✅ Password-protected debug panel
+- ✅ Comprehensive testing documentation
+- ✅ Directional accuracy UI bug fixes
+- ✅ All instrumentation cleaned up
+- ⏳ Deployment to production (in progress)
