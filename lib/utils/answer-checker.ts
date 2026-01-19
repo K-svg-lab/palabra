@@ -102,19 +102,23 @@ export function calculateSimilarity(userAnswer: string, correctAnswer: string): 
  * @param userAnswer - User's answer
  * @param correctAnswer - Correct answer
  * @param strictMode - Whether to use strict matching (default: false)
+ * @param isListeningMode - Whether this is for listening mode (more lenient)
  * @returns Object with isCorrect flag and similarity score
  */
 export function checkAnswer(
   userAnswer: string,
   correctAnswer: string,
-  strictMode: boolean = false
+  strictMode: boolean = false,
+  isListeningMode: boolean = false
 ): { isCorrect: boolean; similarity: number; feedback: string } {
   const similarity = calculateSimilarity(userAnswer, correctAnswer);
   
-  // Thresholds
+  // Thresholds - much more lenient for listening mode since spelling from audio is very difficult
   const PERFECT_THRESHOLD = 1.0;
-  const CORRECT_THRESHOLD = strictMode ? 0.95 : 0.85;
-  const CLOSE_THRESHOLD = 0.70;
+  const CORRECT_THRESHOLD = isListeningMode 
+    ? (strictMode ? 0.85 : 0.70)  // Very forgiving for listening - accept 70% similarity
+    : (strictMode ? 0.95 : 0.85);
+  const CLOSE_THRESHOLD = isListeningMode ? 0.55 : 0.70;
   
   let isCorrect = false;
   let feedback = '';
@@ -124,7 +128,7 @@ export function checkAnswer(
     feedback = '✅ Perfect!';
   } else if (similarity >= CORRECT_THRESHOLD) {
     isCorrect = true;
-    feedback = '✅ Correct! (Minor typo)';
+    feedback = '✅ Correct! (Minor spelling difference)';
   } else if (similarity >= CLOSE_THRESHOLD) {
     isCorrect = false;
     feedback = '⚠️ Close, but not quite right';
@@ -143,12 +147,14 @@ export function checkAnswer(
  * @param userAnswer - User's answer
  * @param correctAnswers - Array of acceptable answers
  * @param strictMode - Whether to use strict matching
+ * @param isListeningMode - Whether this is for listening mode (more lenient)
  * @returns Best match result
  */
 export function checkAnswerMultiple(
   userAnswer: string,
   correctAnswers: string[],
-  strictMode: boolean = false
+  strictMode: boolean = false,
+  isListeningMode: boolean = false
 ): { isCorrect: boolean; similarity: number; feedback: string; matchedAnswer: string } {
   let bestResult = {
     isCorrect: false,
@@ -158,7 +164,7 @@ export function checkAnswerMultiple(
   };
   
   for (const correctAnswer of correctAnswers) {
-    const result = checkAnswer(userAnswer, correctAnswer, strictMode);
+    const result = checkAnswer(userAnswer, correctAnswer, strictMode, isListeningMode);
     
     if (result.similarity > bestResult.similarity) {
       bestResult = {
@@ -204,15 +210,17 @@ export function extractArticle(word: string): { article: string | null; word: st
  * 
  * @param userAnswer - User's answer
  * @param correctAnswer - Correct answer
+ * @param isListeningMode - Whether this is for listening mode (more lenient)
  * @returns Check result
  */
 export function checkSpanishAnswer(
   userAnswer: string,
-  correctAnswer: string
+  correctAnswer: string,
+  isListeningMode: boolean = false
 ): { isCorrect: boolean; similarity: number; feedback: string } {
   const userParts = extractArticle(userAnswer);
   const correctParts = extractArticle(correctAnswer);
-  
+
   // Check the main word
   const wordSimilarity = calculateSimilarity(userParts.word, correctParts.word);
   
@@ -220,15 +228,16 @@ export function checkSpanishAnswer(
   let articleCorrect = true;
   if (correctParts.article) {
     if (!userParts.article) {
-      // Missing article
-      articleCorrect = false;
+      // Missing article - acceptable in listening mode
+      articleCorrect = !isListeningMode;
     } else {
       articleCorrect = normalizeString(userParts.article) === normalizeString(correctParts.article);
     }
   }
   
-  // Determine overall correctness
-  const WORD_THRESHOLD = 0.85;
+  // Determine overall correctness - much more lenient for listening mode
+  const WORD_THRESHOLD = isListeningMode ? 0.70 : 0.85;  // Accept 70% similarity in listening
+  const CLOSE_THRESHOLD = isListeningMode ? 0.55 : 0.70;
   const wordCorrect = wordSimilarity >= WORD_THRESHOLD;
   
   let isCorrect = false;
@@ -240,9 +249,13 @@ export function checkSpanishAnswer(
     feedback = '✅ Perfect!';
   } else if (wordCorrect && !articleCorrect) {
     isCorrect = true; // Accept with warning
-    feedback = `✅ Correct word, but article should be "${correctParts.article}"`;
+    if (isListeningMode) {
+      feedback = '✅ Correct! (Article optional in listening mode)';
+    } else {
+      feedback = `✅ Correct word, but article should be "${correctParts.article}"`;
+    }
     finalSimilarity *= 0.95; // Slight penalty
-  } else if (wordSimilarity >= 0.70) {
+  } else if (wordSimilarity >= CLOSE_THRESHOLD) {
     isCorrect = false;
     feedback = '⚠️ Close, but not quite right';
     finalSimilarity = wordSimilarity * 0.8;

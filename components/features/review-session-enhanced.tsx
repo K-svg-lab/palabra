@@ -147,14 +147,8 @@ export function ReviewSessionEnhanced({
     const newResults = [...results, result];
     setResults(newResults);
 
-    // Auto-advance after a delay for feedback
-    setTimeout(() => {
-      if (currentIndex < processedWords.length - 1) {
-        setCurrentIndex(currentIndex + 1);
-      } else {
-        onComplete(newResults);
-      }
-    }, 2000);
+    // No automatic advancement - user controls when to proceed
+    // This gives learners time to reflect on their answer
   };
 
   /**
@@ -162,6 +156,18 @@ export function ReviewSessionEnhanced({
    */
   const handleAudioPlay = () => {
     setAudioPlayCount(prev => prev + 1);
+  };
+
+  /**
+   * Handle continue to next card after user reviews feedback
+   */
+  const handleContinue = () => {
+    if (currentIndex < processedWords.length - 1) {
+      setCurrentIndex(currentIndex + 1);
+    } else {
+      // Session complete
+      onComplete(results);
+    }
   };
 
   /**
@@ -342,6 +348,7 @@ export function ReviewSessionEnhanced({
           onFlip={handleFlip}
           onAnswerSubmit={handleAnswerSubmit}
           onAudioPlay={handleAudioPlay}
+          onContinue={handleContinue}
           cardNumber={`Card ${currentIndex + 1} of ${processedWords.length}`}
           onRate={config.mode === 'recognition' && isFlipped ? handleRating : undefined}
         />

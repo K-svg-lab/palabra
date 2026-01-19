@@ -38,6 +38,8 @@ interface FlashcardEnhancedProps {
   onAnswerSubmit?: (userAnswer: string, isCorrect: boolean, similarity: number) => void;
   /** Callback when audio play is requested (listening mode) */
   onAudioPlay?: () => void;
+  /** Callback when user wants to continue to next card after viewing feedback */
+  onContinue?: () => void;
   /** Current card number (e.g., "1 of 3") */
   cardNumber?: string;
   /** Callback when user rates the card (recognition mode) */
@@ -52,6 +54,7 @@ export function FlashcardEnhanced({
   onFlip,
   onAnswerSubmit,
   onAudioPlay,
+  onContinue,
   cardNumber,
   onRate,
 }: FlashcardEnhancedProps) {
@@ -66,6 +69,7 @@ export function FlashcardEnhanced({
   const [showHint, setShowHint] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const cardRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   // Auto-focus card for keyboard events on mount and word change
   useEffect(() => {
@@ -100,12 +104,75 @@ export function FlashcardEnhanced({
     setShowHint(false);
   }, [word.id]);
 
-  // Auto-focus input in recall mode
+  // Auto-focus input in recall/listening mode
   useEffect(() => {
-    if (mode === 'recall' && inputRef.current) {
+    if ((mode === 'recall' || mode === 'listening') && inputRef.current) {
       inputRef.current.focus();
     }
   }, [mode, word.id]);
+
+  // Re-focus input after answer is checked and user continues
+  useEffect(() => {
+    if (!answerChecked && inputRef.current && (mode === 'recall' || mode === 'listening')) {
+      inputRef.current.focus();
+    }
+  }, [answerChecked, mode]);
+
+  // Auto-play audio when new card appears in listening mode
+  useEffect(() => {
+    if (mode !== 'listening') return;
+    
+    let cancelled = false;
+    
+    // Ensure voices are loaded before auto-playing (especially on first card)
+    const playWithLoadedVoices = async () => {
+      // Wait for voices to be available
+      if ('speechSynthesis' in window) {
+        const voices = speechSynthesis.getVoices();
+        if (voices.length === 0) {
+          // Voices not loaded yet, wait for them
+          await new Promise<void>((resolve) => {
+            const handler = () => {
+              speechSynthesis.removeEventListener('voiceschanged', handler);
+              resolve();
+            };
+            speechSynthesis.addEventListener('voiceschanged', handler);
+            // Fallback timeout in case event doesn't fire
+            setTimeout(() => {
+              speechSynthesis.removeEventListener('voiceschanged', handler);
+              resolve();
+            }, 500);
+          });
+        }
+      }
+      
+      // Check if cancelled before playing
+      if (cancelled) {
+        return;
+      }
+      
+      // Small delay to ensure component is ready
+      setTimeout(() => {
+        if (!cancelled) {
+          playAudio("", word.spanishWord);
+          onAudioPlay?.();
+        }
+      }, 300);
+    };
+    
+    playWithLoadedVoices();
+    
+    // Cleanup function to prevent double play
+    return () => {
+      cancelled = true;
+      
+      // Stop any ongoing speech
+      if ('speechSynthesis' in window) {
+        speechSynthesis.cancel();
+      }
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [word.id, mode]);
 
   /**
    * Handles pronunciation playback
@@ -134,26 +201,47 @@ export function FlashcardEnhanced({
       return;
     }
 
+    const isListeningMode = mode === 'listening';
     let result;
-    if (direction === 'english-to-spanish') {
+    
+    // In listening mode, user always hears and types Spanish, so always check against Spanish word
+    if (isListeningMode) {
+      result = checkSpanishAnswer(userAnswer, word.spanishWord, isListeningMode);
+    } else if (direction === 'english-to-spanish') {
       // Check Spanish answer with article awareness
-      result = checkSpanishAnswer(userAnswer, word.spanishWord);
+      result = checkSpanishAnswer(userAnswer, word.spanishWord, isListeningMode);
     } else {
       // Check English answer
-      result = checkAnswer(userAnswer, word.englishTranslation);
+      result = checkAnswer(userAnswer, word.englishTranslation, false, isListeningMode);
     }
 
     setAnswerResult(result);
     setAnswerChecked(true);
     onAnswerSubmit?.(userAnswer, result.isCorrect, result.similarity);
+    
+    // Focus container so it can receive Enter key for continuing
+    setTimeout(() => {
+      if (containerRef.current) {
+        containerRef.current.focus();
+      }
+    }, 100);
   };
 
   /**
-   * Handle Enter key to submit
+   * Handle Enter key to submit answer
    */
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !answerChecked) {
       handleSubmitAnswer();
+    }
+  };
+
+  /**
+   * Handle continue to next card after viewing feedback
+   */
+  const handleContinue = () => {
+    if (onContinue) {
+      onContinue();
     }
   };
 
@@ -412,7 +500,18 @@ export function FlashcardEnhanced({
    * Render Recall Mode (type the answer)
    */
   const renderRecallMode = () => (
-    <div className="flashcard-recall">
+    <div 
+      ref={containerRef}
+      className="flashcard-recall"
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' && answerChecked) {
+          e.preventDefault();
+          handleContinue();
+        }
+      }}
+      tabIndex={0}
+      style={{ outline: 'none' }}
+    >
       <div className="flex flex-col items-center justify-center h-full p-6 space-y-6">
         {/* Question */}
         <div className="text-center space-y-5 max-w-md">
@@ -496,24 +595,34 @@ export function FlashcardEnhanced({
             </button>
           )}
 
-          {/* Feedback */}
-          {answerChecked && answerResult && (
+          {/* Feedback - Only show if incorrect */}
+          {answerChecked && answerResult && !answerResult.isCorrect && (
             <div className="space-y-2">
-              <div className={`p-3 rounded-xl text-center font-medium ${answerResult.isCorrect ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300' : 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300'}`}>
-                {answerResult.feedback}
+              <div className="p-3 rounded-xl bg-black/5 dark:bg-white/5 text-center">
+                <p className="text-sm text-text-secondary">
+                  Correct answer: <span className="font-semibold text-text">{backContent}</span>
+                </p>
               </div>
-              {!answerResult.isCorrect && (
-                <div className="p-3 rounded-xl bg-black/5 dark:bg-white/5 text-center">
-                  <p className="text-sm text-text-secondary">
-                    Correct answer: <span className="font-semibold text-text">{backContent}</span>
-                  </p>
-                </div>
-              )}
               <div className="text-center">
                 <p className="text-xs text-text-tertiary">
                   Accuracy: {Math.round(answerResult.similarity * 100)}%
                 </p>
               </div>
+            </div>
+          )}
+          
+          {/* Continue Button - shown after answer is checked */}
+          {answerChecked && (
+            <div className="space-y-2">
+              <button
+                onClick={handleContinue}
+                className="w-full py-3 bg-accent text-white rounded-xl font-medium hover:opacity-90 transition-opacity"
+              >
+                Continue →
+              </button>
+              <p className="text-xs text-text-tertiary text-center">
+                Press Enter or tap Continue
+              </p>
             </div>
           )}
         </div>
@@ -525,7 +634,18 @@ export function FlashcardEnhanced({
    * Render Listening Mode (audio-first)
    */
   const renderListeningMode = () => (
-    <div className="flashcard-listening">
+    <div 
+      ref={containerRef}
+      className="flashcard-listening"
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' && answerChecked) {
+          e.preventDefault();
+          handleContinue();
+        }
+      }}
+      tabIndex={0}
+      style={{ outline: 'none' }}
+    >
       <div className="flex flex-col items-center justify-center h-full p-6 space-y-8">
         {/* Instructions */}
         <div className="text-center space-y-3">
@@ -580,29 +700,41 @@ export function FlashcardEnhanced({
             </button>
           )}
 
-          {/* Feedback */}
-          {answerChecked && answerResult && (
-            <div className="space-y-2">
-              <div className={`p-3 rounded-xl text-center font-medium ${answerResult.isCorrect ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300' : 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300'}`}>
-                {answerResult.feedback}
+          {/* Feedback - Only show if incorrect */}
+          {answerChecked && answerResult && !answerResult.isCorrect && (
+            <div className="space-y-3">
+              <div className="p-3 rounded-xl bg-black/5 dark:bg-white/5 text-center">
+                <p className="text-sm text-text-secondary">
+                  Correct: <span className="font-semibold text-text">{word.spanishWord}</span>
+                </p>
+                <p className="text-sm text-text-tertiary mt-1">
+                  ({word.englishTranslation})
+                </p>
               </div>
-              {!answerResult.isCorrect && (
-                <div className="p-3 rounded-xl bg-black/5 dark:bg-white/5 text-center">
-                  <p className="text-sm text-text-secondary">
-                    Correct: <span className="font-semibold text-text">{word.spanishWord}</span>
-                  </p>
-                  <p className="text-sm text-text-tertiary mt-1">
-                    ({word.englishTranslation})
-                  </p>
-                </div>
-              )}
+            </div>
+          )}
+          
+          {/* Continue Button - shown after answer is checked */}
+          {answerChecked && (
+            <div className="space-y-2">
+              <button
+                onClick={handleContinue}
+                className="w-full py-3 bg-accent text-white rounded-xl font-medium hover:opacity-90 transition-opacity"
+              >
+                Continue →
+              </button>
+              <p className="text-xs text-text-tertiary text-center">
+                Press Enter or tap Continue
+              </p>
             </div>
           )}
         </div>
 
-        <p className="text-xs text-text-tertiary text-center">
-          Click the speaker icon to replay the audio
-        </p>
+        {!answerChecked && (
+          <p className="text-xs text-text-tertiary text-center">
+            Click the speaker icon to replay the audio
+          </p>
+        )}
       </div>
     </div>
   );

@@ -54,6 +54,60 @@ export async function getAudio(
 }
 
 /**
+ * Select the best quality Spanish voice from available voices
+ * Prioritizes natural-sounding voices over robotic ones
+ * 
+ * @param voices - Available speech synthesis voices
+ * @param preferredGender - Preferred voice gender
+ * @returns Best matching voice or null
+ */
+export function selectBestSpanishVoice(
+  voices: SpeechSynthesisVoice[],
+  preferredGender?: 'male' | 'female'
+): SpeechSynthesisVoice | null {
+  // Filter to Spanish voices
+  const spanishVoices = voices.filter(voice => voice.lang.startsWith('es'));
+  
+  if (spanishVoices.length === 0) return null;
+  
+  // Priority order for voice selection (higher quality voices first)
+  const priorityPatterns = [
+    // Google voices (typically highest quality)
+    /google.*es-ES|google.*es-MX|google.*es-US/i,
+    // Microsoft/Edge natural voices
+    /microsoft.*natural|edge.*natural/i,
+    // Apple premium voices
+    /premium|enhanced|improved/i,
+    // Standard quality voices
+    /es-ES|es-MX|es-US/i,
+  ];
+  
+  for (const pattern of priorityPatterns) {
+    const matchingVoices = spanishVoices.filter(voice => 
+      pattern.test(voice.name) || pattern.test(voice.voiceURI)
+    );
+    
+    if (matchingVoices.length > 0) {
+      // If gender preference specified, try to match it
+      if (preferredGender) {
+        const genderedVoice = matchingVoices.find(voice => 
+          preferredGender === 'female' 
+            ? voice.name.toLowerCase().includes('female') || voice.name.toLowerCase().includes('woman') || voice.name.toLowerCase().includes('mónica') || voice.name.toLowerCase().includes('paulina')
+            : voice.name.toLowerCase().includes('male') || voice.name.toLowerCase().includes('man') || voice.name.toLowerCase().includes('jorge') || voice.name.toLowerCase().includes('diego')
+        );
+        if (genderedVoice) return genderedVoice;
+      }
+      
+      // Return first high-quality match
+      return matchingVoices[0];
+    }
+  }
+  
+  // Fallback to first Spanish voice
+  return spanishVoices[0];
+}
+
+/**
  * Uses browser's built-in Speech Synthesis API for pronunciation
  * 
  * This is a fallback when external TTS APIs are unavailable
@@ -71,18 +125,20 @@ function getBrowserTTS(
 ): Promise<AudioResult> {
   return new Promise((resolve, reject) => {
     const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = 'es-ES'; // Spanish (Spain)
-    utterance.rate = options.speed || 0.9; // Slightly slower for learning
+    utterance.lang = 'es-ES'; // Spanish (Spain) - high quality default
+    utterance.rate = options.speed || 0.85; // Slightly slower for learning (0.85 is clearer than 0.9)
+    utterance.pitch = 1.0; // Natural pitch
+    utterance.volume = 1.0; // Full volume
     
-    // Try to find Spanish voice
+    // Select the best quality Spanish voice
     const voices = speechSynthesis.getVoices();
-    const spanishVoice = voices.find(
-      voice => voice.lang.startsWith('es') && 
-               (options.voice === 'female' ? voice.name.includes('female') : true)
-    );
+    const bestVoice = selectBestSpanishVoice(voices, options.voice);
     
-    if (spanishVoice) {
-      utterance.voice = spanishVoice;
+    if (bestVoice) {
+      utterance.voice = bestVoice;
+      console.log(`🎙️ Selected voice: ${bestVoice.name} (${bestVoice.lang})`);
+    } else {
+      console.warn('⚠️ No Spanish voice found, using default');
     }
 
     utterance.onend = () => {
@@ -106,7 +162,7 @@ function getBrowserTTS(
 }
 
 /**
- * Plays audio from a URL or triggers browser TTS
+ * Plays audio from a URL or triggers browser TTS with best quality voice
  * 
  * @param audioUrl - Audio URL or empty for browser TTS
  * @param text - Text to speak (if using browser TTS)
@@ -120,14 +176,35 @@ export function playAudio(audioUrl: string, text?: string): void {
       if (text && 'speechSynthesis' in window) {
         const utterance = new SpeechSynthesisUtterance(text);
         utterance.lang = 'es-ES';
-        utterance.rate = 0.9;
+        utterance.rate = 0.85;
+        utterance.pitch = 1.0;
+        utterance.volume = 1.0;
+        
+        // Select best quality voice
+        const voices = speechSynthesis.getVoices();
+        const bestVoice = selectBestSpanishVoice(voices);
+        if (bestVoice) {
+          utterance.voice = bestVoice;
+        }
+        
         speechSynthesis.speak(utterance);
       }
     });
   } else if (text && 'speechSynthesis' in window) {
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.lang = 'es-ES';
-    utterance.rate = 0.9;
+    utterance.rate = 0.85;
+    utterance.pitch = 1.0;
+    utterance.volume = 1.0;
+    
+    // Select best quality voice
+    const voices = speechSynthesis.getVoices();
+    const bestVoice = selectBestSpanishVoice(voices);
+    if (bestVoice) {
+      utterance.voice = bestVoice;
+      console.log(`🎙️ Playing with voice: ${bestVoice.name}`);
+    }
+    
     speechSynthesis.speak(utterance);
   }
 }
