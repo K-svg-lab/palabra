@@ -1,10 +1,10 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { Volume2, Check, X } from "lucide-react";
+import { Volume2, Check, X, AlertCircle } from "lucide-react";
 import type { VocabularyWord, DifficultyRating } from "@/lib/types/vocabulary";
 import type { ReviewMode, ReviewDirection } from "@/lib/types/review";
-import { playAudio } from "@/lib/services/audio";
+import { playAudio, isTTSBroken } from "@/lib/services/audio";
 import { checkAnswer, checkSpanishAnswer } from "@/lib/utils/answer-checker";
 
 /**
@@ -68,6 +68,7 @@ export function FlashcardEnhanced({
   } | null>(null);
   const [showHint, setShowHint] = useState(false);
   const [audioUnlocked, setAudioUnlocked] = useState(false);
+  const [ttsErrorShown, setTtsErrorShown] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const cardRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -127,6 +128,17 @@ export function FlashcardEnhanced({
     // #endregion
     
     if (mode !== 'listening') return;
+    
+    // Don't auto-play if TTS is completely broken
+    if (isTTSBroken()) {
+      // #region agent log
+      fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'flashcard:skipBrokenTTS',message:'Skipping auto-play - TTS is broken',data:{},timestamp:Date.now(),sessionId:'debug-session',runId:'android-debug',hypothesisId:'K0'})}).catch(()=>{});
+      // #endregion
+      if (!ttsErrorShown) {
+        setTtsErrorShown(true);
+      }
+      return;
+    }
     
     // On mobile, don't auto-play on first card (needs user interaction to unlock audio)
     // After first interaction, auto-play works normally
@@ -251,10 +263,17 @@ export function FlashcardEnhanced({
       setIsPlaying(true);
       playAudio("", word.spanishWord);
       onAudioPlay?.();
+      
+      // Check if TTS became broken after this attempt
+      setTimeout(() => {
+        if (isTTSBroken() && !ttsErrorShown) {
+          setTtsErrorShown(true);
+        }
+      }, 6000); // Wait 6 seconds to see if error occurs
     } catch (error) {
       console.error("Failed to play pronunciation:", error);
     } finally {
-      setIsPlaying(false);
+      setTimeout(() => setIsPlaying(false), 500);
     }
   };
 
@@ -712,9 +731,40 @@ export function FlashcardEnhanced({
       style={{ outline: 'none' }}
     >
       <div className="flex flex-col items-center justify-center h-full p-6 space-y-8">
+        {/* TTS Error Banner */}
+        {ttsErrorShown && (
+          <div className="w-full max-w-md p-4 mb-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
+            <div className="flex items-start gap-3">
+              <AlertCircle className="w-5 h-5 text-yellow-600 dark:text-yellow-400 flex-shrink-0 mt-0.5" />
+              <div className="flex-1 text-left">
+                <h4 className="text-sm font-semibold text-yellow-800 dark:text-yellow-300 mb-1">
+                  Audio Not Available
+                </h4>
+                <p className="text-xs text-yellow-700 dark:text-yellow-400 mb-2">
+                  Your device's text-to-speech is not working. You can continue without audio.
+                </p>
+                <p className="text-xs text-yellow-600 dark:text-yellow-500">
+                  <strong>To fix:</strong> Install "Google Text-to-Speech" from Play Store and enable Spanish voices in Settings → Accessibility → Text-to-Speech
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+        
         {/* Instructions */}
         <div className="text-center space-y-3">
-          {isFirstCardRef.current && !audioUnlocked ? (
+          {ttsErrorShown ? (
+            <div className="space-y-2">
+              <p className="text-base sm:text-lg text-text-secondary font-medium">
+                Type the Spanish word you see below
+              </p>
+              <div className="p-4 bg-accent/10 rounded-lg">
+                <p className="text-2xl font-bold text-accent">
+                  {word.spanishWord}
+                </p>
+              </div>
+            </div>
+          ) : isFirstCardRef.current && !audioUnlocked ? (
             <div className="space-y-2">
               <p className="text-base sm:text-lg text-accent font-semibold">
                 👆 Tap the speaker to start
@@ -737,25 +787,27 @@ export function FlashcardEnhanced({
           )}
         </div>
 
-        {/* Large Audio Button */}
-        <button
-          onClick={handlePlayAudio}
-          disabled={isPlaying}
-          className={`p-8 rounded-full transition-all disabled:opacity-50 group ${
-            isFirstCardRef.current && !audioUnlocked 
-              ? "bg-accent hover:bg-accent/90 animate-pulse shadow-lg shadow-accent/50" 
-              : "bg-accent/10 hover:bg-accent/20"
-          }`}
-          aria-label="Play audio"
-        >
-          <Volume2 className={`w-12 h-12 ${
-            isPlaying 
-              ? "text-white animate-pulse" 
-              : isFirstCardRef.current && !audioUnlocked
-              ? "text-white"
-              : "text-accent group-hover:scale-110 transition-transform"
-          }`} />
-        </button>
+        {/* Large Audio Button - Hide if TTS is broken */}
+        {!ttsErrorShown && (
+          <button
+            onClick={handlePlayAudio}
+            disabled={isPlaying}
+            className={`p-8 rounded-full transition-all disabled:opacity-50 group ${
+              isFirstCardRef.current && !audioUnlocked 
+                ? "bg-accent hover:bg-accent/90 animate-pulse shadow-lg shadow-accent/50" 
+                : "bg-accent/10 hover:bg-accent/20"
+            }`}
+            aria-label="Play audio"
+          >
+            <Volume2 className={`w-12 h-12 ${
+              isPlaying 
+                ? "text-white animate-pulse" 
+                : isFirstCardRef.current && !audioUnlocked
+                ? "text-white"
+                : "text-accent group-hover:scale-110 transition-transform"
+            }`} />
+          </button>
+        )}
 
         {/* Answer Input */}
         <div className="w-full max-w-md space-y-3">

@@ -167,8 +167,10 @@ function getBrowserTTS(
  * @param audioUrl - Audio URL or empty for browser TTS
  * @param text - Text to speak (if using browser TTS)
  */
-// Track if we've had a synthesis failure before
+// Track if we've had synthesis failures
 let hadSynthesisFailure = false;
+let synthesisFailureCount = 0;
+let ttsCompletelyBroken = false;
 
 export function playAudio(audioUrl: string, text?: string): void {
   // #region agent log
@@ -249,9 +251,20 @@ export function playAudio(audioUrl: string, text?: string): void {
     utterance.onerror = (event) => {
       // Mark that we've had a failure so next time we use default voice
       if (event.error === 'synthesis-failed' || event.error === 'synthesis-unavailable') {
+        synthesisFailureCount++;
         hadSynthesisFailure = true;
+        
+        // If we've failed twice (once with specific voice, once with default), TTS is completely broken
+        if (synthesisFailureCount >= 2) {
+          ttsCompletelyBroken = true;
+          console.error('❌ TTS completely broken - failed with both specific and default voices');
+          // #region agent log
+          fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'audio.ts:ttsCompletelyBroken',message:'TTS completely broken after multiple failures',data:{failureCount:synthesisFailureCount},timestamp:Date.now(),sessionId:'debug-session',runId:'android-debug',hypothesisId:'E2'})}).catch(()=>{});
+          // #endregion
+        }
+        
         // #region agent log
-        fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'audio.ts:markedFailure',message:'Marked synthesis failure - will use default voice next time',data:{error:event.error},timestamp:Date.now(),sessionId:'debug-session',runId:'android-debug',hypothesisId:'E1'})}).catch(()=>{});
+        fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'audio.ts:markedFailure',message:'Marked synthesis failure',data:{error:event.error,failureCount:synthesisFailureCount,ttsCompletelyBroken},timestamp:Date.now(),sessionId:'debug-session',runId:'android-debug',hypothesisId:'E1'})}).catch(()=>{});
         // #endregion
       }
       
@@ -306,12 +319,30 @@ export function playAudio(audioUrl: string, text?: string): void {
 }
 
 /**
- * Checks if text-to-speech is available in the browser
+ * Checks if text-to-speech is available and working
  * 
- * @returns True if TTS is available
+ * @returns True if TTS is available and not broken
  */
 export function isTTSAvailable(): boolean {
-  return 'speechSynthesis' in window;
+  return 'speechSynthesis' in window && !ttsCompletelyBroken;
+}
+
+/**
+ * Check if TTS has been determined to be completely broken
+ * 
+ * @returns True if TTS has failed multiple times
+ */
+export function isTTSBroken(): boolean {
+  return ttsCompletelyBroken;
+}
+
+/**
+ * Reset TTS failure tracking (for testing or after user fixes TTS)
+ */
+export function resetTTSState(): void {
+  hadSynthesisFailure = false;
+  synthesisFailureCount = 0;
+  ttsCompletelyBroken = false;
 }
 
 /**
