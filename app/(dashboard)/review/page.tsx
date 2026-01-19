@@ -145,7 +145,30 @@ export default function ReviewPage() {
         wordsToReview = wordsToReview.filter(word => {
           const review = reviewMap.get(word.id);
           if (!review || review.totalReviews === 0) return true; // Include new words
-          const accuracy = review.correctCount / review.totalReviews;
+          
+          // Phase 8 Enhancement: Use directional accuracy based on current direction
+          let accuracy: number;
+          if (config.direction === 'english-to-spanish') {
+            // EN→ES direction: use productive accuracy (typically harder)
+            if (review.enToEsTotal > 0) {
+              accuracy = review.enToEsCorrect / review.enToEsTotal;
+            } else {
+              // Never tested in this direction = needs practice (treat as 0% accuracy)
+              accuracy = 0;
+            }
+          } else if (config.direction === 'spanish-to-english') {
+            // ES→EN direction: use receptive accuracy
+            if (review.esToEnTotal > 0) {
+              accuracy = review.esToEnCorrect / review.esToEnTotal;
+            } else {
+              // Never tested in this direction = needs practice (treat as 0% accuracy)
+              accuracy = 0;
+            }
+          } else {
+            // Mixed direction: use overall accuracy
+            accuracy = review.correctCount / review.totalReviews;
+          }
+          
           return accuracy < threshold;
         });
       }
@@ -207,11 +230,12 @@ export default function ReviewPage() {
         
         let updatedReview: ReviewRecord;
         if (existingReview) {
-          // Update existing record using SM-2 algorithm
+          // Update existing record using SM-2 algorithm with directional tracking
           updatedReview = updateReviewSM2(
             existingReview,
             result.rating,
-            reviewDate
+            reviewDate,
+            result.direction // Phase 8 Enhancement: Pass direction for accurate tracking
           );
           
           await updateReviewRecordDB(updatedReview);
@@ -219,11 +243,12 @@ export default function ReviewPage() {
           // Create initial review record
           const newReview = createInitialReviewRecord(result.vocabularyId, reviewDate);
           
-          // Apply first review rating
+          // Apply first review rating with direction
           updatedReview = updateReviewSM2(
             newReview,
             result.rating,
-            reviewDate
+            reviewDate,
+            result.direction // Phase 8 Enhancement: Pass direction for accurate tracking
           );
           
           await createReviewRecord(updatedReview);
@@ -360,6 +385,7 @@ export default function ReviewPage() {
         }}
         availableTags={availableTags}
         totalAvailable={dueCount > 0 ? dueCount : allWords.length}
+        allWords={allWords}
         onStart={startSession}
         onCancel={() => setShowConfig(false)}
       />

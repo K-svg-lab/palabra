@@ -12,6 +12,7 @@
 
 import { SPACED_REPETITION } from '@/lib/constants/app';
 import type { DifficultyRating, ReviewRecord } from '@/lib/types/vocabulary';
+import type { ReviewDirection } from '@/lib/types/review';
 
 /**
  * SM-2 Algorithm Parameters
@@ -191,15 +192,19 @@ export function isReviewDue(
  * This is the main function that applies the SM-2 algorithm to update
  * all review tracking parameters after a review session.
  * 
+ * Phase 8 Enhancement: Now tracks directional accuracy (ES→EN vs EN→ES)
+ * 
  * @param currentReview - Current review record
  * @param rating - User's difficulty rating
  * @param reviewDate - Date of review (defaults to now)
+ * @param direction - Review direction for directional accuracy tracking (optional, defaults to 'spanish-to-english')
  * @returns Updated review record
  */
 export function updateReviewRecord(
   currentReview: ReviewRecord,
   rating: DifficultyRating,
-  reviewDate: number = Date.now()
+  reviewDate: number = Date.now(),
+  direction: ReviewDirection = 'spanish-to-english'
 ): ReviewRecord {
   // Calculate new parameters using SM-2 algorithm
   const newRepetition = calculateRepetition(currentReview.repetition, rating);
@@ -212,7 +217,7 @@ export function updateReviewRecord(
   );
   const newNextReviewDate = calculateNextReviewDate(newInterval, reviewDate);
 
-  // Update counts
+  // Update overall counts
   const newTotalReviews = currentReview.totalReviews + 1;
   const newCorrectCount = rating !== 'forgot' 
     ? currentReview.correctCount + 1 
@@ -220,6 +225,31 @@ export function updateReviewRecord(
   const newIncorrectCount = rating === 'forgot' 
     ? currentReview.incorrectCount + 1 
     : currentReview.incorrectCount;
+
+  // Update directional counts (Phase 8 Enhancement)
+  const isCorrect = rating !== 'forgot';
+  let newEstoEnCorrect = currentReview.esToEnCorrect;
+  let newEstoEnTotal = currentReview.esToEnTotal;
+  let newEnToEsCorrect = currentReview.enToEsCorrect;
+  let newEnToEsTotal = currentReview.enToEsTotal;
+
+  // For mixed direction, split evenly between both directions for simplicity
+  // In practice, the review session should specify the actual direction per card
+  if (direction === 'spanish-to-english') {
+    newEstoEnTotal += 1;
+    if (isCorrect) newEstoEnCorrect += 1;
+  } else if (direction === 'english-to-spanish') {
+    newEnToEsTotal += 1;
+    if (isCorrect) newEnToEsCorrect += 1;
+  } else if (direction === 'mixed') {
+    // For mixed, increment both (represents bidirectional testing)
+    newEstoEnTotal += 1;
+    newEnToEsTotal += 1;
+    if (isCorrect) {
+      newEstoEnCorrect += 1;
+      newEnToEsCorrect += 1;
+    }
+  }
 
   return {
     ...currentReview,
@@ -231,6 +261,10 @@ export function updateReviewRecord(
     totalReviews: newTotalReviews,
     correctCount: newCorrectCount,
     incorrectCount: newIncorrectCount,
+    esToEnCorrect: newEstoEnCorrect,
+    esToEnTotal: newEstoEnTotal,
+    enToEsCorrect: newEnToEsCorrect,
+    enToEsTotal: newEnToEsTotal,
   };
 }
 
@@ -256,6 +290,11 @@ export function createInitialReviewRecord(
     totalReviews: 0,
     correctCount: 0,
     incorrectCount: 0,
+    // Phase 8 Enhancement: Directional accuracy tracking
+    esToEnCorrect: 0,
+    esToEnTotal: 0,
+    enToEsCorrect: 0,
+    enToEsTotal: 0,
   };
 }
 

@@ -62,7 +62,7 @@ export const STORAGE_KEYS = {
  */
 export const DB_CONFIG = {
   NAME: 'palabra_db',
-  VERSION: 3, // Incremented for Phase 10 schema updates (settings store for notifications)
+  VERSION: 4, // Incremented for Phase 8 enhancement (directional accuracy tracking in reviews)
   STORES: {
     VOCABULARY: 'vocabulary',
     REVIEWS: 'reviews',

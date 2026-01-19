@@ -214,6 +214,19 @@ export interface ReviewRecord {
   
   /** Number of incorrect responses */
   incorrectCount: number;
+  
+  /** Directional accuracy tracking (Phase 8 Enhancement) */
+  /** Spanish → English correct responses */
+  esToEnCorrect: number;
+  
+  /** Spanish → English total reviews */
+  esToEnTotal: number;
+  
+  /** English → Spanish correct responses */
+  enToEsCorrect: number;
+  
+  /** English → Spanish total reviews */
+  enToEsTotal: number;
 }
 
 /**

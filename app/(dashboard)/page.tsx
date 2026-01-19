@@ -46,18 +46,12 @@ export default function HomePage() {
   useEffect(() => {
     async function loadData() {
       try {
-        // #region agent log H3
-        fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'page.tsx:47',message:'Dashboard loadData called',data:{hasVocabulary,stats},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H3',runId:'status-fix'})}).catch(()=>{});
-        // #endregion
         const [count, today] = await Promise.all([
           getDueForReviewCount(),
           getTodayStats(),
         ]);
         setDueCount(count);
         setTodayStats(today);
-        // #region agent log H3
-        fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'page.tsx:54',message:'Dashboard data loaded',data:{dueCount:count,stats},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H3',runId:'status-fix'})}).catch(()=>{});
-        // #endregion
       } catch (error) {
         console.error("Failed to load data:", error);
       }

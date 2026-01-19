@@ -103,6 +103,13 @@ export async function initDB(): Promise<IDBPDatabase<PalabraDB>> {
         
         reviewStore.createIndex('by-vocab', 'vocabId');
         reviewStore.createIndex('by-next-review', 'nextReviewDate');
+      } else if (oldVersion < 4 && transaction) {
+        // Migration for version 4: Add directional accuracy fields
+        // Note: This migration happens lazily when records are accessed
+        // We can't use async/await in the upgrade callback, so we'll handle
+        // migration at the application level when records are read
+        console.log('📊 Database upgraded to v4 - directional accuracy tracking enabled');
+        console.log('ℹ️  Existing review records will be migrated on first access');
       }
 
       // Sessions store

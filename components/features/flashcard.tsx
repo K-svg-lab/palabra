@@ -35,33 +35,12 @@ interface FlashcardProps {
 export function Flashcard({ word, isFlipped = false, onFlip, cardNumber, onRate }: FlashcardProps) {
   const [isPlaying, setIsPlaying] = useState(false);
 
-  // #region agent log
-  useEffect(() => {
-    const logDimensions = () => {
-      const container = document.querySelector('.flashcard-container') as HTMLElement;
-      const flashcard = document.querySelector('.flashcard') as HTMLElement;
-      const front = document.querySelector('.flashcard-front') as HTMLElement;
-      if (container && flashcard && front) {
-        const containerRect = container.getBoundingClientRect();
-        const viewportHeight = window.innerHeight;
-        fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'flashcard.tsx:38',message:'Flashcard dimensions',data:{containerHeight:containerRect.height,containerMaxHeight:container.style.maxHeight,viewportHeight,minHeight:getComputedStyle(container).minHeight,maxHeight:getComputedStyle(container).maxHeight},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H6,H7,H8'})}).catch(()=>{});
-      }
-    };
-    logDimensions();
-    window.addEventListener('resize', logDimensions);
-    return () => window.removeEventListener('resize', logDimensions);
-  }, []);
-  // #endregion
-
   /**
    * Handles pronunciation playback
    * Prevents card flip during audio playback
    */
   const handlePlayAudio = async (e: React.MouseEvent) => {
     e.stopPropagation(); // Prevent card flip
-    // #region agent log
-    fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'flashcard.tsx:45',message:'Audio button clicked',data:{isPlaying,target:e.currentTarget.tagName},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H2'})}).catch(()=>{});
-    // #endregion
     
     try {
       setIsPlaying(true);
@@ -107,11 +86,6 @@ export function Flashcard({ word, isFlipped = false, onFlip, cardNumber, onRate 
         role="button"
         tabIndex={0}
         onKeyDown={(e) => {
-          // #region agent log
-          const logData = {location:'flashcard.tsx:89',message:'Key pressed on flashcard',data:{key:e.key,target:e.currentTarget.className,activeElement:document.activeElement?.tagName,activeElementClass:document.activeElement?.className},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H1,H2,H3,H4'};
-          console.log('[DEBUG]', logData);
-          fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(logData)}).catch((err)=>{console.log('[DEBUG] Fetch failed', err);});
-          // #endregion
           if (e.key === "Enter" || e.key === " ") {
             e.preventDefault();
             onFlip?.();

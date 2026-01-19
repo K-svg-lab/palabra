@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Settings, ArrowRight, ArrowLeftRight, Headphones, Eye, Keyboard, Zap } from "lucide-react";
 import type { StudySessionConfig, ReviewDirection, ReviewMode } from "@/lib/types/review";
-import type { VocabularyStatus } from "@/lib/types/vocabulary";
+import type { VocabularyStatus, VocabularyWord } from "@/lib/types/vocabulary";
+import { getAllReviews, getDueReviews } from "@/lib/db/reviews";
 
 /**
  * Session Configuration Component - Phase 8
@@ -22,6 +23,8 @@ interface SessionConfigProps {
   availableTags?: string[];
   /** Total available cards matching criteria */
   totalAvailable: number;
+  /** All vocabulary words for calculating filtered counts */
+  allWords: VocabularyWord[];
   /** Callback when user starts session */
   onStart: (config: StudySessionConfig) => void;
   /** Callback when user cancels */
@@ -32,6 +35,7 @@ export function SessionConfig({
   defaultConfig = {},
   availableTags = [],
   totalAvailable,
+  allWords,
   onStart,
   onCancel,
 }: SessionConfigProps) {
@@ -44,6 +48,87 @@ export function SessionConfig({
   const [weakWordsThreshold, setWeakWordsThreshold] = useState(defaultConfig.weakWordsThreshold || 70);
   const [randomize, setRandomize] = useState(defaultConfig.randomize ?? true);
   const [practiceMode, setPracticeMode] = useState(defaultConfig.practiceMode || false);
+  const [actualAvailable, setActualAvailable] = useState(totalAvailable);
+
+  // Calculate actual available cards based on current filters
+  useEffect(() => {
+    async function calculateAvailable() {
+      try {
+        // Get all review records for filtering
+        const allReviews = await getAllReviews();
+        const reviewMap = new Map(allReviews.map(r => [r.vocabId, r]));
+
+        // Get due review records
+        const dueReviews = await getDueReviews();
+        const dueVocabIds = new Set(dueReviews.map(r => r.vocabId));
+
+        // Start with due words or all words based on practice mode
+        let wordsToReview = practiceMode 
+          ? [...allWords]
+          : allWords.filter(word => {
+              const hasReview = reviewMap.has(word.id);
+              const isDue = dueVocabIds.has(word.id);
+              return !hasReview || isDue;
+            });
+
+        // Apply status filter if configured
+        if (statusFilter.length > 0) {
+          wordsToReview = wordsToReview.filter(word => 
+            statusFilter.includes(word.status)
+          );
+        }
+
+        // Apply tag filter if configured
+        if (tagFilter.length > 0) {
+          wordsToReview = wordsToReview.filter(word =>
+            word.tags?.some((tag: string) => tagFilter.includes(tag))
+          );
+        }
+
+        // Apply weak words filter if configured
+        if (weakWordsOnly) {
+          const threshold = weakWordsThreshold / 100;
+          
+          wordsToReview = wordsToReview.filter(word => {
+            const review = reviewMap.get(word.id);
+            if (!review || review.totalReviews === 0) return true; // Include new words
+            
+            // Phase 8 Enhancement: Use directional accuracy based on current direction
+            let accuracy: number;
+            if (direction === 'english-to-spanish') {
+              // EN→ES direction: use productive accuracy (typically harder)
+              if (review.enToEsTotal > 0) {
+                accuracy = review.enToEsCorrect / review.enToEsTotal;
+              } else {
+                // Never tested in this direction = needs practice (treat as 0% accuracy)
+                accuracy = 0;
+              }
+            } else if (direction === 'spanish-to-english') {
+              // ES→EN direction: use receptive accuracy
+              if (review.esToEnTotal > 0) {
+                accuracy = review.esToEnCorrect / review.esToEnTotal;
+              } else {
+                // Never tested in this direction = needs practice (treat as 0% accuracy)
+                accuracy = 0;
+              }
+            } else {
+              // Mixed direction: use overall accuracy
+              accuracy = review.correctCount / review.totalReviews;
+            }
+            
+            return accuracy < threshold;
+          });
+        }
+
+        setActualAvailable(wordsToReview.length);
+      } catch (error) {
+        console.error('Failed to calculate available cards:', error);
+        setActualAvailable(totalAvailable);
+      }
+    }
+
+    calculateAvailable();
+  }, [allWords, practiceMode, statusFilter, tagFilter, weakWordsOnly, weakWordsThreshold, totalAvailable, direction]);
 
   const handleStart = () => {
     const config: StudySessionConfig = {
@@ -76,7 +161,7 @@ export function SessionConfig({
     );
   };
 
-  const effectiveSessionSize = Math.min(sessionSize, totalAvailable);
+  const effectiveSessionSize = Math.min(sessionSize, actualAvailable);
 
   return (
     <div className="max-w-2xl mx-auto p-4 sm:p-6 space-y-4 sm:space-y-6">
@@ -343,13 +428,18 @@ export function SessionConfig({
       </div>
 
       {/* Summary */}
-      <div className="p-3 rounded-xl bg-accent/10 border border-accent/20">
-        <p className="text-xs sm:text-sm text-center text-text-secondary">
-          <span className="font-semibold text-accent">{effectiveSessionSize}</span> cards available
+      <div className={`p-3 rounded-xl border ${actualAvailable === 0 ? 'bg-orange-50 dark:bg-orange-900/20 border-orange-200 dark:border-orange-800' : 'bg-accent/10 border-accent/20'}`}>
+        <p className={`text-xs sm:text-sm text-center ${actualAvailable === 0 ? 'text-orange-800 dark:text-orange-200' : 'text-text-secondary'}`}>
+          <span className={`font-semibold ${actualAvailable === 0 ? 'text-orange-600 dark:text-orange-400' : 'text-accent'}`}>{effectiveSessionSize}</span> cards available
           {statusFilter.length > 0 && ` • ${statusFilter.join(', ')}`}
           {tagFilter.length > 0 && ` • Tags: ${tagFilter.join(', ')}`}
           {weakWordsOnly && ` • Weak words only`}
         </p>
+        {actualAvailable === 0 && weakWordsOnly && (
+          <p className="text-xs text-center text-orange-700 dark:text-orange-300 mt-2">
+            No words found below {weakWordsThreshold}% accuracy. Try lowering the threshold or disable "Weak Words Only".
+          </p>
+        )}
       </div>
 
       {/* Action Buttons */}
@@ -362,7 +452,7 @@ export function SessionConfig({
         </button>
         <button
           onClick={handleStart}
-          disabled={effectiveSessionSize === 0}
+          disabled={actualAvailable === 0}
           className="flex-1 py-2.5 sm:py-3 px-4 sm:px-6 rounded-xl text-sm font-medium bg-accent text-white hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
         >
           Start Session

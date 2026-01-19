@@ -8,6 +8,35 @@ import { DB_CONFIG } from '@/lib/constants/app';
 import type { ReviewRecord } from '@/lib/types';
 
 /**
+ * Migration helper: Ensures review record has directional accuracy fields
+ * Lazily migrates v3 records to v4 format when accessed
+ * 
+ * @param review - Review record to check/migrate
+ * @returns Migrated review record
+ */
+function ensureDirectionalFields(review: any): ReviewRecord {
+  // Check if already has v4 fields
+  if ('esToEnCorrect' in review && 
+      'esToEnTotal' in review && 
+      'enToEsCorrect' in review && 
+      'enToEsTotal' in review) {
+    return review as ReviewRecord;
+  }
+
+  // Migrate from v3 to v4: Split existing counts 50/50
+  const halfCorrect = Math.floor(review.correctCount / 2);
+  const halfTotal = Math.floor(review.totalReviews / 2);
+
+  return {
+    ...review,
+    esToEnCorrect: halfCorrect,
+    esToEnTotal: halfTotal,
+    enToEsCorrect: review.correctCount - halfCorrect,
+    enToEsTotal: review.totalReviews - halfTotal,
+  } as ReviewRecord;
+}
+
+/**
  * Creates a new review record in the database
  * 
  * @param review - The review record to create
@@ -31,7 +60,8 @@ export async function getReviewRecord(
   id: string
 ): Promise<ReviewRecord | undefined> {
   const db = await getDB();
-  return db.get(DB_CONFIG.STORES.REVIEWS, id);
+  const review = await db.get(DB_CONFIG.STORES.REVIEWS, id);
+  return review ? ensureDirectionalFields(review) : undefined;
 }
 
 /**
@@ -49,7 +79,8 @@ export async function getReviewByVocabId(
     'by-vocab',
     vocabId
   );
-  return reviews[0]; // Should only be one per vocab word
+  const review = reviews[0]; // Should only be one per vocab word
+  return review ? ensureDirectionalFields(review) : undefined;
 }
 
 /**
@@ -59,7 +90,8 @@ export async function getReviewByVocabId(
  */
 export async function getAllReviews(): Promise<ReviewRecord[]> {
   const db = await getDB();
-  return db.getAll(DB_CONFIG.STORES.REVIEWS);
+  const reviews = await db.getAll(DB_CONFIG.STORES.REVIEWS);
+  return reviews.map(ensureDirectionalFields);
 }
 
 /**
@@ -74,9 +106,9 @@ export async function getDueReviews(
   const db = await getDB();
   const allReviews = await db.getAll(DB_CONFIG.STORES.REVIEWS);
   
-  return allReviews.filter(
-    (review) => review.nextReviewDate <= currentTime
-  );
+  return allReviews
+    .map(ensureDirectionalFields)
+    .filter((review) => review.nextReviewDate <= currentTime);
 }
 
 /**
