@@ -6,7 +6,9 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { RefreshCw } from 'lucide-react';
 import { useVocabulary } from '@/lib/hooks/use-vocabulary';
+import { usePullToRefresh } from '@/lib/hooks/use-pull-to-refresh';
 import { getAllReviews, countDueReviews } from '@/lib/db/reviews';
 import { getTodayStats, getRecentStats, getTotalCardsReviewed, getTotalStudyTime } from '@/lib/db/stats';
 import { 
@@ -56,10 +58,19 @@ function BarChart({ data, color = 'bg-accent' }: { data: { label: string; value:
  * @returns Progress page
  */
 export default function ProgressPage() {
-  const { data: allWords } = useVocabulary();
+  const { data: allWords, refetch: refetchVocabulary } = useVocabulary();
   const [stats, setStats] = useState<ProgressStats | null>(null);
   const [recentStats, setRecentStats] = useState<DailyStats[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+
+  // Enable pull-to-refresh
+  const { isRefreshing } = usePullToRefresh({
+    enabled: true,
+    onRefresh: async () => {
+      // Refetch vocabulary data after sync
+      await refetchVocabulary();
+    },
+  });
 
   useEffect(() => {
     async function loadProgressData() {
@@ -71,8 +82,13 @@ export default function ProgressPage() {
           return;
         }
 
+        // #region agent log
+        fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'progress/page.tsx:65',message:'Progress page loading - vocab from hook',data:{wordCount:allWords.length,statusCounts:{new:allWords.filter(w=>w.status==='new').length,learning:allWords.filter(w=>w.status==='learning').length,mastered:allWords.filter(w=>w.status==='mastered').length}},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H2'})}).catch(()=>{});
+        // #endregion
+
         // Load all necessary data
         console.log('📊 Loading progress data...');
+        const { getActualNewWordsAddedToday } = await import('@/lib/db/stats');
         const [
           reviews,
           todayStats,
@@ -80,6 +96,7 @@ export default function ProgressPage() {
           dueCount,
           totalCardsReviewed,
           totalStudyTime,
+          actualNewWordsToday,
         ] = await Promise.all([
           getAllReviews(),
           getTodayStats(),
@@ -87,8 +104,19 @@ export default function ProgressPage() {
           countDueReviews(),
           getTotalCardsReviewed(),
           getTotalStudyTime(),
+          getActualNewWordsAddedToday(),
         ]);
-        console.log('📊 Today\'s stats loaded:', todayStats);
+        
+        // CRITICAL FIX: Correct the newWordsAdded count
+        const storedCount = todayStats.newWordsAdded;
+        todayStats.newWordsAdded = actualNewWordsToday;
+        
+        // #region agent log
+        fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'progress/page.tsx:85',message:'Progress page stats loaded with correction',data:{date:todayStats.date,storedNewWordsAdded:storedCount,actualNewWordsAdded:actualNewWordsToday,difference:actualNewWordsToday-storedCount},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H6_stats'})}).catch(()=>{});
+        // #endregion
+        
+        console.log('📊 Today\'s stats loaded (corrected):', todayStats);
+        console.log('📊 Actual new words today:', actualNewWordsToday);
         console.log('📊 Total cards reviewed:', totalCardsReviewed);
         console.log('📊 Recent stats:', last7DaysStats);
 
@@ -179,6 +207,14 @@ export default function ProgressPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-black pb-20">
+      {/* Pull-to-refresh indicator */}
+      {isRefreshing && (
+        <div className="fixed top-0 left-0 right-0 z-50 bg-accent text-white py-2 px-4 flex items-center justify-center gap-2 shadow-lg">
+          <RefreshCw className="w-4 h-4 animate-spin" />
+          <span className="text-sm font-medium">Refreshing...</span>
+        </div>
+      )}
+
       {/* Header */}
       <header className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800">
         <div className="px-4 py-6 max-w-7xl mx-auto">

@@ -24,9 +24,18 @@ import {
  * Hook to fetch all vocabulary words
  */
 export function useVocabulary() {
+  // #region agent log
+  fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'use-vocabulary.ts:26',message:'useVocabulary hook called - will fetch from IndexedDB',data:{timestamp:Date.now()},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H2'})}).catch(()=>{});
+  // #endregion
   return useQuery({
     queryKey: ['vocabulary'],
-    queryFn: () => getAllVocabularyWords(),
+    queryFn: async () => {
+      const words = await getAllVocabularyWords();
+      // #region agent log
+      fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'use-vocabulary.ts:30',message:'Fetched vocabulary from IndexedDB',data:{count:words.length,statusCounts:{new:words.filter(w=>w.status==='new').length,learning:words.filter(w=>w.status==='learning').length,mastered:words.filter(w=>w.status==='mastered').length}},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H2'})}).catch(()=>{});
+      // #endregion
+      return words;
+    },
   });
 }
 

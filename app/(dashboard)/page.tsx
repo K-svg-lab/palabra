@@ -8,7 +8,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Plus } from 'lucide-react';
+import { Plus, RefreshCw } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useVocabularyStats } from '@/lib/hooks/use-vocabulary';
@@ -16,6 +16,7 @@ import { getDueForReviewCount } from '@/lib/db/reviews';
 import { getTodayStats } from '@/lib/db/stats';
 import { OnboardingWelcome } from '@/components/features/onboarding-welcome';
 import { hasCompletedOnboarding, completeOnboarding } from '@/lib/utils/onboarding';
+import { usePullToRefresh } from '@/lib/hooks/use-pull-to-refresh';
 import type { DailyStats } from '@/lib/types';
 
 /**
@@ -25,13 +26,30 @@ import type { DailyStats } from '@/lib/types';
  * @returns Home page
  */
 export default function HomePage() {
-  const { data: stats } = useVocabularyStats();
+  const { data: stats, refetch: refetchStats } = useVocabularyStats();
   const router = useRouter();
   const [dueCount, setDueCount] = useState<number>(0);
   const [todayStats, setTodayStats] = useState<DailyStats | null>(null);
   const [showOnboarding, setShowOnboarding] = useState(false);
 
   const hasVocabulary = (stats?.total || 0) > 0;
+
+  // Enable pull-to-refresh
+  const { isRefreshing } = usePullToRefresh({
+    enabled: true,
+    onRefresh: async () => {
+      // Reload local stats after sync
+      await refetchStats();
+      if (hasVocabulary) {
+        const [count, today] = await Promise.all([
+          getDueForReviewCount(),
+          getTodayStats(),
+        ]);
+        setDueCount(count);
+        setTodayStats(today);
+      }
+    },
+  });
 
   // Check if user needs onboarding (only on mount)
   useEffect(() => {
@@ -46,12 +64,27 @@ export default function HomePage() {
   useEffect(() => {
     async function loadData() {
       try {
-        const [count, today] = await Promise.all([
+        const { getActualNewWordsAddedToday } = await import('@/lib/db/stats');
+        const [count, today, actualNewWords] = await Promise.all([
           getDueForReviewCount(),
           getTodayStats(),
+          getActualNewWordsAddedToday(),
         ]);
         setDueCount(count);
-        setTodayStats(today);
+        
+        // CRITICAL FIX: Use actual count from vocabulary createdAt timestamps
+        // instead of incremented counter from stats store
+        const correctedStats = {
+          ...today,
+          newWordsAdded: actualNewWords,
+        };
+        setTodayStats(correctedStats);
+        
+        // #region agent log
+        fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'page.tsx:65',message:'Home page stats loaded with correction',data:{date:today.date,storedNewWordsAdded:today.newWordsAdded,actualNewWordsAdded:actualNewWords,difference:actualNewWords-today.newWordsAdded},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H6_stats'})}).catch(()=>{});
+        // #endregion
+        
+        console.log(`📊 Stats correction: stored=${today.newWordsAdded}, actual=${actualNewWords}`);
       } catch (error) {
         console.error("Failed to load data:", error);
       }
@@ -72,7 +105,29 @@ export default function HomePage() {
     };
 
     window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+    
+    // #region agent log - Track pull-to-refresh attempts for H3
+    let touchStart = 0;
+    const handleTouchStart = (e: TouchEvent) => {
+      touchStart = e.touches[0].clientY;
+    };
+    const handleTouchMove = (e: TouchEvent) => {
+      const touchCurrent = e.touches[0].clientY;
+      const touchDiff = touchCurrent - touchStart;
+      // If user pulls down significantly at top of page
+      if (touchDiff > 100 && window.scrollY === 0) {
+        fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'page.tsx:66',message:'Pull-to-refresh gesture detected',data:{touchDiff,scrollY:window.scrollY},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H3'})}).catch(()=>{});
+      }
+    };
+    document.addEventListener('touchstart', handleTouchStart);
+    document.addEventListener('touchmove', handleTouchMove);
+    // #endregion
+    
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      document.removeEventListener('touchstart', handleTouchStart);
+      document.removeEventListener('touchmove', handleTouchMove);
+    };
   }, [router]);
 
   const handleOnboardingComplete = () => {
@@ -89,6 +144,14 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-black pb-20">
+      {/* Pull-to-refresh indicator */}
+      {isRefreshing && (
+        <div className="fixed top-0 left-0 right-0 z-50 bg-accent text-white py-2 px-4 flex items-center justify-center gap-2 shadow-lg">
+          <RefreshCw className="w-4 h-4 animate-spin" />
+          <span className="text-sm font-medium">Refreshing...</span>
+        </div>
+      )}
+
       {/* Onboarding Welcome Screen */}
       {showOnboarding && (
         <OnboardingWelcome

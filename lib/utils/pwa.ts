@@ -24,24 +24,59 @@ export async function registerServiceWorker(): Promise<ServiceWorkerRegistration
       const newWorker = registration.installing;
       if (!newWorker) return;
       
+      // #region agent log
+      fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'pwa.ts:23',message:'SW update found',data:{hasNewWorker:!!newWorker,hasController:!!navigator.serviceWorker.controller},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H5'})}).catch(()=>{});
+      // #endregion
+      
       newWorker.addEventListener('statechange', () => {
-        if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-          // New service worker available
-          console.log('[PWA] New version available');
-          
-          // Notify user
-          if (window.confirm('A new version is available. Reload to update?')) {
+        if (newWorker.state === 'installed') {
+          if (navigator.serviceWorker.controller) {
+            // New service worker available (update)
+            console.log('[PWA] New version detected - update available');
+            
+            // #region agent log
+            fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'pwa.ts:30',message:'New SW installed - forcing update',data:{state:newWorker.state,willReload:true},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H5'})}).catch(()=>{});
+            // #endregion
+            
+            // CRITICAL FIX: Auto-reload on update instead of prompting
+            // This ensures PWA always runs latest version after deployment
+            console.log('[PWA] Auto-updating to new version...');
             newWorker.postMessage({ type: 'SKIP_WAITING' });
-            window.location.reload();
+            
+            // Show brief notification before reload
+            const notification = document.createElement('div');
+            notification.style.cssText = 'position:fixed;top:0;left:0;right:0;background:#007aff;color:white;padding:12px;text-align:center;z-index:9999;font-size:14px;';
+            notification.textContent = 'New version available! Updating...';
+            document.body.appendChild(notification);
+            
+            // Reload after short delay
+            setTimeout(() => {
+              window.location.reload();
+            }, 1000);
+          } else {
+            // First install
+            console.log('[PWA] Service Worker installed for first time');
           }
         }
       });
     });
     
-    // Handle controller change
+    // Handle controller change (SW activated)
     navigator.serviceWorker.addEventListener('controllerchange', () => {
-      console.log('[PWA] Controller changed, reloading...');
-      window.location.reload();
+      console.log('[PWA] Service Worker controller changed');
+      // Don't auto-reload here - let the update flow handle it
+    });
+    
+    // Listen for messages from service worker
+    navigator.serviceWorker.addEventListener('message', (event) => {
+      if (event.data && event.data.type === 'SW_UPDATED') {
+        console.log('[PWA] Service Worker updated - reloading page');
+        window.location.reload();
+      }
+      
+      if (event.data && event.data.type === 'CACHES_CLEARED') {
+        console.log('[PWA] Caches cleared successfully');
+      }
     });
     
     return registration;

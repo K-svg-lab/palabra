@@ -4,6 +4,7 @@
  */
 
 import { openDB, type IDBPDatabase } from 'idb';
+import type { QueryClient } from '@tanstack/react-query';
 import type {
   SyncService,
   SyncState,
@@ -44,6 +45,7 @@ interface SyncDB {
 export class CloudSyncService implements SyncService {
   private db: IDBPDatabase<SyncDB> | null = null;
   private deviceId: string;
+  private queryClient: QueryClient | null = null;
   private config: SyncConfig = {
     enabled: true,
     autoSync: true,
@@ -58,6 +60,16 @@ export class CloudSyncService implements SyncService {
   constructor() {
     this.deviceId = this.getOrCreateDeviceId();
     this.initialize();
+  }
+  
+  /**
+   * Set the QueryClient instance for cache invalidation
+   * This must be called from the app initialization to enable
+   * automatic UI updates after sync
+   */
+  setQueryClient(client: QueryClient): void {
+    this.queryClient = client;
+    console.log('[Sync] QueryClient registered for cache invalidation');
   }
   
   /**
@@ -353,6 +365,22 @@ export class CloudSyncService implements SyncService {
       // Update last sync time
       await this.setLastSyncTime(new Date());
       console.log('✅ Sync completed successfully!');
+      
+      // #region agent log
+      fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'sync.ts:354',message:'Sync complete - invalidating query cache',data:{uploaded:operations.vocabulary.length+operations.reviews.length+operations.stats.length,downloaded:vocabResult.operations.length+reviewsResult.reviews.length+statsResult.stats.length,hasQueryClient:!!this.queryClient},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H2'})}).catch(()=>{});
+      // #endregion
+      
+      // CRITICAL FIX: Invalidate React Query cache to refresh UI with synced data
+      if (this.queryClient) {
+        console.log('[Sync] Invalidating React Query cache...');
+        // Invalidate all vocabulary-related queries
+        await this.queryClient.invalidateQueries({ queryKey: ['vocabulary'] });
+        // Invalidate stats queries
+        await this.queryClient.invalidateQueries({ queryKey: ['vocabulary', 'stats'] });
+        console.log('[Sync] Cache invalidated - UI will refetch fresh data');
+      } else {
+        console.warn('[Sync] QueryClient not available - UI may show stale data');
+      }
       
       // Clear processed queue items
       await this.clearQueue();
