@@ -886,9 +886,9 @@ export function FlashcardEnhanced({
             Click the speaker icon to replay the audio
           </p>
         )}
-      </div>
       </>
         )}
+      </div>
     </div>
   );
 
