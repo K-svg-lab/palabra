@@ -6,7 +6,7 @@ import { Volume2, Check, X, AlertCircle } from "lucide-react";
 import type { VocabularyWord, DifficultyRating } from "@/lib/types/vocabulary";
 import type { ReviewMode, ReviewDirection } from "@/lib/types/review";
 import { playAudio, isTTSBroken } from "@/lib/services/audio";
-import { checkAnswer, checkSpanishAnswer } from "@/lib/utils/answer-checker";
+import { checkAnswer, checkAnswerMultiple, checkSpanishAnswer } from "@/lib/utils/answer-checker";
 
 /**
  * Enhanced Flashcard Component - Phase 8 Updated
@@ -255,8 +255,19 @@ export function FlashcardEnhanced({
       // Check Spanish answer with article awareness
       result = checkSpanishAnswer(userAnswer, word.spanishWord, isListeningMode);
     } else {
-      // Check English answer
-      result = checkAnswer(userAnswer, word.englishTranslation, false, isListeningMode);
+      // Check English answer - handle comma-separated translations
+      const englishTranslations = word.englishTranslation
+        .split(',')
+        .map(t => t.trim())
+        .filter(t => t.length > 0);
+      
+      if (englishTranslations.length > 1) {
+        // Multiple translations - check against all
+        result = checkAnswerMultiple(userAnswer, englishTranslations, false, isListeningMode);
+      } else {
+        // Single translation - use basic check
+        result = checkAnswer(userAnswer, englishTranslations[0] || word.englishTranslation, false, isListeningMode);
+      }
     }
 
     setAnswerResult(result);
