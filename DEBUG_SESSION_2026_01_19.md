@@ -484,10 +484,14 @@ if (direction === 'english-to-spanish') {
 
 ### Deployment
 
-**Status:** ✅ Ready for Production  
+**Status:** ✅ Deployed to Production  
 **Build Status:** ✅ No TypeScript errors  
 **Instrumentation:** ✅ All debug logs removed  
-**Commit:** Pending
+**GitHub Commits:** 
+  - Root: `5288380` - Document directional accuracy UI bug fixes
+  - Submodule: `f81fa66` - Fix directional accuracy UI bugs and remove debug instrumentation
+
+**Production URL:** https://palabra-nu.vercel.app
 
 **Deliverables:**
 - ✅ Bug fixes (cache invalidation, sync timestamps)
@@ -495,4 +499,7 @@ if (direction === 'english-to-spanish') {
 - ✅ Comprehensive testing documentation
 - ✅ Directional accuracy UI bug fixes
 - ✅ All instrumentation cleaned up
-- ⏳ Deployment to production (in progress)
+- ✅ Deployed to production via GitHub → Vercel auto-deployment
+
+**Deployment Date:** January 19, 2026  
+**Deployment Method:** Git push to main → Vercel auto-deploy
