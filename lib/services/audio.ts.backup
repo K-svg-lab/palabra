@@ -173,11 +173,17 @@ let synthesisFailureCount = 0;
 let ttsCompletelyBroken = false;
 
 export function playAudio(audioUrl: string, text?: string): void {
+  // #region agent log
+  fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'audio.ts:playAudio',message:'playAudio called',data:{hasAudioUrl:!!audioUrl,hasText:!!text,text:text?.substring(0,20),hadSynthesisFailure,userAgent:navigator.userAgent,speechSynthesisAvailable:'speechSynthesis' in window,speaking:typeof speechSynthesis !== 'undefined' ? speechSynthesis.speaking : 'N/A',pending:typeof speechSynthesis !== 'undefined' ? speechSynthesis.pending : 'N/A'},timestamp:Date.now(),sessionId:'debug-session',runId:'android-debug',hypothesisId:'A'})}).catch(()=>{});
+  // #endregion
   
   if (audioUrl) {
     const audio = new Audio(audioUrl);
     audio.play().catch(error => {
       console.error('Audio playback error:', error);
+      // #region agent log
+      fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'audio.ts:audioPlayError',message:'Audio URL playback failed',data:{error:error.message,errorName:error.name},timestamp:Date.now(),sessionId:'debug-session',runId:'android-debug',hypothesisId:'B'})}).catch(()=>{});
+      // #endregion
       
       // Fallback to browser TTS if available
       if (text && 'speechSynthesis' in window) {
@@ -200,9 +206,15 @@ export function playAudio(audioUrl: string, text?: string): void {
   } else if (text && 'speechSynthesis' in window) {
     // Android-specific fix: Cancel any existing speech before starting new one
     if (speechSynthesis.speaking || speechSynthesis.pending) {
+      // #region agent log
+      fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'audio.ts:cancellingPrevious',message:'Cancelling previous speech',data:{speaking:speechSynthesis.speaking,pending:speechSynthesis.pending},timestamp:Date.now(),sessionId:'debug-session',runId:'android-debug',hypothesisId:'C0'})}).catch(()=>{});
+      // #endregion
       speechSynthesis.cancel();
     }
     
+    // #region agent log
+    fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'audio.ts:beforeGetVoices',message:'About to get voices',data:{voicesLength:speechSynthesis.getVoices().length,speaking:speechSynthesis.speaking,pending:speechSynthesis.pending},timestamp:Date.now(),sessionId:'debug-session',runId:'android-debug',hypothesisId:'C'})}).catch(()=>{});
+    // #endregion
     
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.lang = 'es-ES';
@@ -214,16 +226,25 @@ export function playAudio(audioUrl: string, text?: string): void {
     const voices = speechSynthesis.getVoices();
     const bestVoice = selectBestSpanishVoice(voices);
     
+    // #region agent log
+    fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'audio.ts:voiceSelected',message:'Voice selected',data:{bestVoiceName:bestVoice?.name,bestVoiceLang:bestVoice?.lang,bestVoiceLocalService:bestVoice?.localService,totalVoices:voices.length,spanishVoices:voices.filter(v=>v.lang.startsWith('es')).length,allSpanishVoiceNames:voices.filter(v=>v.lang.startsWith('es')).map(v=>({name:v.name,lang:v.lang,local:v.localService}))},timestamp:Date.now(),sessionId:'debug-session',runId:'android-debug',hypothesisId:'D'})}).catch(()=>{});
+    // #endregion
     
     // If we've had synthesis failures before, don't set a specific voice - use system default
     // This is more reliable on Android devices with TTS issues
     if (hadSynthesisFailure) {
+      // #region agent log
+      fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'audio.ts:usingDefaultVoice',message:'Using default voice due to previous failure',data:{},timestamp:Date.now(),sessionId:'debug-session',runId:'android-debug',hypothesisId:'D2'})}).catch(()=>{});
+      // #endregion
       console.log('🎙️ Using system default voice (previous synthesis failure)');
       // Don't set utterance.voice - let browser choose
     } else if (bestVoice) {
       utterance.voice = bestVoice;
       console.log(`🎙️ Playing with voice: ${bestVoice.name}`);
     } else {
+      // #region agent log
+      fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'audio.ts:noVoiceFound',message:'WARNING: No Spanish voice found',data:{allVoices:voices.map(v=>({name:v.name,lang:v.lang}))},timestamp:Date.now(),sessionId:'debug-session',runId:'android-debug',hypothesisId:'D1'})}).catch(()=>{});
+      // #endregion
       console.warn('⚠️ No Spanish voice found - using default');
     }
     
@@ -237,10 +258,19 @@ export function playAudio(audioUrl: string, text?: string): void {
         if (synthesisFailureCount >= 2) {
           ttsCompletelyBroken = true;
           console.error('❌ TTS completely broken - failed with both specific and default voices');
+          // #region agent log
+          fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'audio.ts:ttsCompletelyBroken',message:'TTS completely broken after multiple failures',data:{failureCount:synthesisFailureCount},timestamp:Date.now(),sessionId:'debug-session',runId:'android-debug',hypothesisId:'E2'})}).catch(()=>{});
+          // #endregion
         }
         
+        // #region agent log
+        fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'audio.ts:markedFailure',message:'Marked synthesis failure',data:{error:event.error,failureCount:synthesisFailureCount,ttsCompletelyBroken},timestamp:Date.now(),sessionId:'debug-session',runId:'android-debug',hypothesisId:'E1'})}).catch(()=>{});
+        // #endregion
       }
       
+      // #region agent log
+      fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'audio.ts:speechError',message:'Speech synthesis error',data:{error:event.error,errorType:typeof event.error,charIndex:event.charIndex,elapsedTime:event.elapsedTime,name:event.name,voiceName:bestVoice?.name,text:text?.substring(0,30)},timestamp:Date.now(),sessionId:'debug-session',runId:'android-debug',hypothesisId:'E'})}).catch(()=>{});
+      // #endregion
       console.error('Speech synthesis error:', event);
       console.error('Error details:', {
         error: event.error,
@@ -251,22 +281,40 @@ export function playAudio(audioUrl: string, text?: string): void {
     };
     
     utterance.onstart = () => {
+      // #region agent log
+      fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'audio.ts:speechStarted',message:'Speech started successfully',data:{text:text?.substring(0,20)},timestamp:Date.now(),sessionId:'debug-session',runId:'android-debug',hypothesisId:'F'})}).catch(()=>{});
+      // #endregion
     };
     
     utterance.onend = () => {
+      // #region agent log
+      fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'audio.ts:speechEnded',message:'Speech ended',data:{},timestamp:Date.now(),sessionId:'debug-session',runId:'android-debug',hypothesisId:'G'})}).catch(()=>{});
+      // #endregion
     };
     
+    // #region agent log
+    fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'audio.ts:beforeSpeak',message:'About to call speechSynthesis.speak',data:{text:text?.substring(0,20),voiceName:bestVoice?.name,lang:utterance.lang,rate:utterance.rate},timestamp:Date.now(),sessionId:'debug-session',runId:'android-debug',hypothesisId:'H'})}).catch(()=>{});
+    // #endregion
     
     // Android-specific workaround: Small delay before speak() can help on some devices
     const isAndroid = /android/i.test(navigator.userAgent);
     if (isAndroid) {
       setTimeout(() => {
         speechSynthesis.speak(utterance);
+        // #region agent log
+        fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'audio.ts:afterSpeak-android',message:'speechSynthesis.speak called (Android)',data:{speaking:speechSynthesis.speaking,pending:speechSynthesis.pending},timestamp:Date.now(),sessionId:'debug-session',runId:'android-debug',hypothesisId:'I'})}).catch(()=>{});
+        // #endregion
       }, 50);
     } else {
       speechSynthesis.speak(utterance);
+      // #region agent log
+      fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'audio.ts:afterSpeak',message:'speechSynthesis.speak called',data:{speaking:speechSynthesis.speaking,pending:speechSynthesis.pending},timestamp:Date.now(),sessionId:'debug-session',runId:'android-debug',hypothesisId:'I'})}).catch(()=>{});
+      // #endregion
     }
   } else {
+    // #region agent log
+    fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'audio.ts:noPlayback',message:'No audio playback conditions met',data:{hasAudioUrl:!!audioUrl,hasText:!!text,speechSynthesisAvailable:'speechSynthesis' in window},timestamp:Date.now(),sessionId:'debug-session',runId:'android-debug',hypothesisId:'J'})}).catch(()=>{});
+    // #endregion
   }
 }
 

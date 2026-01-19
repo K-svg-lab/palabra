@@ -8,7 +8,6 @@ import { QueryProvider } from '@/lib/providers/query-provider';
 import { NotificationProvider } from '@/lib/providers/notification-provider';
 import { PWAProvider } from '@/lib/providers/pwa-provider';
 import { ErrorBoundary } from '@/components/shared/error-boundary';
-import { ErudaConsole } from '@/components/debug/eruda-console';
 import { APP_NAME, APP_DESCRIPTION } from '@/lib/constants/app';
 import './globals.css';
 
@@ -81,7 +80,6 @@ export default function RootLayout({ children }: RootLayoutProps) {
             </NotificationProvider>
           </QueryProvider>
         </ErrorBoundary>
-        <ErudaConsole />
       </body>
     </html>
   );

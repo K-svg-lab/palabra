@@ -1,2 +1,0 @@
-{"location":"page.tsx:47","message":"Dashboard loadData called","data":{"hasVocabulary":true,"stats":{"total":152,"new":138,"learning":12,"mastered":2}},"timestamp":1768835380906,"sessionId":"debug-session","hypothesisId":"H3","runId":"status-fix"}
-{"location":"page.tsx:54","message":"Dashboard data loaded","data":{"dueCount":0,"stats":{"total":152,"new":138,"learning":12,"mastered":2}},"timestamp":1768835380914,"sessionId":"debug-session","hypothesisId":"H3","runId":"status-fix"}
