@@ -168,10 +168,18 @@ function getBrowserTTS(
  * @param text - Text to speak (if using browser TTS)
  */
 export function playAudio(audioUrl: string, text?: string): void {
+  // #region agent log
+  fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'audio.ts:playAudio',message:'playAudio called',data:{hasAudioUrl:!!audioUrl,hasText:!!text,text:text?.substring(0,20),userAgent:navigator.userAgent,speechSynthesisAvailable:'speechSynthesis' in window,speaking:typeof speechSynthesis !== 'undefined' ? speechSynthesis.speaking : 'N/A',pending:typeof speechSynthesis !== 'undefined' ? speechSynthesis.pending : 'N/A'},timestamp:Date.now(),sessionId:'debug-session',runId:'android-debug',hypothesisId:'A'})}).catch(()=>{});
+  // #endregion
+  
   if (audioUrl) {
     const audio = new Audio(audioUrl);
     audio.play().catch(error => {
       console.error('Audio playback error:', error);
+      // #region agent log
+      fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'audio.ts:audioPlayError',message:'Audio URL playback failed',data:{error:error.message,errorName:error.name},timestamp:Date.now(),sessionId:'debug-session',runId:'android-debug',hypothesisId:'B'})}).catch(()=>{});
+      // #endregion
+      
       // Fallback to browser TTS if available
       if (text && 'speechSynthesis' in window) {
         const utterance = new SpeechSynthesisUtterance(text);
@@ -191,6 +199,10 @@ export function playAudio(audioUrl: string, text?: string): void {
       }
     });
   } else if (text && 'speechSynthesis' in window) {
+    // #region agent log
+    fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'audio.ts:beforeGetVoices',message:'About to get voices',data:{voicesLength:speechSynthesis.getVoices().length,speaking:speechSynthesis.speaking,pending:speechSynthesis.pending},timestamp:Date.now(),sessionId:'debug-session',runId:'android-debug',hypothesisId:'C'})}).catch(()=>{});
+    // #endregion
+    
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.lang = 'es-ES';
     utterance.rate = 0.85;
@@ -200,12 +212,48 @@ export function playAudio(audioUrl: string, text?: string): void {
     // Select best quality voice
     const voices = speechSynthesis.getVoices();
     const bestVoice = selectBestSpanishVoice(voices);
+    
+    // #region agent log
+    fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'audio.ts:voiceSelected',message:'Voice selected',data:{bestVoiceName:bestVoice?.name,bestVoiceLang:bestVoice?.lang,totalVoices:voices.length,spanishVoices:voices.filter(v=>v.lang.startsWith('es')).length},timestamp:Date.now(),sessionId:'debug-session',runId:'android-debug',hypothesisId:'D'})}).catch(()=>{});
+    // #endregion
+    
     if (bestVoice) {
       utterance.voice = bestVoice;
       console.log(`🎙️ Playing with voice: ${bestVoice.name}`);
     }
     
+    utterance.onerror = (event) => {
+      // #region agent log
+      fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'audio.ts:speechError',message:'Speech synthesis error',data:{error:event.error,errorMessage:event.message || 'No message'},timestamp:Date.now(),sessionId:'debug-session',runId:'android-debug',hypothesisId:'E'})}).catch(()=>{});
+      // #endregion
+      console.error('Speech synthesis error:', event);
+    };
+    
+    utterance.onstart = () => {
+      // #region agent log
+      fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'audio.ts:speechStarted',message:'Speech started successfully',data:{text:text?.substring(0,20)},timestamp:Date.now(),sessionId:'debug-session',runId:'android-debug',hypothesisId:'F'})}).catch(()=>{});
+      // #endregion
+    };
+    
+    utterance.onend = () => {
+      // #region agent log
+      fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'audio.ts:speechEnded',message:'Speech ended',data:{},timestamp:Date.now(),sessionId:'debug-session',runId:'android-debug',hypothesisId:'G'})}).catch(()=>{});
+      // #endregion
+    };
+    
+    // #region agent log
+    fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'audio.ts:beforeSpeak',message:'About to call speechSynthesis.speak',data:{text:text?.substring(0,20),voiceName:bestVoice?.name},timestamp:Date.now(),sessionId:'debug-session',runId:'android-debug',hypothesisId:'H'})}).catch(()=>{});
+    // #endregion
+    
     speechSynthesis.speak(utterance);
+    
+    // #region agent log
+    fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'audio.ts:afterSpeak',message:'speechSynthesis.speak called',data:{speaking:speechSynthesis.speaking,pending:speechSynthesis.pending},timestamp:Date.now(),sessionId:'debug-session',runId:'android-debug',hypothesisId:'I'})}).catch(()=>{});
+    // #endregion
+  } else {
+    // #region agent log
+    fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'audio.ts:noPlayback',message:'No audio playback conditions met',data:{hasAudioUrl:!!audioUrl,hasText:!!text,speechSynthesisAvailable:'speechSynthesis' in window},timestamp:Date.now(),sessionId:'debug-session',runId:'android-debug',hypothesisId:'J'})}).catch(()=>{});
+    // #endregion
   }
 }
 

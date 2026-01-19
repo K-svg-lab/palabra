@@ -120,25 +120,48 @@ export function FlashcardEnhanced({
 
   // Auto-play audio when new card appears in listening mode
   useEffect(() => {
+    // #region agent log
+    fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'flashcard:autoPlayEffect',message:'Auto-play effect triggered',data:{mode,wordId:word.id,isListening:mode==='listening',userAgent:navigator.userAgent,platform:navigator.platform,isMobile:/android|iphone|ipad/i.test(navigator.userAgent)},timestamp:Date.now(),sessionId:'debug-session',runId:'android-debug',hypothesisId:'K'})}).catch(()=>{});
+    // #endregion
+    
     if (mode !== 'listening') return;
     
     let cancelled = false;
     
     // Ensure voices are loaded before auto-playing (especially on first card)
     const playWithLoadedVoices = async () => {
+      // #region agent log
+      fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'flashcard:playWithLoadedVoices',message:'playWithLoadedVoices called',data:{speechSynthAvailable:'speechSynthesis' in window,cancelled},timestamp:Date.now(),sessionId:'debug-session',runId:'android-debug',hypothesisId:'L'})}).catch(()=>{});
+      // #endregion
+      
       // Wait for voices to be available
       if ('speechSynthesis' in window) {
         const voices = speechSynthesis.getVoices();
+        
+        // #region agent log
+        fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'flashcard:voicesCheck',message:'Checking voices',data:{voicesLength:voices.length,cancelled},timestamp:Date.now(),sessionId:'debug-session',runId:'android-debug',hypothesisId:'M'})}).catch(()=>{});
+        // #endregion
+        
         if (voices.length === 0) {
+          // #region agent log
+          fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'flashcard:waitingForVoices',message:'No voices yet, waiting',data:{},timestamp:Date.now(),sessionId:'debug-session',runId:'android-debug',hypothesisId:'N'})}).catch(()=>{});
+          // #endregion
+          
           // Voices not loaded yet, wait for them
           await new Promise<void>((resolve) => {
             const handler = () => {
+              // #region agent log
+              fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'flashcard:voicesLoaded',message:'Voices loaded event fired',data:{voicesLength:speechSynthesis.getVoices().length},timestamp:Date.now(),sessionId:'debug-session',runId:'android-debug',hypothesisId:'O'})}).catch(()=>{});
+              // #endregion
               speechSynthesis.removeEventListener('voiceschanged', handler);
               resolve();
             };
             speechSynthesis.addEventListener('voiceschanged', handler);
             // Fallback timeout in case event doesn't fire
             setTimeout(() => {
+              // #region agent log
+              fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'flashcard:voicesFallback',message:'Voice loading timeout reached',data:{voicesLength:speechSynthesis.getVoices().length},timestamp:Date.now(),sessionId:'debug-session',runId:'android-debug',hypothesisId:'P'})}).catch(()=>{});
+              // #endregion
               speechSynthesis.removeEventListener('voiceschanged', handler);
               resolve();
             }, 500);
@@ -148,14 +171,33 @@ export function FlashcardEnhanced({
       
       // Check if cancelled before playing
       if (cancelled) {
+        // #region agent log
+        fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'flashcard:cancelledBeforeDelay',message:'Cancelled before setTimeout',data:{},timestamp:Date.now(),sessionId:'debug-session',runId:'android-debug',hypothesisId:'Q'})}).catch(()=>{});
+        // #endregion
         return;
       }
       
+      // #region agent log
+      fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'flashcard:beforeDelay',message:'Before 300ms delay',data:{cancelled},timestamp:Date.now(),sessionId:'debug-session',runId:'android-debug',hypothesisId:'R'})}).catch(()=>{});
+      // #endregion
+      
       // Small delay to ensure component is ready
       setTimeout(() => {
+        // #region agent log
+        fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'flashcard:insideDelay',message:'Inside setTimeout',data:{cancelled,wordId:word.id,spanishWord:word.spanishWord},timestamp:Date.now(),sessionId:'debug-session',runId:'android-debug',hypothesisId:'S'})}).catch(()=>{});
+        // #endregion
+        
         if (!cancelled) {
+          // #region agent log
+          fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'flashcard:callingPlayAudio',message:'Calling playAudio',data:{spanishWord:word.spanishWord},timestamp:Date.now(),sessionId:'debug-session',runId:'android-debug',hypothesisId:'T'})}).catch(()=>{});
+          // #endregion
+          
           playAudio("", word.spanishWord);
           onAudioPlay?.();
+          
+          // #region agent log
+          fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'flashcard:afterPlayAudio',message:'playAudio called',data:{},timestamp:Date.now(),sessionId:'debug-session',runId:'android-debug',hypothesisId:'U'})}).catch(()=>{});
+          // #endregion
         }
       }, 300);
     };
