@@ -224,7 +224,7 @@ export function playAudio(audioUrl: string, text?: string): void {
     
     utterance.onerror = (event) => {
       // #region agent log
-      fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'audio.ts:speechError',message:'Speech synthesis error',data:{error:event.error,errorMessage:event.message || 'No message'},timestamp:Date.now(),sessionId:'debug-session',runId:'android-debug',hypothesisId:'E'})}).catch(()=>{});
+      fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'audio.ts:speechError',message:'Speech synthesis error',data:{error:event.error},timestamp:Date.now(),sessionId:'debug-session',runId:'android-debug',hypothesisId:'E'})}).catch(()=>{});
       // #endregion
       console.error('Speech synthesis error:', event);
     };
