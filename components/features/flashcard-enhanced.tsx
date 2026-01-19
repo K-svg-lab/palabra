@@ -67,9 +67,11 @@ export function FlashcardEnhanced({
     feedback: string;
   } | null>(null);
   const [showHint, setShowHint] = useState(false);
+  const [audioUnlocked, setAudioUnlocked] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const cardRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const isFirstCardRef = useRef(true);
 
   // Auto-focus card for keyboard events on mount and word change
   useEffect(() => {
@@ -121,10 +123,19 @@ export function FlashcardEnhanced({
   // Auto-play audio when new card appears in listening mode
   useEffect(() => {
     // #region agent log
-    fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'flashcard:autoPlayEffect',message:'Auto-play effect triggered',data:{mode,wordId:word.id,isListening:mode==='listening',userAgent:navigator.userAgent,platform:navigator.platform,isMobile:/android|iphone|ipad/i.test(navigator.userAgent)},timestamp:Date.now(),sessionId:'debug-session',runId:'android-debug',hypothesisId:'K'})}).catch(()=>{});
+    fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'flashcard:autoPlayEffect',message:'Auto-play effect triggered',data:{mode,wordId:word.id,isListening:mode==='listening',audioUnlocked,isFirstCard:isFirstCardRef.current,userAgent:navigator.userAgent,platform:navigator.platform,isMobile:/android|iphone|ipad/i.test(navigator.userAgent)},timestamp:Date.now(),sessionId:'debug-session',runId:'android-debug',hypothesisId:'K'})}).catch(()=>{});
     // #endregion
     
     if (mode !== 'listening') return;
+    
+    // On mobile, don't auto-play on first card (needs user interaction to unlock audio)
+    // After first interaction, auto-play works normally
+    if (isFirstCardRef.current && !audioUnlocked) {
+      // #region agent log
+      fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'flashcard:skipFirstCard',message:'Skipping auto-play on first card - awaiting user interaction',data:{audioUnlocked},timestamp:Date.now(),sessionId:'debug-session',runId:'android-debug',hypothesisId:'K1'})}).catch(()=>{});
+      // #endregion
+      return; // Don't auto-play on first card
+    }
     
     let cancelled = false;
     
@@ -222,6 +233,18 @@ export function FlashcardEnhanced({
   const handlePlayAudio = async (e?: React.MouseEvent) => {
     if (e) {
       e.stopPropagation();
+    }
+    
+    // Mark audio as unlocked after first user interaction
+    if (!audioUnlocked) {
+      setAudioUnlocked(true);
+      // #region agent log
+      fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'flashcard:audioUnlocked',message:'Audio unlocked by user interaction',data:{},timestamp:Date.now(),sessionId:'debug-session',runId:'android-debug',hypothesisId:'K2'})}).catch(()=>{});
+      // #endregion
+    }
+    
+    if (isFirstCardRef.current) {
+      isFirstCardRef.current = false;
     }
     
     try {
@@ -691,13 +714,26 @@ export function FlashcardEnhanced({
       <div className="flex flex-col items-center justify-center h-full p-6 space-y-8">
         {/* Instructions */}
         <div className="text-center space-y-3">
-          <p className="text-base sm:text-lg text-text-secondary font-medium">
-            🎧 Listen and type what you hear
-          </p>
-          {getSpanishPartOfSpeech() && (
-            <p className="text-xs sm:text-sm text-text-secondary/80 font-medium tracking-[0.05em] uppercase">
-              {getSpanishPartOfSpeech()}
-            </p>
+          {isFirstCardRef.current && !audioUnlocked ? (
+            <div className="space-y-2">
+              <p className="text-base sm:text-lg text-accent font-semibold">
+                👆 Tap the speaker to start
+              </p>
+              <p className="text-sm text-text-tertiary">
+                Audio will play automatically for remaining cards
+              </p>
+            </div>
+          ) : (
+            <>
+              <p className="text-base sm:text-lg text-text-secondary font-medium">
+                🎧 Listen and type what you hear
+              </p>
+              {getSpanishPartOfSpeech() && (
+                <p className="text-xs sm:text-sm text-text-secondary/80 font-medium tracking-[0.05em] uppercase">
+                  {getSpanishPartOfSpeech()}
+                </p>
+              )}
+            </>
           )}
         </div>
 
@@ -705,10 +741,20 @@ export function FlashcardEnhanced({
         <button
           onClick={handlePlayAudio}
           disabled={isPlaying}
-          className="p-8 rounded-full bg-accent/10 hover:bg-accent/20 transition-colors disabled:opacity-50 group"
+          className={`p-8 rounded-full transition-all disabled:opacity-50 group ${
+            isFirstCardRef.current && !audioUnlocked 
+              ? "bg-accent hover:bg-accent/90 animate-pulse shadow-lg shadow-accent/50" 
+              : "bg-accent/10 hover:bg-accent/20"
+          }`}
           aria-label="Play audio"
         >
-          <Volume2 className={`w-12 h-12 ${isPlaying ? "text-accent animate-pulse" : "text-accent group-hover:scale-110 transition-transform"}`} />
+          <Volume2 className={`w-12 h-12 ${
+            isPlaying 
+              ? "text-white animate-pulse" 
+              : isFirstCardRef.current && !audioUnlocked
+              ? "text-white"
+              : "text-accent group-hover:scale-110 transition-transform"
+          }`} />
         </button>
 
         {/* Answer Input */}
