@@ -71,19 +71,22 @@ async function handler(request: NextRequest) {
     // Get remote changes since last sync AFTER processing incoming operations
     // Include items that were either updated OR synced since lastSyncTime
     // ALSO include items that were just modified in this request (to avoid race condition)
-    // CRITICAL: Filter out deleted items so they don't get re-downloaded
+    // CRITICAL FIX: Include recently deleted items so clients can remove them locally
     const remoteChanges = await prisma.vocabularyItem.findMany({
       where: {
         userId,
-        isDeleted: false, // CRITICAL: Only send non-deleted items
-        // Note: If lastSyncTime exists, use OR conditions, otherwise get all items
+        // Note: If lastSyncTime exists, use OR conditions, otherwise get all NON-DELETED items
         ...(lastSyncTime ? {
           OR: [
             { lastSyncedAt: { gt: new Date(lastSyncTime) } },
             { updatedAt: { gt: new Date(lastSyncTime) } },
             { id: { in: Array.from(modifiedItemIds) } }, // Include items just modified
           ]
-        } : {}),
+          // Don't filter isDeleted here - we need to send deletions to clients
+        } : {
+          // For full sync (no lastSyncTime), only send non-deleted items
+          isDeleted: false
+        }),
       },
       take: 1000, // Limit to prevent huge responses
       orderBy: {
@@ -126,9 +129,16 @@ async function handler(request: NextRequest) {
         },
         createdAt: new Date(item.createdAt).getTime(),
         updatedAt: new Date(item.updatedAt).getTime(),
+        isDeleted: item.isDeleted, // CRITICAL: Pass deletion flag to client
       },
       timestamp: item.updatedAt,
     }));
+    
+    // Log deleted items being sent to client for debugging
+    const deletedItems = syncOperations.filter(op => op.data.isDeleted);
+    if (deletedItems.length > 0) {
+      console.log(`📤 Sending ${deletedItems.length} deleted items to client:`, deletedItems.map(d => d.data.spanishWord));
+    }
     
     return apiResponse({
       success: true,
