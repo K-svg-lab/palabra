@@ -24,19 +24,11 @@ export async function registerServiceWorker(): Promise<ServiceWorkerRegistration
       const newWorker = registration.installing;
       if (!newWorker) return;
       
-      // #region agent log
-      fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'pwa.ts:23',message:'SW update found',data:{hasNewWorker:!!newWorker,hasController:!!navigator.serviceWorker.controller},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H5'})}).catch(()=>{});
-      // #endregion
-      
       newWorker.addEventListener('statechange', () => {
         if (newWorker.state === 'installed') {
           if (navigator.serviceWorker.controller) {
             // New service worker available (update)
             console.log('[PWA] New version detected - update available');
-            
-            // #region agent log
-            fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'pwa.ts:30',message:'New SW installed - forcing update',data:{state:newWorker.state,willReload:true},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H5'})}).catch(()=>{});
-            // #endregion
             
             // CRITICAL FIX: Auto-reload on update instead of prompting
             // This ensures PWA always runs latest version after deployment

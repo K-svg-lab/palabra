@@ -366,10 +366,6 @@ export class CloudSyncService implements SyncService {
       await this.setLastSyncTime(new Date());
       console.log('✅ Sync completed successfully!');
       
-      // #region agent log
-      fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'sync.ts:354',message:'Sync complete - invalidating query cache',data:{uploaded:operations.vocabulary.length+operations.reviews.length+operations.stats.length,downloaded:vocabResult.operations.length+reviewsResult.reviews.length+statsResult.stats.length,hasQueryClient:!!this.queryClient},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H2'})}).catch(()=>{});
-      // #endregion
-      
       // CRITICAL FIX: Invalidate React Query cache to refresh UI with synced data
       if (this.queryClient) {
         console.log('[Sync] Invalidating React Query cache...');

@@ -72,10 +72,6 @@ export async function getTodayStats(): Promise<DailyStats> {
     await saveStats(stats);
   }
   
-  // #region agent log
-  fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'stats.ts:54',message:'getTodayStats - from IndexedDB stats store',data:{date:dateKey,storedNewWordsAdded:stats.newWordsAdded},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H6_stats'})}).catch(()=>{});
-  // #endregion
-  
   return stats;
 }
 
@@ -137,9 +133,6 @@ export async function getRecentStats(days: number = 7): Promise<DailyStats[]> {
  */
 export async function incrementNewWordsAdded(count: number = 1): Promise<DailyStats> {
   console.log('➕ Incrementing new words added by', count);
-  // #region agent log
-  fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'stats.ts:126',message:'incrementNewWordsAdded called',data:{count},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H6_stats'})}).catch(()=>{});
-  // #endregion
   const stats = await getTodayStats();
   console.log('📊 Current stats before increment:', stats);
   stats.newWordsAdded += count;
@@ -171,7 +164,7 @@ export async function getActualNewWordsAddedToday(): Promise<number> {
   });
   
   // #region agent log
-  fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'stats.ts:154',message:'Calculated actual words added today from vocabulary',data:{count:wordsCreatedToday.length,todayDateKey,sampleWords:wordsCreatedToday.slice(0,3).map(w=>({word:w.spanishWord,createdAt:new Date(w.createdAt).toISOString()}))},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H6_stats'})}).catch(()=>{});
+  fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'stats.ts:165',message:'getActualNewWordsAddedToday called',data:{count:wordsCreatedToday.length,todayDateKey,todayStart:todayStart.toISOString(),todayEnd:todayEnd.toISOString(),totalWords:allWords.length},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H4'})}).catch(()=>{});
   // #endregion
   
   return wordsCreatedToday.length;

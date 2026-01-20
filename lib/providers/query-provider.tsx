@@ -12,9 +12,6 @@ import { useState, type ReactNode } from 'react';
  * Query client configuration with optimized defaults
  */
 function makeQueryClient() {
-  // #region agent log
-  fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'query-provider.tsx:14',message:'Creating QueryClient with stale time config',data:{staleTime:5*60*1000,refetchOnWindowFocus:true,refetchOnMount:true},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H4'})}).catch(()=>{});
-  // #endregion
   return new QueryClient({
     defaultOptions: {
       queries: {

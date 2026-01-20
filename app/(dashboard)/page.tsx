@@ -38,15 +38,37 @@ export default function HomePage() {
   const { isRefreshing } = usePullToRefresh({
     enabled: true,
     onRefresh: async () => {
+      // #region agent log
+      fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'page.tsx:40',message:'Homepage pull-to-refresh onRefresh START',data:{},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H1'})}).catch(()=>{});
+      // #endregion
+      
       // Reload local stats after sync
       await refetchStats();
       if (hasVocabulary) {
-        const [count, today] = await Promise.all([
+        const { getActualNewWordsAddedToday } = await import('@/lib/db/stats');
+        const [count, today, actualNewWords] = await Promise.all([
           getDueForReviewCount(),
           getTodayStats(),
+          getActualNewWordsAddedToday(),
         ]);
+        
+        // #region agent log
+        fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'page.tsx:50',message:'Homepage pull-to-refresh data loaded',data:{storedNewWordsAdded:today.newWordsAdded,actualNewWordsAdded:actualNewWords},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H1'})}).catch(()=>{});
+        // #endregion
+        
         setDueCount(count);
-        setTodayStats(today);
+        
+        // CRITICAL FIX: Apply the same correction as in useEffect
+        const correctedStats = {
+          ...today,
+          newWordsAdded: actualNewWords,
+        };
+        
+        // #region agent log
+        fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'page.tsx:60',message:'Homepage pull-to-refresh setting state with correction',data:{newWordsAdded:correctedStats.newWordsAdded},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H1'})}).catch(()=>{});
+        // #endregion
+        
+        setTodayStats(correctedStats);
       }
     },
   });
@@ -78,10 +100,15 @@ export default function HomePage() {
           ...today,
           newWordsAdded: actualNewWords,
         };
+        
+        // #region agent log
+        fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'page.tsx:85',message:'Homepage useEffect setting state with correction',data:{newWordsAdded:correctedStats.newWordsAdded,storedNewWordsAdded:today.newWordsAdded,actualNewWordsAdded:actualNewWords},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H3'})}).catch(()=>{});
+        // #endregion
+        
         setTodayStats(correctedStats);
         
         // #region agent log
-        fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'page.tsx:65',message:'Home page stats loaded with correction',data:{date:today.date,storedNewWordsAdded:today.newWordsAdded,actualNewWordsAdded:actualNewWords,difference:actualNewWords-today.newWordsAdded},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H6_stats'})}).catch(()=>{});
+        fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'page.tsx:90',message:'Home page stats loaded with correction',data:{date:today.date,storedNewWordsAdded:today.newWordsAdded,actualNewWordsAdded:actualNewWords,difference:actualNewWords-today.newWordsAdded},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H6_stats'})}).catch(()=>{});
         // #endregion
         
         console.log(`📊 Stats correction: stored=${today.newWordsAdded}, actual=${actualNewWords}`);
