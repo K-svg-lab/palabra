@@ -4,9 +4,6 @@
  * Enhanced for Phase 12 with better offline support and sync capabilities
  */
 
-// #region agent log
-fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'sw.js:7',message:'SW file loaded - checking cache version',data:{cacheVersion:'v3-'+Date.now(),loadTime:Date.now()},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H1'})}).catch(()=>{});
-// #endregion
 // CRITICAL: Increment cache version to bust old caches
 // Use timestamp-based versioning to force cache refresh on every deployment
 const CACHE_VERSION = 'v3-20260119';
@@ -229,10 +226,6 @@ async function cacheFirstStrategy(request, cacheName) {
  */
 async function staleWhileRevalidateStrategy(request) {
   const cachedResponse = await caches.match(request);
-  
-  // #region agent log
-  fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'sw.js:212',message:'staleWhileRevalidate - returning cached first',data:{url:request.url,hasCached:!!cachedResponse},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H1'})}).catch(()=>{});
-  // #endregion
   
   const fetchPromise = fetch(request).then(async (networkResponse) => {
     if (networkResponse.ok) {
