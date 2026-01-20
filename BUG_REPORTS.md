@@ -489,4 +489,174 @@ All bugs were verified fixed through:
 
 ---
 
-*Last Updated: January 19, 2026*
+## Bug #4: Homepage Pull-to-Refresh Shows Incorrect Stats
+
+**Status**: ✅ RESOLVED
+
+**Reported**: 2026-01-20  
+**Fixed**: 2026-01-20
+
+### Description
+When swiping down on the homepage to trigger pull-to-refresh, the "words added today" count would change from the correct value (e.g., 13) to an incorrect lower value (e.g., 4). This occurred even though the progress page showed the correct count. The issue was specific to the homepage's pull-to-refresh mechanism.
+
+### Root Cause
+The homepage's pull-to-refresh `onRefresh` callback was calling `getTodayStats()` directly from IndexedDB, which returned a stored counter value that only tracked words added on the current device. This bypassed the correction logic in the main `useEffect` that calculates the actual count from `createdAt` timestamps of all vocabulary items.
+
+The stored counter was only incremented when words were added locally, so words synced from other devices were not counted.
+
+### Solution
+Updated the homepage's pull-to-refresh callback to:
+1. Import and call `getActualNewWordsAddedToday()` alongside `getTodayStats()`
+2. Apply the same correction logic as the main `useEffect` hook
+3. Use the calculated value (from timestamps) instead of the stored counter
+4. Set state with the corrected stats object
+
+This ensures consistency between the initial page load, pull-to-refresh, and all other refresh mechanisms.
+
+### Code Changes
+**Files Modified:**
+- `app/(dashboard)/page.tsx`: Updated `onRefresh` callback in `usePullToRefresh` hook
+
+**Key Changes:**
+```typescript
+// Before: Only called getTodayStats() - returned stored counter
+const [count, today] = await Promise.all([
+  getDueForReviewCount(),
+  getTodayStats(),
+]);
+setTodayStats(today); // Wrong: used stored counter
+
+// After: Calculate actual count from timestamps
+const { getActualNewWordsAddedToday } = await import('@/lib/db/stats');
+const [count, today, actualNewWords] = await Promise.all([
+  getDueForReviewCount(),
+  getTodayStats(),
+  getActualNewWordsAddedToday(),
+]);
+const correctedStats = {
+  ...today,
+  newWordsAdded: actualNewWords, // Correct: calculated from createdAt
+};
+setTodayStats(correctedStats);
+```
+
+### Verification
+**Test Scenario:**
+1. Added 13 words on desktop, synced to mobile
+2. Homepage showed correct count (13) on initial load
+3. Pulled down to refresh
+4. Count remained at 13 (previously would have shown 4)
+5. Progress page also showed consistent count
+
+**Impact:** Multi-device users now see consistent statistics across all pages and refresh methods.
+
+---
+
+## Bug #5: Deletions Not Syncing to Other Devices
+
+**Status**: ✅ RESOLVED
+
+**Reported**: 2026-01-20  
+**Fixed**: 2026-01-20
+
+### Description
+When a vocabulary word was deleted on desktop, it would immediately disappear from the desktop and browser (incognito mode), but would persist in the mobile PWA's vocabulary list and dashboard stats. The only way to remove it from mobile was to clear browser history/cache for the past 24 hours.
+
+### Root Cause
+The server's sync API was filtering out deleted items when sending data to clients:
+
+```typescript
+const remoteChanges = await prisma.vocabularyItem.findMany({
+  where: {
+    userId,
+    isDeleted: false, // BUG: Filters out all deletions!
+    // ... sync time filters ...
+  }
+});
+```
+
+This meant:
+1. Desktop deletes word → Sets `isDeleted: true` → Syncs to server ✅
+2. Server stores deletion ✅
+3. Mobile syncs → Server sends only `isDeleted: false` items ❌
+4. Mobile never learns about the deletion ❌
+5. Word persists in mobile's IndexedDB cache indefinitely ❌
+
+### Solution
+Modified the server API to include recently deleted items in sync responses:
+
+1. **Server-side changes:**
+   - Removed global `isDeleted: false` filter for incremental syncs
+   - Only filter deleted items for full syncs (when `lastSyncTime` is null)
+   - Include `isDeleted` flag in the sync operation data sent to clients
+   - Added logging to track deleted items being sent
+
+2. **Client-side handling:**
+   - Client receives operations with `isDeleted: true` flag
+   - Applies these as normal updates to IndexedDB (preserving the flag)
+   - React Query cache invalidation causes UI to refetch
+   - `getAllVocabularyWords()` filters out items with `isDeleted: true`
+   - Cleanup logic eventually removes them from IndexedDB
+
+### Code Changes
+**Files Modified:**
+- `app/api/sync/vocabulary/route.ts`: Modified query to include deleted items for incremental syncs
+- `lib/services/sync.ts`: Enhanced logging for deletion tracking
+
+**Key Changes:**
+```typescript
+// Server API - Before
+const remoteChanges = await prisma.vocabularyItem.findMany({
+  where: {
+    userId,
+    isDeleted: false, // Always filtered out deletions
+    // ...
+  }
+});
+
+// Server API - After
+const remoteChanges = await prisma.vocabularyItem.findMany({
+  where: {
+    userId,
+    // For incremental sync: include all changes (including deletions)
+    // For full sync: only non-deleted items
+    ...(lastSyncTime ? {
+      OR: [
+        { lastSyncedAt: { gt: new Date(lastSyncTime) } },
+        { updatedAt: { gt: new Date(lastSyncTime) } },
+      ]
+      // Don't filter isDeleted - we need to send deletions!
+    } : {
+      isDeleted: false // Full sync: only active items
+    }),
+  }
+});
+
+// Ensure isDeleted flag is passed to client
+const syncOperations = remoteChanges.map(item => ({
+  // ...
+  data: {
+    // ...
+    isDeleted: item.isDeleted, // Pass deletion flag
+  }
+}));
+```
+
+### Verification
+**Test Scenario:**
+1. Added test word "copa" on desktop
+2. Verified it appeared on mobile after sync
+3. Deleted "copa" on desktop
+4. Pulled to refresh on mobile
+5. Word disappeared from mobile (without clearing cache) ✅
+6. Dashboard stats updated correctly on both devices ✅
+
+**Before Fix:** Clearing browser history for 24 hours required  
+**After Fix:** Normal sync/refresh propagates deletions correctly
+
+### Impact
+Multi-device users can now delete words on any device and see the deletion reflected on all other devices after the next sync/refresh, without requiring cache clears.
+
+---
+
+*Last Updated: January 21, 2026*

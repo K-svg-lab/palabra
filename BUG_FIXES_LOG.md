@@ -506,4 +506,100 @@ npm run start  # Test production build at http://localhost:3000
 
 ---
 
-**Last Updated**: 2026-01-19
+## Bug #4: Homepage Pull-to-Refresh Stats Inconsistency
+**Date**: 2026-01-20  
+**Severity**: Medium  
+**Status**: ✅ Fixed
+
+### Description
+Pull-to-refresh on homepage showed incorrect "words added today" count, reverting from correct value (13) to stored counter value (4).
+
+### Root Cause
+Homepage's `onRefresh` callback bypassed the timestamp-based calculation used in main `useEffect`, directly using stored counter that only tracked locally-added words.
+
+### Solution
+Updated pull-to-refresh callback to call `getActualNewWordsAddedToday()` and apply same correction logic as main `useEffect`.
+
+### Files Modified
+- `app/(dashboard)/page.tsx`
+
+### Code Changes
+```typescript
+// Pull-to-refresh callback - Added correction
+const { getActualNewWordsAddedToday } = await import('@/lib/db/stats');
+const [count, today, actualNewWords] = await Promise.all([
+  getDueForReviewCount(),
+  getTodayStats(),
+  getActualNewWordsAddedToday(), // Calculate from timestamps
+]);
+const correctedStats = {
+  ...today,
+  newWordsAdded: actualNewWords, // Use calculated value
+};
+setTodayStats(correctedStats);
+```
+
+### Testing
+- Added 13 words on desktop, synced to mobile
+- Pull-to-refresh on mobile homepage maintains correct count (13)
+- All pages now show consistent statistics
+
+---
+
+## Bug #5: Deletions Not Propagating Across Devices
+**Date**: 2026-01-20  
+**Severity**: Critical  
+**Status**: ✅ Fixed
+
+### Description
+Words deleted on desktop remained visible on mobile PWA until cache was cleared. Only incognito mode showed correct state.
+
+### Root Cause
+Server sync API filtered `isDeleted: false`, preventing deletion events from being sent to other devices during sync.
+
+### Solution
+1. Modified server to include deleted items in incremental sync responses
+2. Added `isDeleted` flag to sync operation data
+3. Client applies deletion updates to local IndexedDB
+4. React Query cache invalidation triggers UI refresh
+
+### Files Modified
+- `app/api/sync/vocabulary/route.ts` (server)
+- `lib/services/sync.ts` (client logging)
+
+### Code Changes
+```typescript
+// Server API - Include deletions in incremental syncs
+const remoteChanges = await prisma.vocabularyItem.findMany({
+  where: {
+    userId,
+    ...(lastSyncTime ? {
+      OR: [
+        { lastSyncedAt: { gt: new Date(lastSyncTime) } },
+        { updatedAt: { gt: new Date(lastSyncTime) } },
+      ]
+      // Don't filter isDeleted - send deletions to clients
+    } : {
+      isDeleted: false // Full sync: only active items
+    }),
+  }
+});
+
+// Ensure isDeleted flag passed to client
+data: {
+  // ... other fields
+  isDeleted: item.isDeleted,
+}
+```
+
+### Testing
+- Delete word on desktop → appears on mobile after sync
+- Dashboard stats update correctly on all devices
+- No cache clear required
+
+### Impact
+Multi-device sync now properly handles all CRUD operations (Create, Read, Update, Delete).
+
+---
+
+**Last Updated**: 2026-01-21
