@@ -67,16 +67,8 @@ export default function ProgressPage() {
   const { isRefreshing } = usePullToRefresh({
     enabled: true,
     onRefresh: async () => {
-      // #region agent log
-      fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'progress/page.tsx:70',message:'Progress page pull-to-refresh onRefresh START',data:{},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H2'})}).catch(()=>{});
-      // #endregion
-      
       // Refetch vocabulary data after sync
       await refetchVocabulary();
-      
-      // #region agent log
-      fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'progress/page.tsx:75',message:'Progress page pull-to-refresh refetchVocabulary complete',data:{},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H2'})}).catch(()=>{});
-      // #endregion
     },
   });
 
@@ -89,10 +81,6 @@ export default function ProgressPage() {
           setIsLoading(false);
           return;
         }
-
-        // #region agent log
-        fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'progress/page.tsx:65',message:'Progress page loading - vocab from hook',data:{wordCount:allWords.length,statusCounts:{new:allWords.filter(w=>w.status==='new').length,learning:allWords.filter(w=>w.status==='learning').length,mastered:allWords.filter(w=>w.status==='mastered').length}},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H2'})}).catch(()=>{});
-        // #endregion
 
         // Load all necessary data
         console.log('📊 Loading progress data...');
@@ -118,10 +106,6 @@ export default function ProgressPage() {
         // CRITICAL FIX: Correct the newWordsAdded count
         const storedCount = todayStats.newWordsAdded;
         todayStats.newWordsAdded = actualNewWordsToday;
-        
-        // #region agent log
-        fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'progress/page.tsx:115',message:'Progress page useEffect stats loaded with correction',data:{date:todayStats.date,storedNewWordsAdded:storedCount,actualNewWordsAdded:actualNewWordsToday,difference:actualNewWordsToday-storedCount},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H2'})}).catch(()=>{});
-        // #endregion
         
         console.log('📊 Today\'s stats loaded (corrected):', todayStats);
         console.log('📊 Actual new words today:', actualNewWordsToday);

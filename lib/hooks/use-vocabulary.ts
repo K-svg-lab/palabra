@@ -149,22 +149,11 @@ export function useDeleteVocabulary() {
 
   return useMutation({
     mutationFn: async (id: string) => {
-      // #region agent log
-      fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'use-vocabulary.ts:158',message:'useDeleteVocabulary mutation called',data:{id},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H2'})}).catch(()=>{});
-      // #endregion
       return deleteVocabularyWord(id);
     },
     onSuccess: async (_, deletedId) => {
-      // #region agent log
-      fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'use-vocabulary.ts:165',message:'useDeleteVocabulary onSuccess - invalidating cache',data:{deletedId},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H2'})}).catch(()=>{});
-      // #endregion
-      
       // Invalidate vocabulary list to immediately update UI
       queryClient.invalidateQueries({ queryKey: ['vocabulary'] });
-      
-      // #region agent log
-      fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'use-vocabulary.ts:173',message:'useDeleteVocabulary - cache invalidated, triggering sync',data:{deletedId},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H2'})}).catch(()=>{});
-      // #endregion
       
       // Trigger background sync without blocking UI
       try {
@@ -213,10 +202,6 @@ export function useVocabularyStats() {
     queryKey: ['vocabulary', 'stats'],
     queryFn: async () => {
       const all = await getAllVocabularyWords();
-      
-      // #region agent log
-      fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'use-vocabulary.ts:212',message:'useVocabularyStats called',data:{totalWords:all.length,sampleWords:all.slice(0,3).map(w=>({id:w.id,spanish:w.spanishWord,isDeleted:w.isDeleted}))},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H5'})}).catch(()=>{});
-      // #endregion
       
       const stats = {
         total: all.length,

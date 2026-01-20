@@ -38,10 +38,6 @@ export default function HomePage() {
   const { isRefreshing } = usePullToRefresh({
     enabled: true,
     onRefresh: async () => {
-      // #region agent log
-      fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'page.tsx:40',message:'Homepage pull-to-refresh onRefresh START',data:{},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H1'})}).catch(()=>{});
-      // #endregion
-      
       // Reload local stats after sync
       await refetchStats();
       if (hasVocabulary) {
@@ -52,10 +48,6 @@ export default function HomePage() {
           getActualNewWordsAddedToday(),
         ]);
         
-        // #region agent log
-        fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'page.tsx:50',message:'Homepage pull-to-refresh data loaded',data:{storedNewWordsAdded:today.newWordsAdded,actualNewWordsAdded:actualNewWords},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H1'})}).catch(()=>{});
-        // #endregion
-        
         setDueCount(count);
         
         // CRITICAL FIX: Apply the same correction as in useEffect
@@ -63,10 +55,6 @@ export default function HomePage() {
           ...today,
           newWordsAdded: actualNewWords,
         };
-        
-        // #region agent log
-        fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'page.tsx:60',message:'Homepage pull-to-refresh setting state with correction',data:{newWordsAdded:correctedStats.newWordsAdded},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H1'})}).catch(()=>{});
-        // #endregion
         
         setTodayStats(correctedStats);
       }
@@ -101,15 +89,7 @@ export default function HomePage() {
           newWordsAdded: actualNewWords,
         };
         
-        // #region agent log
-        fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'page.tsx:85',message:'Homepage useEffect setting state with correction',data:{newWordsAdded:correctedStats.newWordsAdded,storedNewWordsAdded:today.newWordsAdded,actualNewWordsAdded:actualNewWords},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H3'})}).catch(()=>{});
-        // #endregion
-        
         setTodayStats(correctedStats);
-        
-        // #region agent log
-        fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'page.tsx:90',message:'Home page stats loaded with correction',data:{date:today.date,storedNewWordsAdded:today.newWordsAdded,actualNewWordsAdded:actualNewWords,difference:actualNewWords-today.newWordsAdded},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H6_stats'})}).catch(()=>{});
-        // #endregion
         
         console.log(`📊 Stats correction: stored=${today.newWordsAdded}, actual=${actualNewWords}`);
       } catch (error) {
@@ -133,27 +113,8 @@ export default function HomePage() {
 
     window.addEventListener('keydown', handleKeyDown);
     
-    // #region agent log - Track pull-to-refresh attempts for H3
-    let touchStart = 0;
-    const handleTouchStart = (e: TouchEvent) => {
-      touchStart = e.touches[0].clientY;
-    };
-    const handleTouchMove = (e: TouchEvent) => {
-      const touchCurrent = e.touches[0].clientY;
-      const touchDiff = touchCurrent - touchStart;
-      // If user pulls down significantly at top of page
-      if (touchDiff > 100 && window.scrollY === 0) {
-        fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'page.tsx:66',message:'Pull-to-refresh gesture detected',data:{touchDiff,scrollY:window.scrollY},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H3'})}).catch(()=>{});
-      }
-    };
-    document.addEventListener('touchstart', handleTouchStart);
-    document.addEventListener('touchmove', handleTouchMove);
-    // #endregion
-    
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
-      document.removeEventListener('touchstart', handleTouchStart);
-      document.removeEventListener('touchmove', handleTouchMove);
     };
   }, [router]);
 

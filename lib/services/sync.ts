@@ -241,33 +241,20 @@ export class CloudSyncService implements SyncService {
             const { getVocabularyWord } = await import('@/lib/db/vocabulary');
             const localWord = await getVocabularyWord(operation.data.id);
             
-            // #region agent log
-            fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'sync.ts:244',message:'Sync - applying remote vocabulary',data:{id:operation.data.id,spanishWord:operation.data.spanish||operation.data.spanishWord,hasLocalVersion:!!localWord,localIsDeleted:localWord?.isDeleted,remoteIsDeleted:operation.data.isDeleted,localUpdatedAt:localWord?.updatedAt,remoteUpdatedAt:operation.data.updatedAt},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H3'})}).catch(()=>{});
-            // #endregion
-            
             if (localWord) {
               // Compare timestamps - only overwrite if server version is newer
               if (operation.data.updatedAt > localWord.updatedAt) {
                 await updateVocabularyWord(operation.data);
                 const isDeleted = operation.data.isDeleted ? ' (DELETED)' : '';
                 console.log(`✅ Applied newer remote version: ${operation.data.spanish || operation.data.spanishWord}${isDeleted}`);
-                // #region agent log
-                fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'sync.ts:256',message:'Sync - applied newer remote version',data:{id:operation.data.id,isDeleted:operation.data.isDeleted},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H3'})}).catch(()=>{});
-                // #endregion
               } else {
                 console.log(`⏭️  Skipped ${operation.data.spanish || operation.data.spanishWord} - local version is newer`);
-                // #region agent log
-                fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'sync.ts:264',message:'Sync - skipped, local newer',data:{id:operation.data.id,localIsDeleted:localWord.isDeleted,remoteIsDeleted:operation.data.isDeleted},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H3'})}).catch(()=>{});
-                // #endregion
               }
             } else {
               // Word doesn't exist locally, create it (or apply deletion)
               await updateVocabularyWord(operation.data);
               const action = operation.data.isDeleted ? 'Applied deletion for' : 'Created from remote';
               console.log(`✅ ${action}: ${operation.data.spanish || operation.data.spanishWord}`);
-              // #region agent log
-              fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'sync.ts:275',message:'Sync - created/deleted from remote',data:{id:operation.data.id,isDeleted:operation.data.isDeleted},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H3'})}).catch(()=>{});
-              // #endregion
             }
           } catch (error) {
             console.error('Failed to apply remote vocabulary:', error);
@@ -366,29 +353,16 @@ export class CloudSyncService implements SyncService {
       const allItems = await getAllVocabularyWords(true);
       const deletedItems = allItems.filter(v => v.isDeleted);
       
-      // #region agent log
-      fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'sync.ts:352',message:'Sync cleanup check',data:{totalItems:allItems.length,deletedItemsCount:deletedItems.length,deletedItemsIds:deletedItems.map(d=>d.id)},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H4'})}).catch(()=>{});
-      // #endregion
-      
       if (deletedItems.length > 0) {
         console.log(`🗑️ Cleaning up ${deletedItems.length} synced deleted items from local storage...`);
         const { getDB } = await import('@/lib/db/schema');
         const db = await getDB();
         for (const item of deletedItems) {
           try {
-            // #region agent log
-            fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'sync.ts:365',message:'Sync cleanup - deleting item from IndexedDB',data:{id:item.id,spanishWord:item.spanishWord},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H4'})}).catch(()=>{});
-            // #endregion
             await db.delete('vocabulary', item.id);
             console.log(`🗑️ Removed deleted item: ${item.spanishWord || item.id}`);
-            // #region agent log
-            fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'sync.ts:371',message:'Sync cleanup - item deleted successfully',data:{id:item.id},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H4'})}).catch(()=>{});
-            // #endregion
           } catch (error) {
             console.error(`Failed to clean up deleted item ${item.id}:`, error);
-            // #region agent log
-            fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'sync.ts:377',message:'Sync cleanup - deletion failed',data:{id:item.id,error:String(error)},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H4'})}).catch(()=>{});
-            // #endregion
           }
         }
       }
@@ -401,10 +375,6 @@ export class CloudSyncService implements SyncService {
       if (this.queryClient) {
         const deletedVocabCount = vocabResult.operations?.filter((op: any) => op.data?.isDeleted).length || 0;
         console.log(`[Sync] Invalidating React Query cache (${deletedVocabCount} deletions applied)...`);
-        
-        // #region agent log
-        fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'sync.ts:405',message:'Sync - invalidating query cache after applying changes',data:{deletedVocabCount,totalVocabOps:vocabResult.operations?.length||0},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H3'})}).catch(()=>{});
-        // #endregion
         
         // Invalidate all vocabulary-related queries
         await this.queryClient.invalidateQueries({ queryKey: ['vocabulary'] });

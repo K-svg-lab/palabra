@@ -163,10 +163,6 @@ export async function getActualNewWordsAddedToday(): Promise<number> {
     return createdDate >= todayStart && createdDate <= todayEnd;
   });
   
-  // #region agent log
-  fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'stats.ts:165',message:'getActualNewWordsAddedToday called',data:{count:wordsCreatedToday.length,todayDateKey,todayStart:todayStart.toISOString(),todayEnd:todayEnd.toISOString(),totalWords:allWords.length},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H4'})}).catch(()=>{});
-  // #endregion
-  
   return wordsCreatedToday.length;
 }
 

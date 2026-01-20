@@ -72,11 +72,6 @@ export async function getAllVocabularyWords(includeDeleted: boolean = false): Pr
   const db = await getDB();
   const words = await db.getAll(DB_CONFIG.STORES.VOCABULARY);
   
-  // #region agent log
-  const deletedCount = words.filter(word => word.isDeleted).length;
-  fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'vocabulary.ts:76',message:'getAllVocabularyWords called',data:{totalCount:words.length,deletedCount,includeDeleted,willReturnCount:includeDeleted?words.length:words.length-deletedCount},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H1'})}).catch(()=>{});
-  // #endregion
-  
   // Filter out soft-deleted items unless explicitly requested
   if (!includeDeleted) {
     return words.filter(word => !word.isDeleted);
@@ -126,23 +121,12 @@ export async function updateVocabularyWord(
 export async function deleteVocabularyWord(id: string): Promise<void> {
   const db = await getDB();
   
-  // #region agent log
-  fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'vocabulary.ts:122',message:'deleteVocabularyWord called',data:{id},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H1'})}).catch(()=>{});
-  // #endregion
-  
   // Get the existing word
   const existingWord = await db.get(DB_CONFIG.STORES.VOCABULARY, id);
   if (!existingWord) {
-    // #region agent log
-    fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'vocabulary.ts:130',message:'deleteVocabularyWord - word not found',data:{id},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H1'})}).catch(()=>{});
-    // #endregion
     // Word doesn't exist, nothing to delete
     return;
   }
-  
-  // #region agent log
-  fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'vocabulary.ts:138',message:'deleteVocabularyWord - word found, marking as deleted',data:{id,spanishWord:existingWord.spanishWord,wasAlreadyDeleted:existingWord.isDeleted},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H1'})}).catch(()=>{});
-  // #endregion
   
   // Soft delete: mark as deleted and update timestamp
   // This allows sync to detect the deletion and upload it to the server
@@ -153,10 +137,6 @@ export async function deleteVocabularyWord(id: string): Promise<void> {
   };
   
   await db.put(DB_CONFIG.STORES.VOCABULARY, deletedWord);
-  
-  // #region agent log
-  fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'vocabulary.ts:154',message:'deleteVocabularyWord - marked as deleted in IndexedDB',data:{id,spanishWord:deletedWord.spanishWord,isDeleted:deletedWord.isDeleted,updatedAt:deletedWord.updatedAt},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H1'})}).catch(()=>{});
-  // #endregion
   
   // Delete associated review record locally
   // Import dynamically to avoid circular dependency
