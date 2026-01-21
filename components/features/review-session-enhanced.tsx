@@ -41,6 +41,8 @@ export function ReviewSessionEnhanced({
   const [currentDirection, setCurrentDirection] = useState<ReviewDirection>(
     config.direction === 'mixed' ? 'spanish-to-english' : config.direction
   );
+  const [showCompletionDialog, setShowCompletionDialog] = useState(false);
+  const [sessionStartTime] = useState(Date.now());
 
   // Scroll to top when component mounts (fixes inherited scroll position from config page)
   useEffect(() => {
@@ -63,7 +65,8 @@ export function ReviewSessionEnhanced({
   }, [words, config]);
 
   const currentWord = processedWords[currentIndex];
-  const progress = ((results.length) / processedWords.length) * 100;
+  // Clamp progress to max 100% to prevent display issues
+  const progress = Math.min(((results.length) / processedWords.length) * 100, 100);
   const isSessionComplete = results.length === processedWords.length;
 
   // Reset card state when moving to next card
@@ -85,6 +88,11 @@ export function ReviewSessionEnhanced({
   const handleRating = (rating: DifficultyRating) => {
     if (!currentWord) return;
 
+    // Guard: Prevent duplicate ratings for the same word
+    if (results.some(r => r.vocabularyId === currentWord.id)) {
+      return;
+    }
+
     const timeSpent = Date.now() - cardStartTime;
 
     const result: ExtendedReviewResult = {
@@ -104,8 +112,8 @@ export function ReviewSessionEnhanced({
     if (currentIndex < processedWords.length - 1) {
       setCurrentIndex(currentIndex + 1);
     } else {
-      // Session complete
-      onComplete(newResults);
+      // Session complete - show completion dialog
+      setShowCompletionDialog(true);
     }
   };
 
@@ -113,6 +121,11 @@ export function ReviewSessionEnhanced({
    * Handle answer submission from recall/listening modes
    */
   const handleAnswerSubmit = (userAnswer: string, isCorrect: boolean, similarity: number) => {
+    // Guard: Prevent duplicate results for the same word
+    if (results.some(r => r.vocabularyId === currentWord.id)) {
+      return;
+    }
+    
     const timeSpent = Date.now() - cardStartTime;
 
     const rating: DifficultyRating = isCorrect
@@ -143,7 +156,7 @@ export function ReviewSessionEnhanced({
       },
       ...(config.mode === 'listening' && { audioPlayCount }),
     };
-
+    
     const newResults = [...results, result];
     setResults(newResults);
 
@@ -165,9 +178,16 @@ export function ReviewSessionEnhanced({
     if (currentIndex < processedWords.length - 1) {
       setCurrentIndex(currentIndex + 1);
     } else {
-      // Session complete
-      onComplete(results);
+      // Session complete - show completion dialog
+      setShowCompletionDialog(true);
     }
+  };
+
+  /**
+   * Handle final completion after viewing summary
+   */
+  const handleFinalComplete = () => {
+    onComplete(results);
   };
 
   /**
@@ -272,6 +292,117 @@ export function ReviewSessionEnhanced({
           >
             Go Back
           </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Show completion dialog
+  if (showCompletionDialog) {
+    const sessionDuration = Date.now() - sessionStartTime;
+    const minutes = Math.floor(sessionDuration / 60000);
+    const seconds = Math.floor((sessionDuration % 60000) / 1000);
+    const correctCount = results.filter(r => r.rating !== 'forgot').length;
+    const accuracyRate = Math.round((correctCount / results.length) * 100);
+    
+    const easyCount = results.filter(r => r.rating === 'easy').length;
+    const goodCount = results.filter(r => r.rating === 'good').length;
+    const hardCount = results.filter(r => r.rating === 'hard').length;
+    const forgotCount = results.filter(r => r.rating === 'forgot').length;
+
+    return (
+      <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+        <div className="bg-bg-primary rounded-2xl shadow-2xl max-w-md w-full p-6 space-y-6 animate-in fade-in zoom-in duration-300">
+          {/* Success Icon */}
+          <div className="flex justify-center">
+            <div className="w-20 h-20 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
+              <span className="text-4xl">🎉</span>
+            </div>
+          </div>
+
+          {/* Title */}
+          <div className="text-center space-y-2">
+            <h2 className="text-2xl font-bold text-text">Review Complete!</h2>
+            <p className="text-text-secondary">Great job on completing your session</p>
+          </div>
+
+          {/* Stats Grid */}
+          <div className="grid grid-cols-2 gap-4">
+            <div className="bg-black/5 dark:bg-white/5 rounded-xl p-4 text-center">
+              <div className="text-3xl font-bold text-accent">{results.length}</div>
+              <div className="text-xs text-text-secondary mt-1">Cards Reviewed</div>
+            </div>
+            <div className="bg-black/5 dark:bg-white/5 rounded-xl p-4 text-center">
+              <div className="text-3xl font-bold text-accent">{accuracyRate}%</div>
+              <div className="text-xs text-text-secondary mt-1">Accuracy</div>
+            </div>
+            <div className="bg-black/5 dark:bg-white/5 rounded-xl p-4 text-center">
+              <div className="text-3xl font-bold text-text">
+                {minutes > 0 ? `${minutes}m ${seconds}s` : `${seconds}s`}
+              </div>
+              <div className="text-xs text-text-secondary mt-1">Time Spent</div>
+            </div>
+            <div className="bg-black/5 dark:bg-white/5 rounded-xl p-4 text-center">
+              <div className="text-3xl font-bold text-text">{correctCount}/{results.length}</div>
+              <div className="text-xs text-text-secondary mt-1">Correct</div>
+            </div>
+          </div>
+
+          {/* Performance Breakdown */}
+          <div className="space-y-2">
+            <p className="text-sm font-medium text-text-secondary">Performance Breakdown:</p>
+            <div className="space-y-1.5">
+              {easyCount > 0 && (
+                <div className="flex items-center justify-between text-sm">
+                  <span className="flex items-center gap-2">
+                    <span>🎉</span>
+                    <span className="text-text">Easy</span>
+                  </span>
+                  <span className="font-medium text-text">{easyCount}</span>
+                </div>
+              )}
+              {goodCount > 0 && (
+                <div className="flex items-center justify-between text-sm">
+                  <span className="flex items-center gap-2">
+                    <span>😊</span>
+                    <span className="text-text">Good</span>
+                  </span>
+                  <span className="font-medium text-text">{goodCount}</span>
+                </div>
+              )}
+              {hardCount > 0 && (
+                <div className="flex items-center justify-between text-sm">
+                  <span className="flex items-center gap-2">
+                    <span>🤔</span>
+                    <span className="text-text">Hard</span>
+                  </span>
+                  <span className="font-medium text-text">{hardCount}</span>
+                </div>
+              )}
+              {forgotCount > 0 && (
+                <div className="flex items-center justify-between text-sm">
+                  <span className="flex items-center gap-2">
+                    <span>😞</span>
+                    <span className="text-text">Forgot</span>
+                  </span>
+                  <span className="font-medium text-text">{forgotCount}</span>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Action Buttons */}
+          <div className="space-y-2 pt-2">
+            <button
+              onClick={handleFinalComplete}
+              className="w-full py-3 bg-accent text-white rounded-xl font-medium hover:opacity-90 transition-opacity"
+            >
+              Continue to Home
+            </button>
+            <p className="text-xs text-center text-text-tertiary">
+              Your progress is being saved...
+            </p>
+          </div>
         </div>
       </div>
     );

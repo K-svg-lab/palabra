@@ -71,6 +71,7 @@ export function FlashcardEnhanced({
   const [showHint, setShowHint] = useState(false);
   const [audioUnlocked, setAudioUnlocked] = useState(false);
   const [ttsErrorShown, setTtsErrorShown] = useState(false);
+  const [ratingSubmitted, setRatingSubmitted] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const cardRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -91,6 +92,13 @@ export function FlashcardEnhanced({
    */
   const handleRating = (e: React.MouseEvent, rating: DifficultyRating) => {
     e.stopPropagation(); // Prevent card flip
+    
+    // Guard: Prevent duplicate ratings
+    if (ratingSubmitted) {
+      return;
+    }
+    
+    setRatingSubmitted(true);
     onRate?.(rating);
   };
 
@@ -107,6 +115,7 @@ export function FlashcardEnhanced({
     setAnswerChecked(false);
     setAnswerResult(null);
     setShowHint(false);
+    setRatingSubmitted(false);
   }, [word.id]);
 
   // Auto-focus input in recall/listening mode
@@ -241,6 +250,11 @@ export function FlashcardEnhanced({
    * Handle answer submission in recall mode
    */
   const handleSubmitAnswer = () => {
+    // Guard: Prevent duplicate submissions
+    if (answerChecked) {
+      return;
+    }
+    
     if (!userAnswer.trim()) {
       return;
     }
@@ -269,7 +283,7 @@ export function FlashcardEnhanced({
         result = checkAnswer(userAnswer, englishTranslations[0] || word.englishTranslation, false, isListeningMode);
       }
     }
-
+    
     setAnswerResult(result);
     setAnswerChecked(true);
     onAnswerSubmit?.(userAnswer, result.isCorrect, result.similarity);
@@ -505,29 +519,33 @@ export function FlashcardEnhanced({
                   <div className="pt-4 mt-1 pointer-events-auto">
                     <div className="flex items-center justify-center gap-1.5 sm:gap-2">
                       <button
-                        onClick={(e) => { e.stopPropagation(); onRate("forgot"); }}
-                        className="flex items-center gap-1 py-2 px-2.5 sm:px-3 rounded-xl bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 active:scale-95 transition-all shadow-sm border border-black/5 dark:border-white/5 min-w-0"
+                        onClick={(e) => handleRating(e, "forgot")}
+                        disabled={ratingSubmitted}
+                        className="flex items-center gap-1 py-2 px-2.5 sm:px-3 rounded-xl bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 active:scale-95 transition-all shadow-sm border border-black/5 dark:border-white/5 min-w-0 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-black/5 dark:disabled:hover:bg-white/5"
                       >
                         <span className="text-base sm:text-lg">😞</span>
                         <span className="text-[10px] sm:text-xs font-medium text-text-secondary whitespace-nowrap">Forgot</span>
                       </button>
                       <button
-                        onClick={(e) => { e.stopPropagation(); onRate("hard"); }}
-                        className="flex items-center gap-1 py-2 px-2.5 sm:px-3 rounded-xl bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 active:scale-95 transition-all shadow-sm border border-black/5 dark:border-white/5 min-w-0"
+                        onClick={(e) => handleRating(e, "hard")}
+                        disabled={ratingSubmitted}
+                        className="flex items-center gap-1 py-2 px-2.5 sm:px-3 rounded-xl bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 active:scale-95 transition-all shadow-sm border border-black/5 dark:border-white/5 min-w-0 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-black/5 dark:disabled:hover:bg-white/5"
                       >
                         <span className="text-base sm:text-lg">🤔</span>
                         <span className="text-[10px] sm:text-xs font-medium text-text-secondary whitespace-nowrap">Hard</span>
                       </button>
                       <button
-                        onClick={(e) => { e.stopPropagation(); onRate("good"); }}
-                        className="flex items-center gap-1 py-2 px-2.5 sm:px-3 rounded-xl bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 active:scale-95 transition-all shadow-sm border border-black/5 dark:border-white/5 min-w-0"
+                        onClick={(e) => handleRating(e, "good")}
+                        disabled={ratingSubmitted}
+                        className="flex items-center gap-1 py-2 px-2.5 sm:px-3 rounded-xl bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 active:scale-95 transition-all shadow-sm border border-black/5 dark:border-white/5 min-w-0 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-black/5 dark:disabled:hover:bg-white/5"
                       >
                         <span className="text-base sm:text-lg">😊</span>
                         <span className="text-[10px] sm:text-xs font-medium text-text-secondary whitespace-nowrap">Good</span>
                       </button>
                       <button
-                        onClick={(e) => { e.stopPropagation(); onRate("easy"); }}
-                        className="flex items-center gap-1 py-2 px-2.5 sm:px-3 rounded-xl bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 active:scale-95 transition-all shadow-sm border border-black/5 dark:border-white/5 min-w-0"
+                        onClick={(e) => handleRating(e, "easy")}
+                        disabled={ratingSubmitted}
+                        className="flex items-center gap-1 py-2 px-2.5 sm:px-3 rounded-xl bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 active:scale-95 transition-all shadow-sm border border-black/5 dark:border-white/5 min-w-0 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-black/5 dark:disabled:hover:bg-white/5"
                       >
                         <span className="text-base sm:text-lg">🎉</span>
                         <span className="text-[10px] sm:text-xs font-medium text-text-secondary whitespace-nowrap">Easy</span>
@@ -643,7 +661,7 @@ export function FlashcardEnhanced({
           {!answerChecked && (
             <button
               onClick={handleSubmitAnswer}
-              disabled={!userAnswer.trim()}
+              disabled={!userAnswer.trim() || answerChecked}
               className="w-full py-3 bg-accent text-white rounded-xl font-medium hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Check Answer
@@ -813,7 +831,7 @@ export function FlashcardEnhanced({
           {!answerChecked && (
             <button
               onClick={handleSubmitAnswer}
-              disabled={!userAnswer.trim()}
+              disabled={!userAnswer.trim() || answerChecked}
               className="w-full py-3 bg-accent text-white rounded-xl font-medium hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Check Answer
