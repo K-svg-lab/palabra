@@ -42,10 +42,6 @@ async function handler(request: NextRequest) {
       try {
         const { data } = operation;
         
-        // #region agent log
-        console.log('[DEBUG H4] Server received stats operation:', JSON.stringify({date:data.date,cardsReviewed:data.cardsReviewed,newWordsAdded:data.newWordsAdded,accuracyRate:data.accuracyRate,timeSpent:data.timeSpent,userId}));
-        // #endregion
-        
         // Map client field names to Prisma schema field names
         const statsData = {
           date: new Date(data.date),
@@ -58,10 +54,6 @@ async function handler(request: NextRequest) {
           // CRITICAL: Preserve client's updatedAt timestamp for modification tracking
           updatedAt: data.updatedAt ? new Date(data.updatedAt) : new Date(),
         };
-        
-        // #region agent log
-        console.log('[DEBUG H4] Before upsert:', JSON.stringify({date:data.date,statsToUpsert:{cardsReviewed:statsData.cardsReviewed,wordsAdded:statsData.wordsAdded,studyTime:statsData.studyTime,updatedAt:statsData.updatedAt},userId}));
-        // #endregion
         
         await prisma.dailyStats.upsert({
           where: {
@@ -81,10 +73,6 @@ async function handler(request: NextRequest) {
             lastSyncedAt: new Date(),
           },
         });
-        
-        // #region agent log
-        console.log('[DEBUG H4] After upsert - stats saved:', JSON.stringify({date:data.date,savedData:{cardsReviewed:statsData.cardsReviewed,wordsAdded:statsData.wordsAdded},userId}));
-        // #endregion
         
         processed.push(operation.id);
       } catch (error: any) {
@@ -107,10 +95,6 @@ async function handler(request: NextRequest) {
         date: 'desc',
       },
     });
-    
-    // #region agent log
-    console.log('[DEBUG H4] Server sending stats to client:', JSON.stringify({lastSyncTime,statsCount:remoteStats.length,stats:remoteStats.map(s=>({date:s.date.toISOString().split('T')[0],cardsReviewed:s.cardsReviewed,wordsAdded:s.wordsAdded,updatedAt:s.updatedAt.getTime()})),userId}));
-    // #endregion
     
     // Transform back to client format
     const transformedStats = remoteStats.map(stat => ({

@@ -192,12 +192,6 @@ export async function updateStatsAfterSession(
   const stats = await getTodayStats();
   console.log('📊 Current stats before session update:', stats);
   
-  // #region agent log
-  if (typeof fetch !== 'undefined') {
-    fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'stats.ts:182',message:'Before session update',data:{before:{cardsReviewed:stats.cardsReviewed,accuracyRate:stats.accuracyRate,timeSpent:stats.timeSpent},session:{cardsReviewed,accuracyRate,timeSpent}},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H5'})}).catch(()=>{});
-  }
-  // #endregion
-  
   // Update session count
   stats.sessionsCompleted += 1;
   
@@ -222,12 +216,6 @@ export async function updateStatsAfterSession(
   stats.timeSpent += timeSpent;
   
   console.log('📊 Stats after session update:', stats);
-  
-  // #region agent log
-  if (typeof fetch !== 'undefined') {
-    fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'stats.ts:210',message:'After session update',data:{after:{cardsReviewed:stats.cardsReviewed,accuracyRate:stats.accuracyRate,timeSpent:stats.timeSpent,sessionsCompleted:stats.sessionsCompleted}},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H5'})}).catch(()=>{});
-  }
-  // #endregion
   
   return saveStats(stats);
 }
