@@ -641,7 +641,7 @@ export class CloudSyncService implements SyncService {
       }
       
       // #region agent log
-      fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'sync.ts:609',message:'Stats shouldInclude decision',data:{date:stat.date,shouldInclude,cardsReviewed:stat.cardsReviewed,updatedAt:stat.updatedAt,lastSyncTime:lastSyncTime?.toISOString()||'null',wasModifiedSinceSync:stat.updatedAt?stat.updatedAt>lastSyncTime.getTime():null},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H1'})}).catch(()=>{});
+      fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'sync.ts:609',message:'Stats shouldInclude decision',data:{date:stat.date,shouldInclude,cardsReviewed:stat.cardsReviewed,updatedAt:stat.updatedAt,lastSyncTime:lastSyncTime?.toISOString()||'null',wasModifiedSinceSync:stat.updatedAt && lastSyncTime ? stat.updatedAt>lastSyncTime.getTime() : null},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H1'})}).catch(()=>{});
       // #endregion
       
       if (shouldInclude) {
