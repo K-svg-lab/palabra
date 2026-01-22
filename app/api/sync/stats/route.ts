@@ -55,10 +55,12 @@ async function handler(request: NextRequest) {
           studyTime: data.timeSpent || 0,
           sessionsCompleted: data.sessionsCompleted || 0,
           isActive: (data.cardsReviewed || 0) > 0,
+          // CRITICAL: Preserve client's updatedAt timestamp for modification tracking
+          updatedAt: data.updatedAt ? new Date(data.updatedAt) : new Date(),
         };
         
         // #region agent log
-        console.log('[DEBUG H4] Before upsert:', JSON.stringify({date:data.date,statsToUpsert:{cardsReviewed:statsData.cardsReviewed,wordsAdded:statsData.wordsAdded,studyTime:statsData.studyTime},userId}));
+        console.log('[DEBUG H4] Before upsert:', JSON.stringify({date:data.date,statsToUpsert:{cardsReviewed:statsData.cardsReviewed,wordsAdded:statsData.wordsAdded,studyTime:statsData.studyTime,updatedAt:statsData.updatedAt},userId}));
         // #endregion
         
         await prisma.dailyStats.upsert({
@@ -107,7 +109,7 @@ async function handler(request: NextRequest) {
     });
     
     // #region agent log
-    console.log('[DEBUG H4] Server sending stats to client:', JSON.stringify({lastSyncTime,statsCount:remoteStats.length,stats:remoteStats.map(s=>({date:s.date.toISOString().split('T')[0],cardsReviewed:s.cardsReviewed,wordsAdded:s.wordsAdded})),userId}));
+    console.log('[DEBUG H4] Server sending stats to client:', JSON.stringify({lastSyncTime,statsCount:remoteStats.length,stats:remoteStats.map(s=>({date:s.date.toISOString().split('T')[0],cardsReviewed:s.cardsReviewed,wordsAdded:s.wordsAdded,updatedAt:s.updatedAt.getTime()})),userId}));
     // #endregion
     
     // Transform back to client format
@@ -118,6 +120,8 @@ async function handler(request: NextRequest) {
       sessionsCompleted: stat.sessionsCompleted,
       accuracyRate: stat.cardsReviewed > 0 ? stat.correctReviews / stat.cardsReviewed : 0,
       timeSpent: stat.studyTime,
+      // CRITICAL: Include updatedAt timestamp for client-side modification tracking
+      updatedAt: stat.updatedAt.getTime(),
     }));
     
     return apiResponse({

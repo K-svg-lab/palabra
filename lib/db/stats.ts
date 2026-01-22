@@ -22,15 +22,23 @@ export function formatDateKey(date: Date = new Date()): string {
 
 /**
  * Creates or updates daily stats for a specific date
+ * Automatically sets updatedAt timestamp for sync tracking
  * 
  * @param stats - The daily stats to save
+ * @param preserveTimestamp - If true, keeps existing updatedAt (for applying remote stats)
  * @returns Promise resolving to the saved stats
  */
-export async function saveStats(stats: DailyStats): Promise<DailyStats> {
+export async function saveStats(stats: DailyStats, preserveTimestamp = false): Promise<DailyStats> {
+  // Set updatedAt to current time only if not already present or if explicitly updating locally
+  const statsWithTimestamp = {
+    ...stats,
+    updatedAt: preserveTimestamp && stats.updatedAt ? stats.updatedAt : Date.now(),
+  };
+  
   const db = await getDB();
-  await db.put(DB_CONFIG.STORES.STATS, stats);
-  console.log('📊 Stats saved:', stats);
-  return stats;
+  await db.put(DB_CONFIG.STORES.STATS, statsWithTimestamp);
+  console.log('📊 Stats saved:', statsWithTimestamp);
+  return statsWithTimestamp;
 }
 
 /**
@@ -60,7 +68,7 @@ export async function getTodayStats(): Promise<DailyStats> {
   let stats = await getStats(dateKey);
   
   if (!stats) {
-    // Create initial stats for today
+    // Create initial stats for today with updatedAt timestamp
     stats = {
       date: dateKey,
       newWordsAdded: 0,
@@ -68,6 +76,7 @@ export async function getTodayStats(): Promise<DailyStats> {
       sessionsCompleted: 0,
       accuracyRate: 0,
       timeSpent: 0,
+      updatedAt: Date.now(),
     };
     await saveStats(stats);
   }

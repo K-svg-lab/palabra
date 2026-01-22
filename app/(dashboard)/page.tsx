@@ -11,9 +11,7 @@ import { useEffect, useState } from 'react';
 import { Plus, RefreshCw } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useVocabularyStats } from '@/lib/hooks/use-vocabulary';
-import { getDueForReviewCount } from '@/lib/db/reviews';
-import { getTodayStats } from '@/lib/db/stats';
+import { useVocabularyStats, useTodayStats } from '@/lib/hooks/use-vocabulary';
 import { OnboardingWelcome } from '@/components/features/onboarding-welcome';
 import { hasCompletedOnboarding, completeOnboarding } from '@/lib/utils/onboarding';
 import { usePullToRefresh } from '@/lib/hooks/use-pull-to-refresh';
@@ -27,37 +25,25 @@ import type { DailyStats } from '@/lib/types';
  */
 export default function HomePage() {
   const { data: stats, refetch: refetchStats } = useVocabularyStats();
+  const { data: todayData, refetch: refetchTodayStats } = useTodayStats();
   const router = useRouter();
-  const [dueCount, setDueCount] = useState<number>(0);
-  const [todayStats, setTodayStats] = useState<DailyStats | null>(null);
   const [showOnboarding, setShowOnboarding] = useState(false);
 
   const hasVocabulary = (stats?.total || 0) > 0;
+  
+  // Extract stats and dueCount from the query result
+  const todayStats = todayData?.stats || null;
+  const dueCount = todayData?.dueCount || 0;
 
   // Enable pull-to-refresh
   const { isRefreshing } = usePullToRefresh({
     enabled: true,
     onRefresh: async () => {
-      // Reload local stats after sync
-      await refetchStats();
-      if (hasVocabulary) {
-        const { getActualNewWordsAddedToday } = await import('@/lib/db/stats');
-        const [count, today, actualNewWords] = await Promise.all([
-          getDueForReviewCount(),
-          getTodayStats(),
-          getActualNewWordsAddedToday(),
-        ]);
-        
-        setDueCount(count);
-        
-        // CRITICAL FIX: Apply the same correction as in useEffect
-        const correctedStats = {
-          ...today,
-          newWordsAdded: actualNewWords,
-        };
-        
-        setTodayStats(correctedStats);
-      }
+      // Reload both stats and daily data after sync
+      await Promise.all([
+        refetchStats(),
+        refetchTodayStats(),
+      ]);
     },
   });
 
@@ -70,45 +56,12 @@ export default function HomePage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hasVocabulary]);
 
-  // Load due review count and today's stats
+  // Log stats updates for debugging
   useEffect(() => {
-    async function loadData() {
-      try {
-        const { getActualNewWordsAddedToday } = await import('@/lib/db/stats');
-        const [count, today, actualNewWords] = await Promise.all([
-          getDueForReviewCount(),
-          getTodayStats(),
-          getActualNewWordsAddedToday(),
-        ]);
-        setDueCount(count);
-        
-        // #region agent log
-        fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'page.tsx:78',message:'Homepage stats loaded',data:{storedStats:{cardsReviewed:today.cardsReviewed,newWordsAdded:today.newWordsAdded,accuracyRate:today.accuracyRate},actualNewWords,dueCount:count},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H5'})}).catch(()=>{});
-        // #endregion
-        
-        // CRITICAL FIX: Use actual count from vocabulary createdAt timestamps
-        // instead of incremented counter from stats store
-        const correctedStats = {
-          ...today,
-          newWordsAdded: actualNewWords,
-        };
-        
-        setTodayStats(correctedStats);
-        
-        console.log(`📊 Stats correction: stored=${today.newWordsAdded}, actual=${actualNewWords}`);
-        
-        // #region agent log
-        fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'page.tsx:92',message:'Homepage stats corrected and set',data:{finalStats:{cardsReviewed:correctedStats.cardsReviewed,newWordsAdded:correctedStats.newWordsAdded,accuracyRate:correctedStats.accuracyRate}},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H5'})}).catch(()=>{});
-        // #endregion
-      } catch (error) {
-        console.error("Failed to load data:", error);
-      }
+    if (todayStats) {
+      console.log(`📊 Today's stats updated: reviewed=${todayStats.cardsReviewed}, added=${todayStats.newWordsAdded}, accuracy=${(todayStats.accuracyRate * 100).toFixed(1)}%`);
     }
-
-    if (hasVocabulary) {
-      loadData();
-    }
-  }, [hasVocabulary, stats]);
+  }, [todayStats, dueCount]);
 
   // Keyboard shortcut: Shift+A to add new word (navigate to vocabulary page)
   useEffect(() => {

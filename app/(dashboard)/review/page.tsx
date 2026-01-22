@@ -13,6 +13,7 @@ import { getVocabularyWord, updateVocabularyWord } from "@/lib/db/vocabulary";
 import { updateReviewRecord as updateReviewSM2, createInitialReviewRecord, determineVocabularyStatus } from "@/lib/utils/spaced-repetition";
 import { updateBadge } from "@/lib/services/notifications";
 import { getSyncService } from "@/lib/services/sync";
+import { generateUUID } from "@/lib/utils/uuid";
 import type { VocabularyWord, ReviewRecord, ReviewSession as ReviewSessionType } from "@/lib/types/vocabulary";
 import type { StudySessionConfig, ExtendedReviewResult } from "@/lib/types/review";
 import { DEFAULT_SESSION_CONFIG } from "@/lib/types/review";
@@ -176,7 +177,7 @@ export default function ReviewPage() {
       if (wordsToReview.length > 0) {
         // Create a new review session record
         const newSession: ReviewSessionType = {
-          id: crypto.randomUUID(),
+          id: generateUUID(),
           startTime: Date.now(),
           endTime: null,
           cardsReviewed: 0,
@@ -195,7 +196,7 @@ export default function ReviewPage() {
       console.error("Failed to start review session:", error);
       // Fallback: use all words
       const newSession: ReviewSessionType = {
-        id: crypto.randomUUID(),
+        id: generateUUID(),
         startTime: Date.now(),
         endTime: null,
         cardsReviewed: 0,

@@ -19,6 +19,7 @@ import {
   deleteVocabularyWord,
   searchVocabulary,
 } from '@/lib/db/vocabulary';
+import { generateUUID } from '@/lib/utils/uuid';
 
 /**
  * Hook to fetch all vocabulary words
@@ -66,7 +67,7 @@ export function useAddVocabulary() {
       const now = Date.now();
       const newWord: VocabularyWord = {
         ...word,
-        id: crypto.randomUUID(),
+        id: generateUUID(),
         createdAt: now,
         updatedAt: now,
       };
@@ -212,6 +213,43 @@ export function useVocabularyStats() {
       
       return stats;
     },
+  });
+}
+
+/**
+ * Hook to get today's daily statistics with real-time updates
+ * Automatically recalculates when cache is invalidated after sync
+ * 
+ * THIS IS CRITICAL for cross-device sync - without this hook,
+ * stats won't auto-update when synced from other devices!
+ */
+export function useTodayStats() {
+  return useQuery({
+    queryKey: ['stats', 'today'],
+    queryFn: async () => {
+      const { getTodayStats, getActualNewWordsAddedToday } = await import('@/lib/db/stats');
+      const { getDueForReviewCount } = await import('@/lib/db/reviews');
+      
+      const [storedStats, actualNewWords, dueCount] = await Promise.all([
+        getTodayStats(),
+        getActualNewWordsAddedToday(),
+        getDueForReviewCount(),
+      ]);
+      
+      // CRITICAL: Use actual count from vocabulary createdAt timestamps
+      // instead of incremented counter from stats store
+      const correctedStats = {
+        ...storedStats,
+        newWordsAdded: actualNewWords,
+      };
+      
+      return {
+        stats: correctedStats,
+        dueCount,
+      };
+    },
+    // Refetch every 30 seconds to stay up to date
+    refetchInterval: 30000,
   });
 }
 

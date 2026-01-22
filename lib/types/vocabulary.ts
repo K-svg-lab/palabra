@@ -288,6 +288,9 @@ export interface DailyStats {
   /** Average accuracy rate */
   accuracyRate: number;
   
+  /** Timestamp of last modification (for sync tracking) */
+  updatedAt?: number;
+  
   /** Total time spent studying (milliseconds) */
   timeSpent: number;
 }

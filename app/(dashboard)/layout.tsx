@@ -41,23 +41,6 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
       }
     }
     checkAuth();
-    
-    // #region agent log - Track window focus events for H4
-    const handleFocus = () => {
-      fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'layout.tsx:28',message:'Window focus event fired',data:{isPWA:window.matchMedia('(display-mode: standalone)').matches,timestamp:Date.now()},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H4'})}).catch(()=>{});
-    };
-    const handleVisibilityChange = () => {
-      fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'layout.tsx:28',message:'Visibility change event',data:{visible:!document.hidden,isPWA:window.matchMedia('(display-mode: standalone)').matches},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H4'})}).catch(()=>{});
-    };
-    window.addEventListener('focus', handleFocus);
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-    fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'layout.tsx:28',message:'Dashboard layout mounted - tracking events',data:{isPWA:window.matchMedia('(display-mode: standalone)').matches},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H4'})}).catch(()=>{});
-    // #endregion
-    
-    return () => {
-      window.removeEventListener('focus', handleFocus);
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-    };
   }, []);
 
   return (

@@ -21,6 +21,7 @@ import type {
 import { getAllVocabularyWords, updateVocabularyWord } from '@/lib/db/vocabulary';
 import { getAllReviews, updateReviewRecord, createReviewRecord } from '@/lib/db/reviews';
 import { getAllStats, saveStats } from '@/lib/db/stats';
+import { generateUUID } from '@/lib/utils/uuid';
 
 const SYNC_DB_NAME = 'palabra-sync';
 const SYNC_DB_VERSION = 1;
@@ -130,7 +131,7 @@ export class CloudSyncService implements SyncService {
     
     let deviceId = localStorage.getItem('palabra-device-id');
     if (!deviceId) {
-      deviceId = crypto.randomUUID();
+      deviceId = generateUUID();
       localStorage.setItem('palabra-device-id', deviceId);
     }
     return deviceId;
@@ -349,11 +350,12 @@ export class CloudSyncService implements SyncService {
             fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'sync.ts:339',message:'Before applying remote stat',data:{date:stat.date,localBefore:localStatBefore?{cardsReviewed:localStatBefore.cardsReviewed,newWordsAdded:localStatBefore.newWordsAdded,accuracyRate:localStatBefore.accuracyRate}:null,remoteData:{cardsReviewed:stat.cardsReviewed,newWordsAdded:stat.newWordsAdded,accuracyRate:stat.accuracyRate}},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H2'})}).catch(()=>{});
             // #endregion
             
-            await saveStats(stat);
-            console.log(`✅ Applied stats for date: ${stat.date}`);
+            // CRITICAL: Preserve updatedAt timestamp from server to maintain sync tracking
+            await saveStats(stat, true);
+            console.log(`✅ Applied stats for date: ${stat.date} (updatedAt: ${stat.updatedAt})`);
             
             // #region agent log
-            fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'sync.ts:341',message:'After applying remote stat',data:{date:stat.date,applied:{cardsReviewed:stat.cardsReviewed,newWordsAdded:stat.newWordsAdded,accuracyRate:stat.accuracyRate}},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H2'})}).catch(()=>{});
+            fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'sync.ts:341',message:'After applying remote stat',data:{date:stat.date,applied:{cardsReviewed:stat.cardsReviewed,newWordsAdded:stat.newWordsAdded,accuracyRate:stat.accuracyRate,updatedAt:stat.updatedAt}},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H2'})}).catch(()=>{});
             // #endregion
           } catch (error) {
             console.error('Failed to apply remote stats:', error);
@@ -399,12 +401,13 @@ export class CloudSyncService implements SyncService {
         
         // Invalidate all vocabulary-related queries
         await this.queryClient.invalidateQueries({ queryKey: ['vocabulary'] });
-        // Invalidate stats queries
+        // Invalidate stats queries (both vocab stats and daily stats)
         await this.queryClient.invalidateQueries({ queryKey: ['vocabulary', 'stats'] });
+        await this.queryClient.invalidateQueries({ queryKey: ['stats'] });
         console.log('[Sync] Cache invalidated - UI will refetch fresh data');
         
         // #region agent log
-        fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'sync.ts:400',message:'After cache invalidation',data:{invalidated:true,queries:['vocabulary','vocabulary/stats']},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H3'})}).catch(()=>{});
+        fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'sync.ts:400',message:'After cache invalidation',data:{invalidated:true,queries:['vocabulary','vocabulary/stats','stats/today']},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H3'})}).catch(()=>{});
         // #endregion
       } else {
         console.warn('[Sync] QueryClient not available - UI may show stale data');
@@ -447,7 +450,7 @@ export class CloudSyncService implements SyncService {
         isSyncing: false,
         syncStatus: 'error',
         errors: [{
-          id: crypto.randomUUID(),
+          id: generateUUID(),
           entityType: 'vocabulary',
           entityId: '',
           operation: 'create',
@@ -468,7 +471,7 @@ export class CloudSyncService implements SyncService {
         conflicts: 0,
         errors: 1,
         errorDetails: [{
-          id: crypto.randomUUID(),
+          id: generateUUID(),
           entityType: 'vocabulary',
           entityId: '',
           operation: 'create',
@@ -618,19 +621,27 @@ export class CloudSyncService implements SyncService {
     // #endregion
     
     for (const stat of statsItems) {
-      // For stats, check if it's from today or if we have no lastSyncTime
-      // Stats are keyed by date (YYYY-MM-DD), so we sync all stats that were modified today
-      // or any stats if this is a first sync
-      const statDateObj = new Date(stat.date + 'T00:00:00.000Z'); // Parse as UTC midnight
-      const today = new Date();
-      const todayDateStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+      // CRITICAL FIX: Only sync stats that were actually modified on this device
+      // Check updatedAt timestamp instead of just checking if date is today
+      // This prevents stale stats from overwriting fresh stats from other devices
+      let shouldInclude = false;
       
-      // Include if: no lastSyncTime (first sync), stat is from today, or stat's date is from today or after last sync date
-      const isToday = stat.date === todayDateStr;
-      const shouldInclude = !lastSyncTime || isToday;
+      if (!lastSyncTime) {
+        // First sync - include all stats
+        shouldInclude = true;
+      } else if (stat.updatedAt) {
+        // Has updatedAt timestamp - check if modified since last sync
+        shouldInclude = stat.updatedAt > lastSyncTime.getTime();
+      } else {
+        // Legacy stat without updatedAt - include only today's stats for backward compatibility
+        const today = new Date();
+        const todayDateStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+        const isToday = stat.date === todayDateStr;
+        shouldInclude = isToday;
+      }
       
       // #region agent log
-      fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'sync.ts:599',message:'Stats shouldInclude decision',data:{date:stat.date,isToday,shouldInclude,cardsReviewed:stat.cardsReviewed,lastSyncTime:lastSyncTime?.toISOString()||'null'},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H1'})}).catch(()=>{});
+      fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'sync.ts:609',message:'Stats shouldInclude decision',data:{date:stat.date,shouldInclude,cardsReviewed:stat.cardsReviewed,updatedAt:stat.updatedAt,lastSyncTime:lastSyncTime?.toISOString()||'null',wasModifiedSinceSync:stat.updatedAt?stat.updatedAt>lastSyncTime.getTime():null},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H1'})}).catch(()=>{});
       // #endregion
       
       if (shouldInclude) {
@@ -639,13 +650,13 @@ export class CloudSyncService implements SyncService {
           entityType: 'stats',
           operation: 'update',
           data: stat,
-          timestamp: new Date().toISOString(), // Use current time as modification timestamp
+          timestamp: stat.updatedAt ? new Date(stat.updatedAt).toISOString() : new Date().toISOString(),
         });
       }
     }
     
     // #region agent log
-    fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'sync.ts:611',message:'Stats collection complete',data:{statsToUpload:stats.length,operations:stats.map(s=>({date:s.id,cardsReviewed:s.data.cardsReviewed,newWordsAdded:s.data.newWordsAdded}))},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H1'})}).catch(()=>{});
+    fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'sync.ts:627',message:'Stats collection complete',data:{statsToUpload:stats.length,operations:stats.map(s=>({date:s.id,cardsReviewed:s.data.cardsReviewed,newWordsAdded:s.data.newWordsAdded,updatedAt:s.data.updatedAt}))},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H1'})}).catch(()=>{});
     // #endregion
     
     return { vocabulary, reviews, stats };

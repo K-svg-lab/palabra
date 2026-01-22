@@ -13,6 +13,7 @@
 import { SPACED_REPETITION } from '@/lib/constants/app';
 import type { DifficultyRating, ReviewRecord } from '@/lib/types/vocabulary';
 import type { ReviewDirection } from '@/lib/types/review';
+import { generateUUID } from '@/lib/utils/uuid';
 
 /**
  * SM-2 Algorithm Parameters
@@ -280,7 +281,7 @@ export function createInitialReviewRecord(
   initialReviewDate: number = Date.now()
 ): ReviewRecord {
   return {
-    id: crypto.randomUUID(),
+    id: generateUUID(),
     vocabId,
     easeFactor: SPACED_REPETITION.INITIAL_EASE_FACTOR,
     interval: SPACED_REPETITION.INITIAL_INTERVAL,
