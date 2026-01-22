@@ -328,16 +328,33 @@ export class CloudSyncService implements SyncService {
       }
       
       // Sync stats
+      // #region agent log
+      fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'sync.ts:331',message:'Before syncStats API call',data:{operationsToUpload:operations.stats.length,uploadData:operations.stats.map(s=>({date:s.id,cardsReviewed:s.data.cardsReviewed,newWordsAdded:s.data.newWordsAdded,accuracyRate:s.data.accuracyRate}))},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H2'})}).catch(()=>{});
+      // #endregion
+      
       const statsResult = await this.syncStats(operations.stats, lastSyncTime);
       console.log(`📥 Downloaded ${statsResult.stats?.length || 0} stats`);
+      
+      // #region agent log
+      fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'sync.ts:333',message:'After syncStats API call',data:{downloadedStats:statsResult.stats?.length||0,downloadData:statsResult.stats?.map((s:any)=>({date:s.date,cardsReviewed:s.cardsReviewed,newWordsAdded:s.newWordsAdded,accuracyRate:s.accuracyRate}))||[]},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H2'})}).catch(()=>{});
+      // #endregion
       
       // Apply remote stats changes to local database
       if (statsResult.stats && statsResult.stats.length > 0) {
         console.log(`📥 Applying ${statsResult.stats.length} remote stats records...`);
         for (const stat of statsResult.stats) {
           try {
+            // #region agent log
+            const localStatBefore = await (async () => { try { return await (await import('@/lib/db/stats')).getStats(stat.date); } catch { return null; } })();
+            fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'sync.ts:339',message:'Before applying remote stat',data:{date:stat.date,localBefore:localStatBefore?{cardsReviewed:localStatBefore.cardsReviewed,newWordsAdded:localStatBefore.newWordsAdded,accuracyRate:localStatBefore.accuracyRate}:null,remoteData:{cardsReviewed:stat.cardsReviewed,newWordsAdded:stat.newWordsAdded,accuracyRate:stat.accuracyRate}},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H2'})}).catch(()=>{});
+            // #endregion
+            
             await saveStats(stat);
             console.log(`✅ Applied stats for date: ${stat.date}`);
+            
+            // #region agent log
+            fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'sync.ts:341',message:'After applying remote stat',data:{date:stat.date,applied:{cardsReviewed:stat.cardsReviewed,newWordsAdded:stat.newWordsAdded,accuracyRate:stat.accuracyRate}},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H2'})}).catch(()=>{});
+            // #endregion
           } catch (error) {
             console.error('Failed to apply remote stats:', error);
           }
@@ -372,6 +389,10 @@ export class CloudSyncService implements SyncService {
       console.log('✅ Sync completed successfully!');
       
       // CRITICAL FIX: Invalidate React Query cache to refresh UI with synced data
+      // #region agent log
+      fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'sync.ts:391',message:'Before cache invalidation',data:{hasQueryClient:!!this.queryClient,statsApplied:statsResult.stats?.length||0},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H3'})}).catch(()=>{});
+      // #endregion
+      
       if (this.queryClient) {
         const deletedVocabCount = vocabResult.operations?.filter((op: any) => op.data?.isDeleted).length || 0;
         console.log(`[Sync] Invalidating React Query cache (${deletedVocabCount} deletions applied)...`);
@@ -381,6 +402,10 @@ export class CloudSyncService implements SyncService {
         // Invalidate stats queries
         await this.queryClient.invalidateQueries({ queryKey: ['vocabulary', 'stats'] });
         console.log('[Sync] Cache invalidated - UI will refetch fresh data');
+        
+        // #region agent log
+        fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'sync.ts:400',message:'After cache invalidation',data:{invalidated:true,queries:['vocabulary','vocabulary/stats']},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H3'})}).catch(()=>{});
+        // #endregion
       } else {
         console.warn('[Sync] QueryClient not available - UI may show stale data');
       }
@@ -586,7 +611,13 @@ export class CloudSyncService implements SyncService {
     }
     
     // Get stats since last sync
-    const statsItems = await getAllStats();    for (const stat of statsItems) {
+    const statsItems = await getAllStats();
+    
+    // #region agent log
+    fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'sync.ts:589',message:'Stats collection started',data:{totalStats:statsItems.length,lastSyncTime:lastSyncTime?.toISOString()||'null',statsData:statsItems.map(s=>({date:s.date,cardsReviewed:s.cardsReviewed,newWordsAdded:s.newWordsAdded,accuracyRate:s.accuracyRate}))},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H1'})}).catch(()=>{});
+    // #endregion
+    
+    for (const stat of statsItems) {
       // For stats, check if it's from today or if we have no lastSyncTime
       // Stats are keyed by date (YYYY-MM-DD), so we sync all stats that were modified today
       // or any stats if this is a first sync
@@ -596,7 +627,13 @@ export class CloudSyncService implements SyncService {
       
       // Include if: no lastSyncTime (first sync), stat is from today, or stat's date is from today or after last sync date
       const isToday = stat.date === todayDateStr;
-      const shouldInclude = !lastSyncTime || isToday;      if (shouldInclude) {
+      const shouldInclude = !lastSyncTime || isToday;
+      
+      // #region agent log
+      fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'sync.ts:599',message:'Stats shouldInclude decision',data:{date:stat.date,isToday,shouldInclude,cardsReviewed:stat.cardsReviewed,lastSyncTime:lastSyncTime?.toISOString()||'null'},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H1'})}).catch(()=>{});
+      // #endregion
+      
+      if (shouldInclude) {
         stats.push({
           id: stat.date,
           entityType: 'stats',
@@ -606,6 +643,10 @@ export class CloudSyncService implements SyncService {
         });
       }
     }
+    
+    // #region agent log
+    fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'sync.ts:611',message:'Stats collection complete',data:{statsToUpload:stats.length,operations:stats.map(s=>({date:s.id,cardsReviewed:s.data.cardsReviewed,newWordsAdded:s.data.newWordsAdded}))},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H1'})}).catch(()=>{});
+    // #endregion
     
     return { vocabulary, reviews, stats };
   }

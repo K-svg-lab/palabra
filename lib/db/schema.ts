@@ -144,18 +144,50 @@ export async function initDB(): Promise<IDBPDatabase<PalabraDB>> {
  * Singleton database instance
  */
 let dbInstance: IDBPDatabase<PalabraDB> | null = null;
+let dbPromise: Promise<IDBPDatabase<PalabraDB>> | null = null;
 
 /**
  * Gets the database instance, initializing if necessary
  * Uses singleton pattern to avoid multiple connections
+ * Handles connection closing gracefully for HMR in development
  * 
  * @returns Promise resolving to the database instance
  */
 export async function getDB(): Promise<IDBPDatabase<PalabraDB>> {
-  if (!dbInstance) {
-    dbInstance = await initDB();
+  // If we have a valid instance, return it
+  if (dbInstance) {
+    try {
+      // Test if connection is still valid by checking object store names
+      // This will throw if connection is closed/closing
+      const storeNames = dbInstance.objectStoreNames;
+      if (storeNames.length > 0) {
+        return dbInstance;
+      }
+    } catch (error) {
+      // Connection is closed or closing, clear instance
+      console.log('[DB] Connection closed, reinitializing...');
+      dbInstance = null;
+      dbPromise = null;
+    }
   }
-  return dbInstance;
+  
+  // If we're already initializing, wait for that promise
+  if (dbPromise) {
+    return dbPromise;
+  }
+  
+  // Initialize new connection
+  dbPromise = initDB().then(db => {
+    dbInstance = db;
+    dbPromise = null; // Clear promise once resolved
+    return db;
+  }).catch(error => {
+    dbPromise = null; // Clear promise on error so we can retry
+    dbInstance = null;
+    throw error;
+  });
+  
+  return dbPromise;
 }
 
 /**
@@ -196,8 +228,14 @@ export async function clearAllUserData(): Promise<void> {
  */
 export function closeDB(): void {
   if (dbInstance) {
-    dbInstance.close();
+    try {
+      dbInstance.close();
+    } catch (error) {
+      // Ignore errors on close
+      console.log('[DB] Error closing connection (may already be closed)');
+    }
     dbInstance = null;
   }
+  dbPromise = null;
 }
 

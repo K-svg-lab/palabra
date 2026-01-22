@@ -82,6 +82,10 @@ export default function HomePage() {
         ]);
         setDueCount(count);
         
+        // #region agent log
+        fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'page.tsx:78',message:'Homepage stats loaded',data:{storedStats:{cardsReviewed:today.cardsReviewed,newWordsAdded:today.newWordsAdded,accuracyRate:today.accuracyRate},actualNewWords,dueCount:count},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H5'})}).catch(()=>{});
+        // #endregion
+        
         // CRITICAL FIX: Use actual count from vocabulary createdAt timestamps
         // instead of incremented counter from stats store
         const correctedStats = {
@@ -92,6 +96,10 @@ export default function HomePage() {
         setTodayStats(correctedStats);
         
         console.log(`📊 Stats correction: stored=${today.newWordsAdded}, actual=${actualNewWords}`);
+        
+        // #region agent log
+        fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'page.tsx:92',message:'Homepage stats corrected and set',data:{finalStats:{cardsReviewed:correctedStats.cardsReviewed,newWordsAdded:correctedStats.newWordsAdded,accuracyRate:correctedStats.accuracyRate}},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H5'})}).catch(()=>{});
+        // #endregion
       } catch (error) {
         console.error("Failed to load data:", error);
       }
