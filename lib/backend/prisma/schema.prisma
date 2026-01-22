@@ -222,6 +222,7 @@ model DailyStats {
   version           Int      @default(1)
   lastSyncedAt      DateTime @default(now())
   isDeleted         Boolean  @default(false)
+  updatedAt         DateTime @default(now()) @updatedAt
   
   // Relations
   user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
