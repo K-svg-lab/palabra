@@ -369,8 +369,48 @@ export class CloudSyncService implements SyncService {
         }
       }
       
-      // Update last sync time
-      await this.setLastSyncTime(new Date());
+      // Calculate the latest timestamp from all synced data
+      // This prevents freshly synced data from immediately appearing "stale" on next sync
+      // Use a simple max variable instead of collecting all timestamps for better performance
+      let maxSyncedTimestamp = 0;
+      let timestampCount = 0;
+      
+      // Find max vocabulary timestamp
+      if (vocabResult.operations) {
+        for (const op of vocabResult.operations) {
+          if (op.data?.updatedAt && op.data.updatedAt > maxSyncedTimestamp) {
+            maxSyncedTimestamp = op.data.updatedAt;
+          }
+          if (op.data?.updatedAt) timestampCount++;
+        }
+      }
+      
+      // Find max review timestamp
+      if (reviewsResult.reviews) {
+        for (const review of reviewsResult.reviews) {
+          if (review.updatedAt && review.updatedAt > maxSyncedTimestamp) {
+            maxSyncedTimestamp = review.updatedAt;
+          }
+          if (review.updatedAt) timestampCount++;
+        }
+      }
+      
+      // Find max stats timestamp
+      if (statsResult.stats) {
+        for (const stat of statsResult.stats) {
+          if (stat.updatedAt && stat.updatedAt > maxSyncedTimestamp) {
+            maxSyncedTimestamp = stat.updatedAt;
+          }
+          if (stat.updatedAt) timestampCount++;
+        }
+      }
+      
+      // Use the latest timestamp from synced data, or current time if no data was synced
+      if (maxSyncedTimestamp === 0) maxSyncedTimestamp = Date.now();
+      const newLastSyncTime = new Date(maxSyncedTimestamp);
+      
+      // Update last sync time to the latest timestamp from synced data
+      await this.setLastSyncTime(newLastSyncTime);
       console.log('✅ Sync completed successfully!');
       
       // CRITICAL FIX: Invalidate React Query cache to refresh UI with synced data
@@ -529,7 +569,9 @@ export class CloudSyncService implements SyncService {
       throw new Error('Failed to sync stats');
     }
     
-    return response.json();
+    const result = await response.json();
+    
+    return result;
   }
   
   /**
@@ -597,8 +639,18 @@ export class CloudSyncService implements SyncService {
       // This prevents stale stats from overwriting fresh stats from other devices
       let shouldInclude = false;
       
-      if (!lastSyncTime) {
-        // First sync - include all stats
+      // CRITICAL: Never upload "empty" stats (fresh stats with no activity)
+      // These are created automatically when getTodayStats() runs on a fresh database
+      // Uploading them would overwrite real stats from other devices
+      const isEmpty = (stat.cardsReviewed || 0) === 0 && 
+                      (stat.sessionsCompleted || 0) === 0 && 
+                      (stat.timeSpent || 0) === 0;
+      
+      if (isEmpty && !lastSyncTime) {
+        // Fresh database with empty stats - don't upload, only download from server
+        shouldInclude = false;
+      } else if (!lastSyncTime) {
+        // First sync with actual data - include stats that have activity
         shouldInclude = true;
       } else if (stat.updatedAt) {
         // Has updatedAt timestamp - check if modified since last sync
@@ -621,6 +673,8 @@ export class CloudSyncService implements SyncService {
         });
       }
     }
+    
+    console.log(`[Sync] Collected ${stats.length} stats to upload (${statsItems.length} total evaluated)`);
     
     return { vocabulary, reviews, stats };
   }

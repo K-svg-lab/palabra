@@ -217,7 +217,9 @@ export async function updateStatsAfterSession(
   
   console.log('📊 Stats after session update:', stats);
   
-  return saveStats(stats);
+  const savedStats = await saveStats(stats);
+  
+  return savedStats;
 }
 
 /**

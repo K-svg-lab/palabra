@@ -303,6 +303,7 @@ export default function ReviewPage() {
         
         // Update daily stats
         const timeSpent = sessionEndTime - currentSession.startTime;
+        
         await updateStatsAfterSession(results.length, accuracyRate, timeSpent);
       }
 
