@@ -4,6 +4,88 @@ This document tracks all bugs identified and resolved across development session
 
 ---
 
+# Session: Stats Reset After Browser History Clear
+
+## Session Date: January 24-26, 2026
+
+This document tracks the bug where dashboard statistics were reset to 0 after users cleared browser history on mobile devices.
+
+---
+
+## Bug #1: Empty Stats Overwriting Server Data After Browser Clear
+
+**Status**: ✅ RESOLVED
+
+**Reported**: 2026-01-24  
+**Fixed**: 2026-01-26
+
+### Description
+Users reported that after clearing browser history on their mobile device, their review statistics (cards reviewed, accuracy) were reset to 0 on all devices. The data would briefly appear after completing reviews on mobile, then get overwritten back to 0. Desktop stats were also affected after sync.
+
+### Root Cause
+When users cleared browser history/IndexedDB:
+1. IndexedDB was wiped → Fresh database created
+2. `getTodayStats()` auto-created empty stats with `cardsReviewed: 0` and a **new timestamp**
+3. During sync with `lastSyncTime: null` (first sync), these empty stats were uploaded to the server
+4. Empty stats had newer timestamps than real stats → overwrote correct server data via "Last-Write-Wins" conflict resolution
+5. Desktop synced and downloaded the 0-value stats → **Data loss across all devices**
+
+### Solution
+Implemented logic to **never upload "empty" stats** (stats with no actual activity) during first sync:
+
+```typescript
+// In collectLocalChanges() - lib/services/sync.ts
+const isEmpty = (stat.cardsReviewed || 0) === 0 && 
+                (stat.sessionsCompleted || 0) === 0 && 
+                (stat.timeSpent || 0) === 0;
+
+if (isEmpty && !lastSyncTime) {
+  // Fresh database with empty stats - don't upload, only download from server
+  shouldInclude = false;
+}
+```
+
+This ensures:
+- Fresh databases only **download** from server, never overwrite
+- Once users complete actual reviews, stats with activity are uploaded normally
+- Existing real data is protected from empty stat overwrites
+
+### Code Changes
+**Files Modified:**
+- `lib/services/sync.ts`: 
+  - Added `isEmpty` check in `collectLocalChanges()` to filter out empty stats during first sync
+  - Optimized `lastSyncTime` calculation to use latest synced timestamp
+- `lib/db/stats.ts`: Removed debug instrumentation
+- `app/(dashboard)/review/page.tsx`: Removed debug instrumentation
+- `app/api/sync/stats/route.ts`: Removed debug instrumentation
+- `lib/hooks/use-vocabulary.ts`: Removed debug instrumentation
+
+### Verification
+**Testing Method**: Desktop-only simulation by deleting IndexedDB in Chrome DevTools  
+
+**Debug Evidence**:
+- **Line 248 in debug.log**: Empty stats correctly identified as `isEmpty: true, shouldInclude: false`
+- **Line 249**: Upload stats count = `0` (empty stats not uploaded)
+- **Lines 251-253**: Server returned correct stats with `cardsReviewed: 5`
+- **Line 280**: Final result shows correct data restored: `cardsReviewed: 5, accuracyRate: 0.8`
+
+**Hypotheses**:
+- H1-H8: Initial investigation of sync flow
+- H9_TIMING_FIX: Fixed `lastSyncTime` calculation
+- H10_EMPTY_STATS_FIX: **Final fix** - prevent empty stats upload
+
+### Impact
+- **Severity**: Critical (data loss)
+- **Affected Users**: Users who clear browser data
+- **Deployment**: Production (https://palabra.vercel.app)
+- **Commit**: `a151086`
+
+### Related Issues
+- See `BUG_FIX_2026_01_22_SYNC_COMPLETE.md` for previous stats sync fixes
+- This completes the cross-device sync reliability improvements
+
+---
+
 # Session: PWA Caching & Data Sync Issues
 
 ## Session Date: January 19-20, 2026

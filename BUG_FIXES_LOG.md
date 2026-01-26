@@ -5,6 +5,59 @@ This log tracks all critical bug fixes across development sessions.
 
 ---
 
+# Session: Stats Reset After Browser Clear (2026-01-26)
+
+## Summary
+Fixed critical data loss bug where clearing browser history caused dashboard statistics to reset to 0 across all devices.
+
+---
+
+## Bug #1: Empty Stats Overwriting Server Data
+**Date**: 2026-01-26  
+**Severity**: Critical (Data Loss)  
+**Status**: ✅ Fixed
+
+### Description
+Users who cleared browser history on mobile would see their dashboard statistics (cards reviewed, accuracy) reset to 0, and this reset would propagate to all other devices via sync.
+
+### Root Cause
+When IndexedDB was wiped, fresh empty stats with new timestamps were auto-created and uploaded to the server, overwriting real data via "Last-Write-Wins" conflict resolution.
+
+### Solution
+Implemented logic to never upload "empty" stats (stats with no activity) during first sync. Fresh databases now only download from server, never overwrite.
+
+```typescript
+// collectLocalChanges() - lib/services/sync.ts
+const isEmpty = (stat.cardsReviewed || 0) === 0 && 
+                (stat.sessionsCompleted || 0) === 0 && 
+                (stat.timeSpent || 0) === 0;
+
+if (isEmpty && !lastSyncTime) {
+  shouldInclude = false;  // Don't upload empty stats
+}
+```
+
+### Files Modified
+- `lib/services/sync.ts` - Added isEmpty check
+- `lib/db/stats.ts` - Removed debug logs
+- `app/(dashboard)/review/page.tsx` - Removed debug logs
+- `app/api/sync/stats/route.ts` - Removed debug logs
+- `lib/hooks/use-vocabulary.ts` - Removed debug logs
+
+### Verification
+Tested by deleting IndexedDB in DevTools. Stats correctly restored from server without uploading empty values.
+
+### Impact
+- Users can safely clear browser data without losing review statistics
+- Data integrity maintained across all devices
+- Deployed to production: https://palabra.vercel.app
+
+### Documentation
+- See: `BUG_FIX_2026_01_26_EMPTY_STATS_OVERWRITE.md` for complete details
+- Commit: `a151086`
+
+---
+
 # Session: PWA Caching & Data Sync (2026-01-20)
 
 ## Summary
