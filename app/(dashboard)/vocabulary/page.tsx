@@ -7,7 +7,7 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { Plus, X, Filter as FilterIcon } from 'lucide-react';
 import Link from 'next/link';
 import { VocabularyList } from '@/components/features/vocabulary-list';
@@ -217,10 +217,12 @@ export default function VocabularyPage() {
         
         {/* Vocabulary List */}
         {!showBulkOps && (
-          <VocabularyList
-            onAddNew={handleAddNew}
-            onEdit={(word) => setEditingWord(word)}
-          />
+          <Suspense fallback={<div className="text-center py-12">Loading...</div>}>
+            <VocabularyList
+              onAddNew={handleAddNew}
+              onEdit={(word) => setEditingWord(word)}
+            />
+          </Suspense>
         )}
       </div>
 

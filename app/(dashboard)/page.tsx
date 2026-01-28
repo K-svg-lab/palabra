@@ -246,12 +246,7 @@ export default function HomePage() {
 
             {/* Add Vocabulary */}
             <Link
-              href="/vocabulary"
-              onClick={(e) => {
-                e.preventDefault();
-                // Will be handled by vocabulary page modal
-                window.location.href = '/vocabulary';
-              }}
+              href="/vocabulary?focus=search"
               className="flex items-center justify-between p-4 bg-accent text-white rounded-xl hover:bg-accent/90 transition-all shadow-md hover:shadow-lg"
             >
               <div className="flex items-center gap-3">
@@ -282,7 +277,7 @@ export default function HomePage() {
                 intelligent spaced repetition.
               </p>
               <Link
-                href="/vocabulary"
+                href="/vocabulary?focus=search"
                 className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-accent text-white rounded-full font-medium hover:bg-accent/90 transition-colors shadow-lg"
               >
                 <Plus className="w-5 h-5" />

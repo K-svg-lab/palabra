@@ -8,7 +8,8 @@
 
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { Search, Filter, Plus } from 'lucide-react';
 import { VocabularyCard } from './vocabulary-card';
 import { useVocabulary, useDeleteVocabulary } from '@/lib/hooks/use-vocabulary';
@@ -24,9 +25,26 @@ export function VocabularyList({ onAddNew, onEdit }: Props) {
   const [filterStatus, setFilterStatus] = useState<'all' | 'new' | 'learning' | 'mastered'>('all');
   const [sortBy, setSortBy] = useState<'newest' | 'oldest' | 'alphabetical'>('newest');
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
+  
+  const searchInputRef = useRef<HTMLInputElement>(null);
+  const searchParams = useSearchParams();
 
   const { data: vocabulary = [], isLoading } = useVocabulary() as { data: VocabularyWord[]; isLoading: boolean };
   const deleteMutation = useDeleteVocabulary();
+
+  // Auto-focus search box when navigating from "Add New Word" buttons
+  useEffect(() => {
+    const shouldFocus = searchParams.get('focus') === 'search';
+    if (shouldFocus && searchInputRef.current) {
+      // Small delay to ensure DOM is ready
+      const timer = setTimeout(() => {
+        searchInputRef.current?.focus();
+        // Trigger keyboard on mobile
+        searchInputRef.current?.click();
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [searchParams]);
 
   // Filter and sort vocabulary
   const filteredVocabulary = useMemo(() => {
@@ -103,6 +121,7 @@ export function VocabularyList({ onAddNew, onEdit }: Props) {
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
           <input
+            ref={searchInputRef}
             type="text"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value.toLowerCase())}
