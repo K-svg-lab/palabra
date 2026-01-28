@@ -6,6 +6,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { BottomNav } from '@/components/layouts/bottom-nav';
 import { SkipLink } from '@/components/shared/skip-link';
@@ -24,6 +25,11 @@ interface DashboardLayoutProps {
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const pathname = usePathname();
+
+  // Pages that have user icon in their header (don't show floating indicator)
+  const pagesWithHeaderUser = ['/', '/vocabulary', '/progress'];
+  const hideFloatingUser = pagesWithHeaderUser.includes(pathname);
 
   useEffect(() => {
     // Check authentication status
@@ -49,7 +55,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
       <SkipLink />
       
       {/* Subtle User Indicator - Bottom Right Corner (above nav) */}
-      {!loading && (
+      {!loading && !hideFloatingUser && (
         <Link
           href={user ? "/settings" : "/signin"}
           className="fixed bottom-20 right-4 z-30 flex items-center gap-2 px-3 py-2 bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm rounded-full shadow-md hover:shadow-lg transition-all border border-gray-200 dark:border-gray-700"

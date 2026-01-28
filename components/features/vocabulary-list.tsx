@@ -15,7 +15,7 @@ import { useVocabulary, useDeleteVocabulary } from '@/lib/hooks/use-vocabulary';
 import type { VocabularyWord } from '@/lib/types/vocabulary';
 
 interface Props {
-  onAddNew?: () => void;
+  onAddNew?: (initialWord?: string) => void;
   onEdit?: (word: VocabularyWord) => void;
 }
 
@@ -61,12 +61,26 @@ export function VocabularyList({ onAddNew, onEdit }: Props) {
     return filtered;
   }, [vocabulary, searchTerm, filterStatus, sortBy]);
 
+  // Check if search term doesn't exist in vocabulary (exact match check)
+  const showAddButton = useMemo(() => {
+    if (!searchTerm || searchTerm.trim().length === 0) return false;
+    const trimmedSearch = searchTerm.trim().toLowerCase();
+    return !vocabulary.some(word => word.spanishWord.toLowerCase() === trimmedSearch);
+  }, [searchTerm, vocabulary]);
+
   const handleDelete = async (id: string) => {
     try {
       await deleteMutation.mutateAsync(id);
       setShowDeleteConfirm(null);
     } catch (error) {
       console.error('Delete error:', error);
+    }
+  };
+
+  const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter' && showAddButton && onAddNew && searchTerm.trim().length > 0) {
+      e.preventDefault();
+      onAddNew(searchTerm.trim());
     }
   };
 
@@ -92,9 +106,23 @@ export function VocabularyList({ onAddNew, onEdit }: Props) {
             type="text"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
+            onKeyDown={handleSearchKeyDown}
             placeholder="Search Spanish or English..."
-            className="w-full pl-10 pr-4 py-3 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-black focus:ring-2 focus:ring-accent focus:border-transparent"
+            className={`w-full pl-10 py-3 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-black focus:ring-2 focus:ring-accent focus:border-transparent ${
+              showAddButton ? 'pr-12' : 'pr-4'
+            }`}
           />
+          {showAddButton && onAddNew && (
+            <button
+              type="button"
+              onClick={() => onAddNew(searchTerm.trim())}
+              className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 bg-accent text-white rounded-full flex items-center justify-center hover:bg-accent/90 transition-colors shadow-md"
+              aria-label="Add new word"
+              title="Add this word to vocabulary"
+            >
+              <Plus className="w-4 h-4" />
+            </button>
+          )}
         </div>
 
         {/* Filters */}

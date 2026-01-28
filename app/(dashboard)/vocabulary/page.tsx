@@ -9,6 +9,7 @@
 
 import { useState, useEffect } from 'react';
 import { Plus, X, Filter as FilterIcon } from 'lucide-react';
+import Link from 'next/link';
 import { VocabularyList } from '@/components/features/vocabulary-list';
 import { VocabularyEntryFormEnhanced } from '@/components/features/vocabulary-entry-form-enhanced';
 import { VocabularyEditModal } from '@/components/features/vocabulary-edit-modal';
@@ -27,9 +28,14 @@ import type { VocabularyWord } from '@/lib/types/vocabulary';
  */
 export default function VocabularyPage() {
   const [showAddModal, setShowAddModal] = useState(false);
+  const [initialWord, setInitialWord] = useState<string | undefined>(undefined);
   const [editingWord, setEditingWord] = useState<VocabularyWord | null>(null);
   const [showFilters, setShowFilters] = useState(false);
   const [showBulkOps, setShowBulkOps] = useState(false);
+  
+  // User state
+  const [user, setUser] = useState<any>(null);
+  const [userLoading, setUserLoading] = useState(true);
   
   // Filter state
   const [filterCriteria, setFilterCriteria] = useState<VocabularyFilterCriteria>({});
@@ -41,6 +47,24 @@ export default function VocabularyPage() {
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   
   const { data: vocabulary = [], refetch } = useVocabulary() as { data: VocabularyWord[]; refetch: () => void };
+
+  // Check authentication status
+  useEffect(() => {
+    async function checkAuth() {
+      try {
+        const response = await fetch('/api/auth/me');
+        if (response.ok) {
+          const data = await response.json();
+          setUser(data.user);
+        }
+      } catch (error) {
+        console.log('Not authenticated');
+      } finally {
+        setUserLoading(false);
+      }
+    }
+    checkAuth();
+  }, []);
 
   // Load available tags
   useEffect(() => {
@@ -64,14 +88,25 @@ export default function VocabularyPage() {
     applyFilters();
   }, [vocabulary, filterCriteria, sortBy]);
 
+  const handleAddNew = (word?: string) => {
+    setInitialWord(word);
+    setShowAddModal(true);
+  };
+
   const handleAddSuccess = () => {
     setShowAddModal(false);
+    setInitialWord(undefined);
     refetch();
   };
 
   const handleEditSuccess = () => {
     setEditingWord(null);
     refetch();
+  };
+  
+  const handleCloseAddModal = () => {
+    setShowAddModal(false);
+    setInitialWord(undefined);
   };
   
   const handleBulkOperationComplete = async () => {
@@ -103,7 +138,7 @@ export default function VocabularyPage() {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.shiftKey && e.key === 'A' && !showAddModal && !editingWord) {
         e.preventDefault();
-        setShowAddModal(true);
+        handleAddNew();
       }
     };
 
@@ -122,41 +157,35 @@ export default function VocabularyPage() {
               {filteredWords.length} of {vocabulary.length} {vocabulary.length === 1 ? 'word' : 'words'}
             </p>
           </div>
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={() => setShowFilters(!showFilters)}
-              className={`px-3 py-2 rounded-lg flex items-center gap-2 transition-colors ${
-                showFilters
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-700'
-              }`}
-              aria-label="Toggle filters"
+          
+          {/* User Icon */}
+          {!userLoading && (
+            <Link
+              href={user ? "/settings" : "/signin"}
+              className="flex items-center gap-2 px-3 py-2 bg-white dark:bg-gray-800 rounded-full hover:bg-gray-50 dark:hover:bg-gray-700 transition-all border border-gray-200 dark:border-gray-700"
+              title={user ? `Signed in as ${user.name || user.email}` : 'Sign in to sync across devices'}
             >
-              <FilterIcon className="w-4 h-4" />
-              <span className="hidden sm:inline">Filter</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => setShowBulkOps(!showBulkOps)}
-              className={`px-3 py-2 rounded-lg transition-colors ${
-                showBulkOps
-                  ? 'bg-purple-600 text-white'
-                  : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-700'
-              }`}
-            >
-              <span className="hidden sm:inline">Bulk</span>
-              <span className="sm:hidden">📦</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => setShowAddModal(true)}
-              className="w-10 h-10 bg-accent text-white rounded-full flex items-center justify-center hover:bg-accent/90 transition-colors shadow-lg"
-              aria-label="Add new word"
-            >
-              <Plus className="w-5 h-5" />
-            </button>
-          </div>
+              {user ? (
+                <>
+                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white text-sm font-semibold">
+                    {(user.name || user.email).charAt(0).toUpperCase()}
+                  </div>
+                  <div className="hidden sm:block">
+                    <p className="text-xs text-gray-600 dark:text-gray-400 leading-tight">
+                      {user.name || user.email.split('@')[0]}
+                    </p>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <svg className="w-5 h-5 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                  </svg>
+                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300 hidden sm:inline">Sign In</span>
+                </>
+              )}
+            </Link>
+          )}
         </div>
       </header>
 
@@ -189,7 +218,7 @@ export default function VocabularyPage() {
         {/* Vocabulary List */}
         {!showBulkOps && (
           <VocabularyList
-            onAddNew={() => setShowAddModal(true)}
+            onAddNew={handleAddNew}
             onEdit={(word) => setEditingWord(word)}
           />
         )}
@@ -204,7 +233,7 @@ export default function VocabularyPage() {
               <h2 className="text-xl font-semibold">Add New Word</h2>
               <button
                 type="button"
-                onClick={() => setShowAddModal(false)}
+                onClick={handleCloseAddModal}
                 className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors"
                 aria-label="Close"
               >
@@ -215,8 +244,9 @@ export default function VocabularyPage() {
             {/* Form */}
             <div className="p-6">
               <VocabularyEntryFormEnhanced
+                initialWord={initialWord}
                 onSuccess={handleAddSuccess}
-                onCancel={() => setShowAddModal(false)}
+                onCancel={handleCloseAddModal}
               />
             </div>
           </div>

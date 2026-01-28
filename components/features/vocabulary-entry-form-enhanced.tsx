@@ -32,11 +32,12 @@ interface VocabularyFormData {
 }
 
 interface Props {
+  initialWord?: string;
   onSuccess?: () => void;
   onCancel?: () => void;
 }
 
-export function VocabularyEntryFormEnhanced({ onSuccess, onCancel }: Props) {
+export function VocabularyEntryFormEnhanced({ initialWord, onSuccess, onCancel }: Props) {
   const [lookupData, setLookupData] = useState<{
     translation?: string;
     gender?: Gender;
@@ -51,6 +52,7 @@ export function VocabularyEntryFormEnhanced({ onSuccess, onCancel }: Props) {
   } | null>(null);
   const [isCheckingSpelling, setIsCheckingSpelling] = useState(false);
   const [lastLookedUpWord, setLastLookedUpWord] = useState<string>('');
+  const [hasAutoTriggered, setHasAutoTriggered] = useState(false);
   
   const { register, handleSubmit, watch, setValue, formState: { errors } } = useForm<VocabularyFormData>();
   const lookupMutation = useLookupVocabulary();
@@ -59,16 +61,51 @@ export function VocabularyEntryFormEnhanced({ onSuccess, onCancel }: Props) {
   const spanishWord = watch('spanishWord');
   const notes = watch('notes');
 
-  // Auto-focus input field when component mounts
+  // Auto-focus input field when component mounts and populate initial word if provided
   useEffect(() => {
+    if (hasAutoTriggered) return; // Prevent running again
+    
     const timer = setTimeout(() => {
       const input = document.getElementById('spanishWord') as HTMLInputElement;
       if (input) {
+        if (initialWord && initialWord.trim().length > 0) {
+          setValue('spanishWord', initialWord.trim());
+          setHasAutoTriggered(true);
+          
+          // Trigger lookup after setting the value
+          setTimeout(async () => {
+            const cleanWord = initialWord.trim();
+            try {
+              // First, check spelling
+              setIsCheckingSpelling(true);
+              const spellCheck = await checkSpanishSpelling(cleanWord);
+              setSpellCheckResult(spellCheck);
+              setIsCheckingSpelling(false);
+
+              // If word is misspelled, show suggestions and don't proceed with lookup
+              if (!spellCheck.isCorrect) {
+                return;
+              }
+
+              // If spelling is correct, proceed with lookup
+              const data = await lookupMutation.mutateAsync(cleanWord);
+              setLookupData(data);
+              setLastLookedUpWord(cleanWord);
+              
+              // Auto-fill form fields
+              setValue('englishTranslation', data.translation);
+              setValue('gender', data.gender);
+              setValue('partOfSpeech', data.partOfSpeech);
+            } catch (error) {
+              console.error('Auto-lookup error:', error);
+            }
+          }, 300);
+        }
         input.focus();
       }
     }, 100);
     return () => clearTimeout(timer);
-  }, []);
+  }, [initialWord, setValue, hasAutoTriggered, lookupMutation]);
 
   const handleLookup = async (wordOverride?: string) => {
     const wordToUse = wordOverride || spanishWord;
