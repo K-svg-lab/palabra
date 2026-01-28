@@ -105,7 +105,7 @@ export function VocabularyList({ onAddNew, onEdit }: Props) {
           <input
             type="text"
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            onChange={(e) => setSearchTerm(e.target.value.toLowerCase())}
             onKeyDown={handleSearchKeyDown}
             placeholder="Search Spanish or English..."
             className={`w-full pl-10 py-3 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-black focus:ring-2 focus:ring-accent focus:border-transparent ${
