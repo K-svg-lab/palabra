@@ -100,8 +100,10 @@ export function VocabularyEntryFormEnhanced({ initialWord, onSuccess, onCancel }
               console.error('Auto-lookup error:', error);
             }
           }, 300);
+        } else {
+          // Only auto-focus Spanish word field when opening blank form (no initialWord)
+          input.focus();
         }
-        input.focus();
       }
     }, 100);
     return () => clearTimeout(timer);
