@@ -7,7 +7,7 @@
 
 'use client';
 
-import { useState, useEffect, Suspense } from 'react';
+import { useState, useEffect, useRef, Suspense } from 'react';
 import { Plus, X, Filter as FilterIcon } from 'lucide-react';
 import Link from 'next/link';
 import { VocabularyList } from '@/components/features/vocabulary-list';
@@ -45,6 +45,9 @@ export default function VocabularyPage() {
   
   // Bulk operations state
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  
+  // Ref to clear search and refocus after adding word
+  const clearSearchAndFocusRef = useRef<(() => void) | null>(null);
   
   const { data: vocabulary = [], refetch } = useVocabulary() as { data: VocabularyWord[]; refetch: () => void };
 
@@ -97,6 +100,11 @@ export default function VocabularyPage() {
     setShowAddModal(false);
     setInitialWord(undefined);
     refetch();
+    
+    // Clear search box and refocus for next word entry
+    if (clearSearchAndFocusRef.current) {
+      clearSearchAndFocusRef.current();
+    }
   };
 
   const handleEditSuccess = () => {
@@ -221,6 +229,7 @@ export default function VocabularyPage() {
             <VocabularyList
               onAddNew={handleAddNew}
               onEdit={(word) => setEditingWord(word)}
+              clearSearchAndFocusRef={clearSearchAndFocusRef}
             />
           </Suspense>
         )}

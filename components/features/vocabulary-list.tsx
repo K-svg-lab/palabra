@@ -18,9 +18,10 @@ import type { VocabularyWord } from '@/lib/types/vocabulary';
 interface Props {
   onAddNew?: (initialWord?: string) => void;
   onEdit?: (word: VocabularyWord) => void;
+  clearSearchAndFocusRef?: React.MutableRefObject<(() => void) | null>;
 }
 
-export function VocabularyList({ onAddNew, onEdit }: Props) {
+export function VocabularyList({ onAddNew, onEdit, clearSearchAndFocusRef }: Props) {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState<'all' | 'new' | 'learning' | 'mastered'>('all');
   const [sortBy, setSortBy] = useState<'newest' | 'oldest' | 'alphabetical'>('newest');
@@ -45,6 +46,20 @@ export function VocabularyList({ onAddNew, onEdit }: Props) {
       return () => clearTimeout(timer);
     }
   }, [searchParams]);
+
+  // Expose clearSearchAndFocus method to parent component
+  useEffect(() => {
+    if (clearSearchAndFocusRef) {
+      clearSearchAndFocusRef.current = () => {
+        setSearchTerm('');
+        setTimeout(() => {
+          searchInputRef.current?.focus();
+          // Trigger keyboard on mobile
+          searchInputRef.current?.click();
+        }, 100);
+      };
+    }
+  }, [clearSearchAndFocusRef]);
 
   // Filter and sort vocabulary
   const filteredVocabulary = useMemo(() => {
