@@ -202,6 +202,16 @@ export class CloudSyncService implements SyncService {
       
       console.log('✅ Authenticated, proceeding with sync');
       
+      // Process offline queue first
+      try {
+        const { getOfflineQueueService } = await import('@/lib/services/offline-queue');
+        const queueService = getOfflineQueueService();
+        await queueService.processQueue();
+      } catch (error) {
+        console.error('[Sync] Error processing offline queue:', error);
+        // Continue with sync even if queue processing fails
+      }
+      
       // Update state
       await this.updateState({ isSyncing: true, syncStatus: 'syncing' });
       status = 'syncing';

@@ -13,6 +13,7 @@ import { getVocabularyWord, updateVocabularyWord } from "@/lib/db/vocabulary";
 import { updateReviewRecord as updateReviewSM2, createInitialReviewRecord, determineVocabularyStatus } from "@/lib/utils/spaced-repetition";
 import { updateBadge } from "@/lib/services/notifications";
 import { getSyncService } from "@/lib/services/sync";
+import { getOfflineQueueService } from "@/lib/services/offline-queue";
 import { generateUUID } from "@/lib/utils/uuid";
 import type { VocabularyWord, ReviewRecord, ReviewSession as ReviewSessionType } from "@/lib/types/vocabulary";
 import type { StudySessionConfig, ExtendedReviewResult } from "@/lib/types/review";
@@ -316,13 +317,31 @@ export default function ReviewPage() {
       }
 
       // Trigger sync to upload reviews and stats to cloud
-      try {
-        const syncService = getSyncService();
-        await syncService.sync('incremental');
-        console.log('✅ Session data synced to cloud');
-      } catch (error) {
-        console.error("Failed to sync session data:", error);
-        // Don't fail the session if sync fails - it will retry later
+      // If offline, queue the reviews for later sync
+      if (!navigator.onLine) {
+        console.log('📴 Offline - queueing reviews for sync');
+        try {
+          const queueService = getOfflineQueueService();
+          await queueService.enqueue('submit_review', results);
+        } catch (error) {
+          console.error("Failed to queue reviews:", error);
+        }
+      } else {
+        // Online - try to sync immediately
+        try {
+          const syncService = getSyncService();
+          await syncService.sync('incremental');
+          console.log('✅ Session data synced to cloud');
+        } catch (error) {
+          console.error("Failed to sync session data:", error);
+          // Queue for retry if sync fails
+          try {
+            const queueService = getOfflineQueueService();
+            await queueService.enqueue('submit_review', results);
+          } catch (queueError) {
+            console.error("Failed to queue reviews after sync failure:", queueError);
+          }
+        }
       }
 
       // Navigate back to home with success message

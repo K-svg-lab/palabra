@@ -1,12 +1,16 @@
 /**
  * Service Worker for Palabra PWA
  * Handles notifications, background sync, offline functionality, and advanced caching
- * Enhanced for Phase 12 with better offline support and sync capabilities
+ * Enhanced for offline mode with queue support and vocabulary caching
+ * 
+ * Note: Vocabulary data is cached in IndexedDB (not service worker cache)
+ * for better performance and querying capabilities. The service worker
+ * caches static assets and provides offline fallbacks for API routes.
  */
 
 // CRITICAL: Increment cache version to bust old caches
 // Use timestamp-based versioning to force cache refresh on every deployment
-const CACHE_VERSION = 'v3-20260119';
+const CACHE_VERSION = 'v4-20260130';
 const CACHE_NAME = `palabra-${CACHE_VERSION}`;
 const STATIC_CACHE = `palabra-static-${CACHE_VERSION}`;
 const DYNAMIC_CACHE = `palabra-dynamic-${CACHE_VERSION}`;
@@ -104,7 +108,9 @@ self.addEventListener('fetch', (event) => {
 
   // Choose caching strategy based on request type
   if (isAPIRoute(url.pathname)) {
-    // API routes: ALWAYS network-first (critical for data freshness)
+    // API routes: Network-first with offline fallback
+    // Vocabulary data is stored in IndexedDB, not service worker cache
+    // The offline queue handles failed API requests
     event.respondWith(networkFirstStrategy(request));
   } else if (isImageRequest(request)) {
     // Images: Cache-first, fallback to network
@@ -117,7 +123,7 @@ self.addEventListener('fetch', (event) => {
     event.respondWith(cacheFirstStrategy(request, STATIC_CACHE));
   } else {
     // HTML pages: Network-first to always get latest deployment
-    // CRITICAL FIX: Don't serve stale HTML from cache
+    // CRITICAL: Don't serve stale HTML from cache
     event.respondWith(networkFirstStrategy(request));
   }
 });

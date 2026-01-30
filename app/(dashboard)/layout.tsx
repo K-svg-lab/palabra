@@ -10,6 +10,8 @@ import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { BottomNav } from '@/components/layouts/bottom-nav';
 import { SkipLink } from '@/components/shared/skip-link';
+import { SyncStatusBanner } from '@/components/ui/sync-status-banner';
+import { useOnlineStatus } from '@/lib/hooks/use-online-status';
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -26,6 +28,9 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const pathname = usePathname();
+  
+  // Initialize online status tracking (triggers sync when online)
+  useOnlineStatus();
 
   // Pages that have user icon in their header (don't show floating indicator)
   const pagesWithHeaderUser = ['/', '/vocabulary', '/progress'];
@@ -53,6 +58,9 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     <div className="min-h-screen flex flex-col">
       {/* Skip to main content link for accessibility */}
       <SkipLink />
+      
+      {/* Sync status banner */}
+      <SyncStatusBanner />
       
       {/* Subtle User Indicator - Bottom Right Corner (above nav) */}
       {!loading && !hideFloatingUser && (

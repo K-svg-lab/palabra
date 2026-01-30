@@ -15,9 +15,11 @@
 
 import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
-import { Loader2, Check, AlertCircle } from 'lucide-react';
+import { Loader2, Check, AlertCircle, WifiOff } from 'lucide-react';
 import { useLookupVocabulary, useAddVocabulary } from '@/lib/hooks/use-vocabulary';
 import { checkSpanishSpelling } from '@/lib/services/spellcheck';
+import { useOnlineStatusOnly } from '@/lib/hooks/use-online-status';
+import { getOfflineQueueService } from '@/lib/services/offline-queue';
 import type { VocabularyWord, Gender, PartOfSpeech, ExampleSentence } from '@/lib/types/vocabulary';
 import { AudioPlayerEnhanced } from './audio-player-enhanced';
 
@@ -53,7 +55,9 @@ export function VocabularyEntryFormEnhanced({ initialWord, onSuccess, onCancel }
   const [isCheckingSpelling, setIsCheckingSpelling] = useState(false);
   const [lastLookedUpWord, setLastLookedUpWord] = useState<string>('');
   const [hasAutoTriggered, setHasAutoTriggered] = useState(false);
+  const [offlineMode, setOfflineMode] = useState(false);
   
+  const isOnline = useOnlineStatusOnly();
   const { register, handleSubmit, watch, setValue, formState: { errors } } = useForm<VocabularyFormData>();
   const lookupMutation = useLookupVocabulary();
   const addMutation = useAddVocabulary();
@@ -196,10 +200,28 @@ export function VocabularyEntryFormEnhanced({ initialWord, onSuccess, onCancel }
         tags: [],
       };
 
-      await addMutation.mutateAsync(vocabularyWord);
+      // Add to local database
+      const addedWord = await addMutation.mutateAsync(vocabularyWord);
+      
+      // Queue for sync if offline
+      if (!isOnline) {
+        try {
+          const queueService = getOfflineQueueService();
+          await queueService.enqueue('add_vocabulary', addedWord);
+          setOfflineMode(true);
+          console.log('📴 Offline - queued vocabulary for sync');
+        } catch (queueError) {
+          console.error('Failed to queue vocabulary:', queueError);
+        }
+      }
+      
       onSuccess?.();
     } catch (error) {
       console.error('Save error:', error);
+      // Even if save to server fails, try to queue it
+      if (!isOnline) {
+        setOfflineMode(true);
+      }
     }
   };
 
@@ -235,13 +257,19 @@ export function VocabularyEntryFormEnhanced({ initialWord, onSuccess, onCancel }
           <button
             type="button"
             onClick={() => handleLookup()}
-            disabled={!spanishWord || isLoading}
+            disabled={!spanishWord || isLoading || !isOnline}
             className="flex-shrink-0 px-3 sm:px-4 py-3 bg-accent text-white rounded-lg hover:bg-accent/90 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1.5 min-w-[80px] sm:min-w-[100px]"
+            title={!isOnline ? 'Lookup requires internet connection' : 'Lookup word details'}
           >
             {isLoading ? (
               <>
                 <Loader2 className="w-4 h-4 animate-spin" />
                 <span className="text-sm sm:text-base">...</span>
+              </>
+            ) : !isOnline ? (
+              <>
+                <WifiOff className="w-4 h-4" />
+                <span className="text-sm sm:text-base font-medium hidden sm:inline">Offline</span>
               </>
             ) : (
               <span className="text-sm sm:text-base font-medium">Lookup</span>
@@ -411,6 +439,24 @@ export function VocabularyEntryFormEnhanced({ initialWord, onSuccess, onCancel }
           className="w-full px-3 sm:px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-black focus:ring-2 focus:ring-accent focus:border-transparent text-sm resize-none"
         />
       </div>
+
+      {/* Offline Mode Notice */}
+      {!isOnline && (
+        <div className="p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+          <div className="flex items-start gap-2">
+            <WifiOff className="w-4 h-4 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
+            <div className="flex-1 min-w-0">
+              <p className="text-xs sm:text-sm font-medium text-blue-800 dark:text-blue-300">
+                Offline Mode
+              </p>
+              <p className="text-xs text-blue-700 dark:text-blue-400 mt-0.5">
+                Word will be saved locally and synced when you're back online. 
+                Lookup is unavailable - please enter details manually.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Action Buttons */}
       <div className="flex gap-2 sm:gap-3 pt-2">

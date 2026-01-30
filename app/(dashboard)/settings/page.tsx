@@ -6,11 +6,12 @@
 'use client';
 
 import { useState } from 'react';
-import { Database, Tag, Bell, User } from 'lucide-react';
+import { Database, Tag, Bell, User, CloudOff } from 'lucide-react';
 import { ImportExportPanel } from '@/components/features/import-export-panel';
 import { TagManagement } from '@/components/features/tag-management';
 import { NotificationSettings } from '@/components/features/notification-settings';
 import { AccountSettings } from '@/components/features/account-settings';
+import { OfflineSettings } from '@/components/features/offline-settings';
 import { useVocabulary } from '@/lib/hooks/use-vocabulary';
 
 /**
@@ -20,7 +21,7 @@ import { useVocabulary } from '@/lib/hooks/use-vocabulary';
  * @returns Settings page
  */
 export default function SettingsPage() {
-  const [activeTab, setActiveTab] = useState<'account' | 'notifications' | 'tags' | 'data'>('account');
+  const [activeTab, setActiveTab] = useState<'account' | 'notifications' | 'tags' | 'data' | 'offline'>('account');
   const { refetch } = useVocabulary();
   
   const handleDataChanged = () => {
@@ -94,6 +95,18 @@ export default function SettingsPage() {
               <Database className="h-4 w-4" />
               <span className="font-medium">Import/Export</span>
             </button>
+            
+            <button
+              onClick={() => setActiveTab('offline')}
+              className={`flex items-center gap-2 px-4 py-3 border-b-2 transition-colors whitespace-nowrap ${
+                activeTab === 'offline'
+                  ? 'border-blue-600 text-blue-600 dark:text-blue-400'
+                  : 'border-transparent text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
+              }`}
+            >
+              <CloudOff className="h-4 w-4" />
+              <span className="font-medium">Offline Mode</span>
+            </button>
           </div>
         </div>
       </div>
@@ -120,6 +133,12 @@ export default function SettingsPage() {
         
         {activeTab === 'data' && (
           <ImportExportPanel onDataChanged={handleDataChanged} />
+        )}
+        
+        {activeTab === 'offline' && (
+          <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
+            <OfflineSettings />
+          </div>
         )}
       </div>
     </div>

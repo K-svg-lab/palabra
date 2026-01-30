@@ -62,13 +62,14 @@ export const STORAGE_KEYS = {
  */
 export const DB_CONFIG = {
   NAME: 'palabra_db',
-  VERSION: 4, // Incremented for Phase 8 enhancement (directional accuracy tracking in reviews)
+  VERSION: 5, // Incremented for offline mode support (offline queue store)
   STORES: {
     VOCABULARY: 'vocabulary',
     REVIEWS: 'reviews',
     SESSIONS: 'sessions',
     STATS: 'stats',
     SETTINGS: 'settings',
+    OFFLINE_QUEUE: 'offlineQueue',
   },
 } as const;
 

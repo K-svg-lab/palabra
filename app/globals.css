@@ -185,6 +185,21 @@ textarea:focus-visible {
  * Respect user's motion preferences
  */
 
+@keyframes slide-down {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-slide-down {
+  animation: slide-down var(--transition-normal) ease-out;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

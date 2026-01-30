@@ -12,6 +12,7 @@ import type {
   DailyStats,
 } from '@/lib/types';
 import type { NotificationPreferences } from '@/lib/types/notifications';
+import type { OfflineQueueItem } from '@/lib/types/offline';
 
 /**
  * Database type definition
@@ -56,6 +57,15 @@ export interface PalabraDB {
       key: string;
       value: any;
       updatedAt: number;
+    };
+  };
+  offlineQueue: {
+    key: string;
+    value: OfflineQueueItem;
+    indexes: {
+      'by-timestamp': number;
+      'by-type': string;
+      'by-status': string;
     };
   };
 }
@@ -135,6 +145,20 @@ export async function initDB(): Promise<IDBPDatabase<PalabraDB>> {
       // Settings store
       if (!db.objectStoreNames.contains('settings')) {
         db.createObjectStore('settings', { keyPath: 'key' });
+      }
+
+      // Offline Queue store (v5)
+      if (!db.objectStoreNames.contains(DB_CONFIG.STORES.OFFLINE_QUEUE)) {
+        const queueStore = db.createObjectStore(
+          DB_CONFIG.STORES.OFFLINE_QUEUE,
+          { keyPath: 'id' }
+        );
+        
+        queueStore.createIndex('by-timestamp', 'timestamp');
+        queueStore.createIndex('by-type', 'type');
+        queueStore.createIndex('by-status', 'status');
+        
+        console.log('📦 Offline queue store created');
       }
     },
   });
