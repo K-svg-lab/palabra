@@ -76,34 +76,41 @@ export function VocabularyEntryFormEnhanced({ initialWord, onSuccess, onCancel }
           setValue('spanishWord', initialWord.trim());
           setHasAutoTriggered(true);
           
-          // Trigger lookup after setting the value
-          setTimeout(async () => {
-            const cleanWord = initialWord.trim();
-            try {
-              // First, check spelling
-              setIsCheckingSpelling(true);
-              const spellCheck = await checkSpanishSpelling(cleanWord);
-              setSpellCheckResult(spellCheck);
-              setIsCheckingSpelling(false);
+          // Only trigger lookup if online
+          if (isOnline) {
+            // Trigger lookup after setting the value
+            setTimeout(async () => {
+              const cleanWord = initialWord.trim();
+              try {
+                // First, check spelling
+                setIsCheckingSpelling(true);
+                const spellCheck = await checkSpanishSpelling(cleanWord);
+                setSpellCheckResult(spellCheck);
+                setIsCheckingSpelling(false);
 
-              // If word is misspelled, show suggestions and don't proceed with lookup
-              if (!spellCheck.isCorrect) {
-                return;
+                // If word is misspelled, show suggestions and don't proceed with lookup
+                if (!spellCheck.isCorrect) {
+                  return;
+                }
+
+                // If spelling is correct, proceed with lookup
+                const data = await lookupMutation.mutateAsync(cleanWord);
+                setLookupData(data);
+                setLastLookedUpWord(cleanWord);
+                
+                // Auto-fill form fields
+                setValue('englishTranslation', data.translation);
+                setValue('gender', data.gender);
+                setValue('partOfSpeech', data.partOfSpeech);
+              } catch (error) {
+                console.error('Auto-lookup error:', error);
               }
-
-              // If spelling is correct, proceed with lookup
-              const data = await lookupMutation.mutateAsync(cleanWord);
-              setLookupData(data);
-              setLastLookedUpWord(cleanWord);
-              
-              // Auto-fill form fields
-              setValue('englishTranslation', data.translation);
-              setValue('gender', data.gender);
-              setValue('partOfSpeech', data.partOfSpeech);
-            } catch (error) {
-              console.error('Auto-lookup error:', error);
-            }
-          }, 300);
+            }, 300);
+          } else {
+            // Offline: Show offline banner and skip auto-lookup
+            setOfflineMode(true);
+            console.log('[VocabForm] Offline - skipping auto-lookup');
+          }
         } else {
           // Only auto-focus Spanish word field when opening blank form (no initialWord)
           input.focus();
@@ -111,9 +118,15 @@ export function VocabularyEntryFormEnhanced({ initialWord, onSuccess, onCancel }
       }
     }, 100);
     return () => clearTimeout(timer);
-  }, [initialWord, setValue, hasAutoTriggered, lookupMutation]);
+  }, [initialWord, setValue, hasAutoTriggered, lookupMutation, isOnline]);
 
   const handleLookup = async (wordOverride?: string) => {
+    // Check if online before attempting lookup
+    if (!isOnline) {
+      console.log('[VocabForm] Cannot lookup while offline');
+      return;
+    }
+
     const wordToUse = wordOverride || spanishWord;
     if (!wordToUse || wordToUse.trim().length === 0) return;
 
