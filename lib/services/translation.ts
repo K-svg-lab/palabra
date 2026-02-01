@@ -484,7 +484,7 @@ async function getMyMemoryWithAlternatives(text: string): Promise<{
         const cleanedTranslation = translation.replace(/[^a-z\s]/g, ' ').replace(/\s+/g, ' ').trim();
         
         // Split into words
-        const words = cleanedTranslation.split(' ').filter(w => w.length > 0);
+        const words = cleanedTranslation.split(' ').filter((w: string) => w.length > 0);
         
         // Add full translation if it's 1-2 clean words
         if (words.length === 1 || words.length === 2) {
