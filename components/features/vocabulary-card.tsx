@@ -70,19 +70,11 @@ export function VocabularyCard({ word, onEdit, onDelete }: Props) {
           <p className="text-gray-700 dark:text-gray-300">
             {word.englishTranslation}
           </p>
-          {/* Alternative Translations */}
+          {/* Alternative Translations - Comma Separated */}
           {word.alternativeTranslations && word.alternativeTranslations.length > 0 && (
-            <div className="mt-2 flex flex-wrap gap-1.5">
-              {word.alternativeTranslations.map((alt, index) => (
-                <span
-                  key={index}
-                  className="px-2 py-0.5 text-xs bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 rounded-full border border-gray-200 dark:border-gray-700"
-                  title="Alternative translation"
-                >
-                  {alt}
-                </span>
-              ))}
-            </div>
+            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400 italic">
+              {word.alternativeTranslations.join(', ')}
+            </p>
           )}
         </div>
 
