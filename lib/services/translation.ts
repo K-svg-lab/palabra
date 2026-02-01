@@ -496,7 +496,7 @@ async function getMyMemoryWithAlternatives(text: string): Promise<{
         
         // Extract individual meaningful words from longer translations
         if (words.length >= 2 && words.length <= 4) {
-          words.forEach(word => {
+          words.forEach((word: string) => {
             // Only add if: longer than 2 chars, not a filter word, only letters
             if (word.length > 2 && !filterWords.has(word) && /^[a-z]+$/.test(word)) {
               alternatives.add(word);
@@ -579,13 +579,13 @@ export async function getMultipleTranslations(
     addUniqueTranslation(primary.translatedText, 'mymemory', primary.confidence);
     
     // Add alternatives from MyMemory
-    alternatives.forEach(alt => {
+    alternatives.forEach((alt: string) => {
       addUniqueTranslation(alt, 'mymemory', 0.8);
     });
   }
 
   // Add local curated alternatives (highest quality for common words)
-  localAlts.forEach(word => {
+  localAlts.forEach((word: string) => {
     addUniqueTranslation(word, 'dictionary', 0.9);
   });
 
