@@ -368,42 +368,52 @@ export function VocabularyEntryFormEnhanced({ initialWord, onSuccess, onCancel }
               placeholder="dog"
             />
             
-            {/* Alternative Translations */}
+            {/* Selected Alternative Translations - Show as badges with X */}
+            {selectedAlternatives.length > 0 && (
+              <div className="mt-2 flex flex-wrap gap-2">
+                {selectedAlternatives.map((alt, index) => (
+                  <button
+                    key={index}
+                    type="button"
+                    onClick={() => {
+                      setSelectedAlternatives(prev => prev.filter(a => a !== alt));
+                    }}
+                    className="inline-flex items-center gap-1.5 px-2.5 py-1 text-sm bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-md border border-gray-300 dark:border-gray-600 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+                    title="Click to remove"
+                  >
+                    <span>{alt}</span>
+                    <span className="text-gray-500 dark:text-gray-400 font-bold">×</span>
+                  </button>
+                ))}
+              </div>
+            )}
+            
+            {/* Unselected Alternative Translations - Click to add */}
             {lookupData.alternativeTranslations && lookupData.alternativeTranslations.length > 0 && (
               <div className="mt-3">
-                <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-2">
-                  Other meanings (click to select)
-                </label>
-                <div className="flex flex-wrap gap-2">
-                  {lookupData.alternativeTranslations.map((alt, index) => {
-                    const isSelected = selectedAlternatives.includes(alt);
-                    return (
-                      <button
-                        key={index}
-                        type="button"
-                        onClick={() => {
-                          setSelectedAlternatives(prev =>
-                            isSelected
-                              ? prev.filter(a => a !== alt)
-                              : [...prev, alt]
-                          );
-                        }}
-                        className={`px-3 py-1.5 text-sm rounded-full transition-all ${
-                          isSelected
-                            ? 'bg-accent text-white border-2 border-accent'
-                            : 'bg-white dark:bg-gray-800 border-2 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:border-accent hover:bg-accent/10'
-                        }`}
-                        title={isSelected ? 'Click to deselect' : 'Click to select as alternative'}
-                      >
-                        {alt}
-                      </button>
-                    );
-                  })}
-                </div>
-                {selectedAlternatives.length > 0 && (
-                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
-                    {selectedAlternatives.length} alternative{selectedAlternatives.length > 1 ? 's' : ''} selected
-                  </p>
+                {lookupData.alternativeTranslations.filter(alt => !selectedAlternatives.includes(alt)).length > 0 && (
+                  <>
+                    <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-2">
+                      Other meanings (click to add)
+                    </label>
+                    <div className="flex flex-wrap gap-2">
+                      {lookupData.alternativeTranslations
+                        .filter(alt => !selectedAlternatives.includes(alt))
+                        .map((alt, index) => (
+                          <button
+                            key={index}
+                            type="button"
+                            onClick={() => {
+                              setSelectedAlternatives(prev => [...prev, alt]);
+                            }}
+                            className="px-3 py-1.5 text-sm rounded-full bg-white dark:bg-gray-800 border-2 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:border-accent hover:bg-accent/10 transition-all"
+                            title="Click to add to translation"
+                          >
+                            {alt}
+                          </button>
+                        ))}
+                    </div>
+                  </>
                 )}
               </div>
             )}

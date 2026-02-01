@@ -69,13 +69,14 @@ export function VocabularyCard({ word, onEdit, onDelete }: Props) {
           </div>
           <p className="text-gray-700 dark:text-gray-300">
             {word.englishTranslation}
+            {/* Alternative Translations - Inline with primary */}
+            {word.alternativeTranslations && word.alternativeTranslations.length > 0 && (
+              <span className="text-sm text-gray-500 dark:text-gray-400 italic">
+                {', '}
+                {word.alternativeTranslations.join(', ')}
+              </span>
+            )}
           </p>
-          {/* Alternative Translations - Comma Separated */}
-          {word.alternativeTranslations && word.alternativeTranslations.length > 0 && (
-            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400 italic">
-              {word.alternativeTranslations.join(', ')}
-            </p>
-          )}
         </div>
 
         {/* Actions Menu */}
