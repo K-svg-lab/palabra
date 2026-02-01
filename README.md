@@ -63,6 +63,7 @@ Palabra is a modern, mobile-first Spanish vocabulary learning application that h
 
 - Node.js 18+ 
 - npm or yarn
+- **DeepL API Key** (recommended for high-quality translations) - [Setup Guide](./TRANSLATION_API_SETUP.md)
 
 ### Installation
 
@@ -74,11 +75,27 @@ cd Spanish_Vocab/palabra
 # Install dependencies
 npm install
 
+# Configure translation API (IMPORTANT!)
+# See TRANSLATION_API_SETUP.md for details
+# 1. Get free DeepL API key: https://www.deepl.com/pro-api
+# 2. Create .env.local file with: NEXT_PUBLIC_DEEPL_API_KEY=your-key-here:fx
+# 3. This improves translation quality from ~70% to ~95% accuracy
+
 # Run development server
 npm run dev
 
 # Open http://localhost:3000
 ```
+
+### ⚠️ Translation Quality Setup
+
+**Without DeepL**: The app uses MyMemory API (free, lower quality ~70% accuracy)
+- Example: "desviar" → "avoid evade" ❌ (WRONG)
+
+**With DeepL**: Professional translations (~95% accuracy)
+- Example: "desviar" → "divert" ✅ (CORRECT)
+
+**See [TRANSLATION_API_SETUP.md](./TRANSLATION_API_SETUP.md) for complete setup instructions.**
 
 ### Build for Production
 

@@ -376,6 +376,45 @@ const COMMON_ALTERNATIVES: Record<string, string[]> = {
   'ir': ['go', 'leave', 'travel', 'head'],
   'ver': ['see', 'watch', 'view', 'look'],
   'dar': ['give', 'provide', 'grant', 'offer'],
+  'desviar': ['divert', 'redirect', 'deflect', 'detour', 'swerve'],
+  'comer': ['eat', 'dine', 'consume', 'have'],
+  'beber': ['drink', 'sip', 'consume'],
+  'dormir': ['sleep', 'slumber', 'rest'],
+  'vivir': ['live', 'reside', 'dwell', 'exist'],
+  'escribir': ['write', 'compose', 'pen'],
+  'leer': ['read', 'peruse', 'study'],
+  'hablar': ['speak', 'talk', 'converse'],
+  'escuchar': ['listen', 'hear'],
+  'mirar': ['look', 'watch', 'gaze'],
+  'pensar': ['think', 'ponder', 'consider', 'believe'],
+  'sentir': ['feel', 'sense', 'experience'],
+  'querer': ['want', 'love', 'wish', 'desire'],
+  'poder': ['can', 'be able to'],
+  'saber': ['know', 'be aware of'],
+  'decir': ['say', 'tell', 'state'],
+  'llegar': ['arrive', 'reach', 'come', 'get to'],
+  'salir': ['leave', 'go out', 'exit', 'depart'],
+  'venir': ['come', 'arrive'],
+  'poner': ['put', 'place', 'set'],
+  'meter': ['put in', 'insert', 'place'],
+  'sacar': ['take out', 'remove', 'extract'],
+  'traer': ['bring', 'carry', 'fetch'],
+  'llevar': ['carry', 'take', 'wear', 'bring'],
+  
+  // Reflexive verbs (common usage)
+  'meterse': ['get involved', 'meddle', 'interfere', 'intrude', 'butt in'],
+  'irse': ['leave', 'go away', 'depart'],
+  'ponerse': ['put on', 'become', 'get'],
+  'quedarse': ['stay', 'remain'],
+  'sentarse': ['sit', 'sit down'],
+  'levantarse': ['get up', 'stand up', 'rise'],
+  'acostarse': ['go to bed', 'lie down'],
+  'despertarse': ['wake up'],
+  'vestirse': ['get dressed', 'dress'],
+  'bañarse': ['bathe', 'shower', 'take a bath'],
+  'llamarse': ['be called', 'be named'],
+  'preocuparse': ['worry', 'be concerned'],
+  'acordarse': ['remember', 'recall'],
   
   // Time and quantity
   'tiempo': ['time', 'weather', 'period', 'season'],
@@ -575,17 +614,62 @@ export async function getMultipleTranslations(
     getMyMemoryWithAlternatives(text), // Single call returns both primary + alternatives
   ]);
 
-  // Helper to add unique translation
+  // Helper to add unique translation with quality filtering
   const addUniqueTranslation = (translation: string, source: 'deepl' | 'mymemory' | 'dictionary', confidence?: number) => {
     const normalized = translation.toLowerCase().trim();
-    if (normalized && !seenTranslations.has(normalized) && normalized !== text.toLowerCase()) {
-      seenTranslations.add(normalized);
-      translations.push({
-        translatedText: normalized,
-        source,
-        confidence,
-      });
+    if (!normalized || seenTranslations.has(normalized) || normalized === text.toLowerCase()) {
+      return;
     }
+    
+    // Quality filter for MyMemory alternatives (DeepL and dictionary are always trusted)
+    if (source === 'mymemory') {
+      const words = normalized.split(/\s+/);
+      
+      // PART-OF-SPEECH VALIDATION
+      // Reject nouns when looking up verbs (e.g., "food" for "comer")
+      const isVerb = text.endsWith('ar') || text.endsWith('er') || text.endsWith('ir');
+      if (isVerb) {
+        // Common noun indicators: plural forms, articles
+        const nounIndicators = ['s', 'es', 'ion', 'ment', 'ness', 'ity'];
+        const looksLikeNoun = nounIndicators.some(suffix => normalized.endsWith(suffix));
+        
+        // Reject obvious nouns: "food", "intake", "consumption"
+        const commonNouns = ['food', 'intake', 'consumption', 'beverage', 'meal', 'dish'];
+        if (commonNouns.includes(normalized) || (looksLikeNoun && words.length === 1)) {
+          return; // Skip nouns when looking up verbs
+        }
+        
+        // Reject single prepositions (not verbs)
+        const prepositions = ['into', 'onto', 'from', 'with', 'about', 'for', 'at'];
+        if (words.length === 1 && prepositions.includes(normalized)) {
+          return;
+        }
+      }
+      
+      // PHRASE LENGTH VALIDATION
+      // Allow single words (if they passed POS check)
+      if (words.length === 1) {
+        // Already passed POS validation above
+      }
+      // Allow common 2-3 word phrases (phrasal verbs, verb phrases)
+      else if (words.length === 2 || words.length === 3) {
+        const hasVerb = words.some(w => !['to', 'from', 'on', 'off', 'up', 'down', 'in', 'out', 'away', 'back', 'forward', 'a', 'the', 'be', 'to'].includes(w));
+        if (!hasVerb) {
+          return; // Reject if no actual content word
+        }
+      }
+      // Reject phrases with 4+ words (too complex, likely junk)
+      else {
+        return;
+      }
+    }
+    
+    seenTranslations.add(normalized);
+    translations.push({
+      translatedText: normalized,
+      source,
+      confidence,
+    });
   };
 
   // Add DeepL translation (highest quality, first priority)
@@ -594,21 +678,27 @@ export async function getMultipleTranslations(
     addUniqueTranslation(result.translatedText, 'deepl', result.confidence);
   }
 
-  // Add MyMemory primary translation + alternatives (from single call)
-  if (myMemoryResult.status === 'fulfilled') {
+  // Add local curated alternatives FIRST (highest quality for common words)
+  // These are manually verified and override MyMemory
+  localAlts.forEach((word: string) => {
+    addUniqueTranslation(word, 'dictionary', 0.95);
+  });
+
+  // ONLY use MyMemory if we don't have local alternatives
+  // This prevents low-quality MyMemory data from polluting good DeepL translations
+  if (localAlts.length === 0 && myMemoryResult.status === 'fulfilled') {
     const { primary, alternatives } = myMemoryResult.value;
-    addUniqueTranslation(primary.translatedText, 'mymemory', primary.confidence);
     
-    // Add alternatives from MyMemory
+    // Only add MyMemory primary if DeepL failed
+    if (deeplResult.status !== 'fulfilled') {
+      addUniqueTranslation(primary.translatedText, 'mymemory', primary.confidence);
+    }
+    
+    // Add MyMemory alternatives ONLY if no local alternatives exist
     alternatives.forEach((alt: string) => {
-      addUniqueTranslation(alt, 'mymemory', 0.8);
+      addUniqueTranslation(alt, 'mymemory', 0.7);
     });
   }
-
-  // Add local curated alternatives (highest quality for common words)
-  localAlts.forEach((word: string) => {
-    addUniqueTranslation(word, 'dictionary', 0.9);
-  });
 
   // Debug logging
   console.log('[Translation] Translations for', text, ':', {

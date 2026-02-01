@@ -158,16 +158,60 @@ function scoreExampleQuality(spanish: string, english: string): number {
 /**
  * Checks if a sentence contains the exact word (respecting word boundaries)
  * This prevents matching "caro" when searching for "cara"
+ * For verbs, also matches conjugated forms (e.g., "desviar" matches "desvía", "desviaron")
+ * For reflexive verbs, matches both attached and separated pronouns
  */
 function containsExactWord(sentence: string, word: string): boolean {
   const normalizedSentence = sentence.toLowerCase();
   const normalizedWord = word.toLowerCase();
   
-  // Create regex pattern with word boundaries
-  // \b matches word boundaries, ensuring we match complete words only
-  const pattern = new RegExp(`\\b${normalizedWord}\\b`, 'i');
+  // First, try exact word match with word boundaries
+  const exactPattern = new RegExp(`\\b${normalizedWord}\\b`, 'i');
+  if (exactPattern.test(normalizedSentence)) {
+    return true;
+  }
   
-  return pattern.test(normalizedSentence);
+  // Check if it's a reflexive verb (ends with -arse, -erse, -irse)
+  const isReflexive = normalizedWord.match(/^(.+)(arse|erse|irse)$/);
+  
+  if (isReflexive) {
+    const baseVerb = isReflexive[1]; // e.g., "meterse" → "met"
+    const ending = isReflexive[2]; // e.g., "erse"
+    
+    // Reflexive pronouns that can appear before the verb
+    const reflexivePronouns = ['me', 'te', 'se', 'nos', 'os'];
+    
+    // Check for separated reflexive forms: "me meto", "te metes", "se mete", etc.
+    for (const pronoun of reflexivePronouns) {
+      // Match pronoun followed by verb stem
+      // Examples: "meterse" → matches "me meto", "se mete", "nos metemos"
+      const separatedPattern = new RegExp(`\\b${pronoun}\\s+${baseVerb}`, 'i');
+      if (separatedPattern.test(normalizedSentence)) {
+        return true;
+      }
+    }
+    
+    // Also check for attached forms: "metiéndose", "meterse"
+    const attachedPattern = new RegExp(`\\b${baseVerb}`, 'i');
+    if (attachedPattern.test(normalizedSentence)) {
+      return true;
+    }
+  }
+  
+  // For Spanish verbs (infinitives ending in -ar, -er, -ir), also match verb stem
+  // This allows "desviar" to match "desvía", "desviaron", "desviando", etc.
+  if (normalizedWord.endsWith('ar') || normalizedWord.endsWith('er') || normalizedWord.endsWith('ir')) {
+    // Get verb stem by removing the infinitive ending
+    const stem = normalizedWord.slice(0, -2); // Remove -ar/-er/-ir
+    
+    // Match stem at word boundary (handles all conjugations and compound forms)
+    // Examples: desviar → desvi → matches "desvía", "desviaron", "desviando", "desviarla"
+    const stemPattern = new RegExp(`\\b${stem}`, 'i');
+    return stemPattern.test(normalizedSentence);
+  }
+  
+  // For non-verbs, require exact match
+  return false;
 }
 
 /**
@@ -512,6 +556,8 @@ const COMMON_ADJECTIVES = new Set([
   'feliz', 'triste', 'alegre', 'contento', 'contenta', 'enfadado', 'enfadada',
   'triste', 'nervioso', 'nerviosa', 'tranquilo', 'tranquila', 'preocupado', 'preocupada',
   'cansado', 'cansada', 'aburrido', 'aburrida', 'interesante', 'divertido', 'divertida',
+  'hambriento', 'hambrienta', 'sediento', 'sedienta', 'violento', 'violenta',
+  'sangriento', 'sangrienta', 'mugriento', 'mugrienta', 'polvoriento', 'polvorienta',
   
   // Difficulty and complexity
   'fácil', 'difícil', 'simple', 'complejo', 'compleja', 'complicado', 'complicada',
@@ -578,7 +624,12 @@ function inferPartOfSpeechFromWord(word: string): PartOfSpeech | undefined {
     return 'noun';
   }
   
-  // Verb infinitives end in -ar, -er, -ir
+  // Reflexive verb infinitives end in -arse, -erse, -irse (CHECK THESE FIRST!)
+  if (lower.endsWith('arse') || lower.endsWith('erse') || lower.endsWith('irse')) {
+    return 'verb';
+  }
+  
+  // Regular verb infinitives end in -ar, -er, -ir
   if (lower.endsWith('ar') || lower.endsWith('er') || lower.endsWith('ir')) {
     return 'verb';
   }
@@ -593,6 +644,7 @@ function inferPartOfSpeechFromWord(word: string): PartOfSpeech | undefined {
       lower.endsWith('ivo') || lower.endsWith('iva') ||
       lower.endsWith('able') || lower.endsWith('ible') ||
       lower.endsWith('ante') || lower.endsWith('iente') ||
+      lower.endsWith('iento') || lower.endsWith('ienta') ||  // Added -iento/-ienta (hambriento, sediento, violento)
       lower.endsWith('ado') || lower.endsWith('ada') ||
       lower.endsWith('ido') || lower.endsWith('ida')) {
     return 'adjective';
