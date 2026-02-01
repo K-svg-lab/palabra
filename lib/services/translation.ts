@@ -428,21 +428,26 @@ async function getMyMemoryWithAlternatives(text: string): Promise<{
   const alternatives = new Set<string>();
   const filterWords = new Set(['the', 'a', 'an', 'to', 'of', 'in', 'on', 'at', 'for', 'with', 'by', 'from']);
 
-  // Get primary translation - prioritize matches over responseData for better quality
+  // Get primary translation - prioritize HIGH QUALITY matches (quality > 50)
   let primaryTranslation = '';
   let confidence = data.responseData.match;
   
-  // First, check if matches have a high-quality single word or short phrase
+  // First, check for HIGH QUALITY matches (skip quality=0 junk like "grade reducer")
   if (data.matches && data.matches.length > 0) {
-    // Find the best match: short (1-2 words), high quality, no weird chars
-    for (const match of data.matches.slice(0, 5)) {
+    // Sort matches by quality score (higher is better)
+    const qualityMatches = data.matches
+      .filter((m: any) => m.quality && parseInt(m.quality) > 50) // Only quality > 50
+      .sort((a: any, b: any) => parseInt(b.quality) - parseInt(a.quality)); // Highest quality first
+    
+    // Find the best HIGH QUALITY match: short (1-2 words), clean letters
+    for (const match of qualityMatches.slice(0, 5)) {
       const translation = match.translation;
       const cleaned = cleanTranslation(translation, text).toLowerCase().trim();
       const wordCount = cleaned.split(/\s+/).length;
       const hasOnlyLetters = /^[a-z\s]+$/.test(cleaned);
       
       // Prefer single words or short 2-word phrases with only letters
-      if (cleaned && wordCount <= 2 && hasOnlyLetters && cleaned.length > 1) {
+      if (cleaned && wordCount <= 2 && hasOnlyLetters && cleaned.length > 2) {
         primaryTranslation = cleaned;
         confidence = match.match || confidence;
         break;
@@ -450,13 +455,29 @@ async function getMyMemoryWithAlternatives(text: string): Promise<{
     }
   }
   
-  // Fallback to responseData if no good match found
+  // Fallback: Try ALL matches (even low quality) if no good match found
+  if (!primaryTranslation && data.matches && data.matches.length > 0) {
+    for (const match of data.matches.slice(0, 10)) {
+      const translation = match.translation;
+      const cleaned = cleanTranslation(translation, text).toLowerCase().trim();
+      const wordCount = cleaned.split(/\s+/).length;
+      const hasOnlyLetters = /^[a-z\s]+$/.test(cleaned);
+      
+      if (cleaned && wordCount <= 2 && hasOnlyLetters && cleaned.length > 2) {
+        primaryTranslation = cleaned;
+        confidence = match.match || confidence;
+        break;
+      }
+    }
+  }
+  
+  // Last resort: Use responseData (but only if it's clean)
   if (!primaryTranslation) {
     const rawTranslation = data.responseData.translatedText;
     const cleanedTranslation = cleanTranslation(rawTranslation, text);
     primaryTranslation = cleanedTranslation.toLowerCase().trim();
     
-    // If still looks bad (multiple words, weird chars), extract first clean word
+    // If still looks bad, extract first clean word
     if (primaryTranslation.split(/\s+/).length > 2 || !/^[a-z\s]+$/.test(primaryTranslation)) {
       const words = primaryTranslation.split(/\s+/);
       const firstCleanWord = words.find(w => /^[a-z]+$/.test(w) && w.length > 2);
