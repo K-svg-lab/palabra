@@ -428,49 +428,78 @@ async function getMyMemoryWithAlternatives(text: string): Promise<{
   const alternatives = new Set<string>();
   const filterWords = new Set(['the', 'a', 'an', 'to', 'of', 'in', 'on', 'at', 'for', 'with', 'by', 'from']);
 
-  // Get primary translation from responseData
-  const rawTranslation = data.responseData.translatedText;
-  const cleanedTranslation = cleanTranslation(rawTranslation, text);
-  let primaryTranslation = cleanedTranslation.toLowerCase();
+  // Get primary translation - prioritize matches over responseData for better quality
+  let primaryTranslation = '';
+  let confidence = data.responseData.match;
   
-  // If primary looks suspicious (too long, multiple words, strange characters), use first match instead
-  const wordCount = primaryTranslation.split(' ').length;
-  const hasWeirdChars = /[^a-z\s]/.test(primaryTranslation);
+  // First, check if matches have a high-quality single word or short phrase
+  if (data.matches && data.matches.length > 0) {
+    // Find the best match: short (1-2 words), high quality, no weird chars
+    for (const match of data.matches.slice(0, 5)) {
+      const translation = match.translation;
+      const cleaned = cleanTranslation(translation, text).toLowerCase().trim();
+      const wordCount = cleaned.split(/\s+/).length;
+      const hasOnlyLetters = /^[a-z\s]+$/.test(cleaned);
+      
+      // Prefer single words or short 2-word phrases with only letters
+      if (cleaned && wordCount <= 2 && hasOnlyLetters && cleaned.length > 1) {
+        primaryTranslation = cleaned;
+        confidence = match.match || confidence;
+        break;
+      }
+    }
+  }
   
-  if ((wordCount > 3 || hasWeirdChars) && data.matches && data.matches.length > 0) {
-    // Try to find a better primary from matches
-    const firstMatch = data.matches[0].translation;
-    const cleanedMatch = cleanTranslation(firstMatch, text).toLowerCase();
-    if (cleanedMatch.split(' ').length <= 2 && !/[^a-z\s]/.test(cleanedMatch)) {
-      primaryTranslation = cleanedMatch;
+  // Fallback to responseData if no good match found
+  if (!primaryTranslation) {
+    const rawTranslation = data.responseData.translatedText;
+    const cleanedTranslation = cleanTranslation(rawTranslation, text);
+    primaryTranslation = cleanedTranslation.toLowerCase().trim();
+    
+    // If still looks bad (multiple words, weird chars), extract first clean word
+    if (primaryTranslation.split(/\s+/).length > 2 || !/^[a-z\s]+$/.test(primaryTranslation)) {
+      const words = primaryTranslation.split(/\s+/);
+      const firstCleanWord = words.find(w => /^[a-z]+$/.test(w) && w.length > 2);
+      if (firstCleanWord) {
+        primaryTranslation = firstCleanWord;
+      }
     }
   }
 
   const primary: TranslationResult = {
-    translatedText: primaryTranslation,
-    confidence: data.responseData.match,
+    translatedText: primaryTranslation || 'unknown',
+    confidence: confidence,
     source: 'mymemory',
     detectedLanguage: data.responseData.detectedLanguage,
   };
 
-  // Extract alternatives from matches
+  // Extract alternatives from matches with strict quality control
   if (data.matches && Array.isArray(data.matches)) {
-    // Take only top 5 matches for speed
-    data.matches.slice(0, 5).forEach((match: any) => {
+    // Take only top 8 matches for better coverage
+    data.matches.slice(0, 8).forEach((match: any) => {
       if (match.translation) {
         const translation = match.translation.toLowerCase().trim();
         
-        // Add full translation if it's short (1-2 words)
-        if (translation.split(' ').length <= 2) {
-          alternatives.add(translation);
+        // Remove ALL punctuation first
+        const cleanedTranslation = translation.replace(/[^a-z\s]/g, ' ').replace(/\s+/g, ' ').trim();
+        
+        // Split into words
+        const words = cleanedTranslation.split(' ').filter(w => w.length > 0);
+        
+        // Add full translation if it's 1-2 clean words
+        if (words.length === 1 || words.length === 2) {
+          const fullPhrase = words.join(' ');
+          if (fullPhrase.length > 2 && !filterWords.has(fullPhrase)) {
+            alternatives.add(fullPhrase);
+          }
         }
         
-        // Extract individual words from longer translations
-        else if (translation.split(' ').length <= 4) {
-          translation.split(' ').forEach(word => {
-            const cleaned = word.replace(/[^a-z]/g, '');
-            if (cleaned.length > 2 && !filterWords.has(cleaned)) {
-              alternatives.add(cleaned);
+        // Extract individual meaningful words from longer translations
+        if (words.length >= 2 && words.length <= 4) {
+          words.forEach(word => {
+            // Only add if: longer than 2 chars, not a filter word, only letters
+            if (word.length > 2 && !filterWords.has(word) && /^[a-z]+$/.test(word)) {
+              alternatives.add(word);
             }
           });
         }
@@ -478,10 +507,20 @@ async function getMyMemoryWithAlternatives(text: string): Promise<{
     });
   }
 
-  // Filter out the original Spanish word and primary translation
+  // Filter out: original Spanish word, primary translation, and any remaining junk
   const filtered = Array.from(alternatives)
-    .filter(t => t !== text.toLowerCase() && t !== primaryTranslation)
-    .slice(0, 6); // Limit to 6 alternatives for speed
+    .filter(t => {
+      // Exclude the original word
+      if (t === text.toLowerCase()) return false;
+      // Exclude the primary
+      if (t === primaryTranslation) return false;
+      // Only allow clean words/phrases (letters and spaces only)
+      if (!/^[a-z\s]+$/.test(t)) return false;
+      // Must be at least 3 characters
+      if (t.length < 3) return false;
+      return true;
+    })
+    .slice(0, 6); // Limit to 6 high-quality alternatives
 
   return { primary, alternatives: filtered };
 }
