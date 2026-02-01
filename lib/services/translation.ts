@@ -428,10 +428,23 @@ async function getMyMemoryWithAlternatives(text: string): Promise<{
   const alternatives = new Set<string>();
   const filterWords = new Set(['the', 'a', 'an', 'to', 'of', 'in', 'on', 'at', 'for', 'with', 'by', 'from']);
 
-  // Get primary translation
+  // Get primary translation from responseData
   const rawTranslation = data.responseData.translatedText;
   const cleanedTranslation = cleanTranslation(rawTranslation, text);
-  const primaryTranslation = cleanedTranslation.toLowerCase();
+  let primaryTranslation = cleanedTranslation.toLowerCase();
+  
+  // If primary looks suspicious (too long, multiple words, strange characters), use first match instead
+  const wordCount = primaryTranslation.split(' ').length;
+  const hasWeirdChars = /[^a-z\s]/.test(primaryTranslation);
+  
+  if ((wordCount > 3 || hasWeirdChars) && data.matches && data.matches.length > 0) {
+    // Try to find a better primary from matches
+    const firstMatch = data.matches[0].translation;
+    const cleanedMatch = cleanTranslation(firstMatch, text).toLowerCase();
+    if (cleanedMatch.split(' ').length <= 2 && !/[^a-z\s]/.test(cleanedMatch)) {
+      primaryTranslation = cleanedMatch;
+    }
+  }
 
   const primary: TranslationResult = {
     translatedText: primaryTranslation,

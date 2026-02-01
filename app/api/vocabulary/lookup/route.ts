@@ -44,7 +44,7 @@ export async function POST(request: NextRequest) {
         ? dictionaryResult.value
         : null;
 
-    // Fetch enhanced features in parallel (non-blocking) with 5-second timeout
+    // Fetch enhanced features in parallel (non-blocking) with shorter timeouts for speed
     const timeoutPromise = (promise: Promise<any>, timeoutMs: number) => {
       return Promise.race([
         promise,
@@ -53,9 +53,9 @@ export async function POST(request: NextRequest) {
     };
     
     const [relationshipsResult, conjugationResult, imagesResult] = await Promise.allSettled([
-      timeoutPromise(getWordRelationships(cleanWord, dictionary?.partOfSpeech), 5000),
-      dictionary?.partOfSpeech === 'verb' ? timeoutPromise(getVerbConjugation(cleanWord), 5000) : Promise.resolve(null),
-      timeoutPromise(getWordImages(cleanWord, translation?.primary, 3), 5000),
+      timeoutPromise(getWordRelationships(cleanWord, dictionary?.partOfSpeech), 3000), // Reduced from 5s to 3s
+      dictionary?.partOfSpeech === 'verb' ? timeoutPromise(getVerbConjugation(cleanWord), 3000) : Promise.resolve(null), // Reduced from 5s to 3s
+      timeoutPromise(getWordImages(cleanWord, translation?.primary, 3), 2000), // Reduced from 5s to 2s (images less critical)
     ]);
 
     const relationships = relationshipsResult.status === 'fulfilled' ? relationshipsResult.value : undefined;
