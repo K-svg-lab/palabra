@@ -13,6 +13,8 @@ import { useSearchParams } from 'next/navigation';
 import { Search, Filter, Plus } from 'lucide-react';
 import { VocabularyCard } from './vocabulary-card';
 import { useVocabulary, useDeleteVocabulary } from '@/lib/hooks/use-vocabulary';
+import { useVoiceInput } from '@/lib/hooks/use-voice-input';
+import { VoiceInputButton } from '@/components/ui/voice-input-button';
 import type { VocabularyWord } from '@/lib/types/vocabulary';
 
 interface Props {
@@ -33,6 +35,48 @@ export function VocabularyList({ onAddNew, onEdit, clearSearchAndFocusRef }: Pro
   const { data: vocabulary = [], isLoading } = useVocabulary() as { data: VocabularyWord[]; isLoading: boolean };
   const deleteMutation = useDeleteVocabulary();
 
+  // Voice input hook
+  const {
+    isListening,
+    isSupported: isVoiceSupported,
+    transcript,
+    error: voiceError,
+    startListening,
+    stopListening,
+    resetTranscript,
+  } = useVoiceInput({
+    language: 'auto', // Auto-detect Spanish or English
+    continuous: false,
+    interimResults: true,
+    onResult: (text, confidence) => {
+      // When we get a final result, set it as search term
+      console.log('Voice input result:', text, 'Confidence:', confidence);
+      const cleanedText = text.toLowerCase().trim();
+      setSearchTerm(cleanedText);
+      
+      // Check if word exists in vocabulary
+      const wordExists = vocabulary.some(
+        word => word.spanishWord.toLowerCase() === cleanedText || 
+                word.englishTranslation.toLowerCase() === cleanedText
+      );
+
+      // Auto-trigger add word if it doesn't exist and we have high confidence
+      if (!wordExists && confidence > 0.5 && onAddNew && cleanedText.length > 0) {
+        setTimeout(() => {
+          onAddNew(cleanedText);
+        }, 300);
+      } else {
+        // Just focus the input if word exists or confidence is low
+        setTimeout(() => {
+          searchInputRef.current?.focus();
+        }, 100);
+      }
+    },
+    onError: (error) => {
+      console.error('Voice input error:', error);
+    },
+  });
+
   // Auto-focus search box when navigating from "Add New Word" buttons
   useEffect(() => {
     const shouldFocus = searchParams.get('focus') === 'search';
@@ -52,6 +96,7 @@ export function VocabularyList({ onAddNew, onEdit, clearSearchAndFocusRef }: Pro
     if (clearSearchAndFocusRef) {
       clearSearchAndFocusRef.current = () => {
         setSearchTerm('');
+        resetTranscript();
         setTimeout(() => {
           searchInputRef.current?.focus();
           // Trigger keyboard on mobile
@@ -59,7 +104,24 @@ export function VocabularyList({ onAddNew, onEdit, clearSearchAndFocusRef }: Pro
         }, 100);
       };
     }
-  }, [clearSearchAndFocusRef]);
+  }, [clearSearchAndFocusRef, resetTranscript]);
+
+  // Handle voice input button click
+  const handleVoiceInputClick = () => {
+    if (isListening) {
+      stopListening();
+    } else {
+      resetTranscript();
+      startListening();
+    }
+  };
+
+  // Update search term when transcript changes (for interim results)
+  useEffect(() => {
+    if (transcript && isListening) {
+      setSearchTerm(transcript.toLowerCase());
+    }
+  }, [transcript, isListening]);
 
   // Filter and sort vocabulary
   const filteredVocabulary = useMemo(() => {
@@ -143,14 +205,29 @@ export function VocabularyList({ onAddNew, onEdit, clearSearchAndFocusRef }: Pro
             onKeyDown={handleSearchKeyDown}
             placeholder="Search Spanish or English..."
             className={`w-full pl-10 py-3 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-black focus:ring-2 focus:ring-accent focus:border-transparent ${
-              showAddButton ? 'pr-12' : 'pr-4'
+              showAddButton ? 'pr-24' : (isVoiceSupported ? 'pr-12' : 'pr-4')
             }`}
           />
+          
+          {/* Voice Input Button */}
+          {isVoiceSupported && (
+            <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-2">
+              <VoiceInputButton
+                isListening={isListening}
+                isSupported={isVoiceSupported}
+                onClick={handleVoiceInputClick}
+              />
+            </div>
+          )}
+          
+          {/* Add Button */}
           {showAddButton && onAddNew && (
             <button
               type="button"
               onClick={() => onAddNew(searchTerm.trim())}
-              className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 bg-accent text-white rounded-full flex items-center justify-center hover:bg-accent/90 transition-colors shadow-md"
+              className={`absolute top-1/2 -translate-y-1/2 w-8 h-8 bg-accent text-white rounded-full flex items-center justify-center hover:bg-accent/90 transition-colors shadow-md ${
+                isVoiceSupported ? 'right-12' : 'right-2'
+              }`}
               aria-label="Add new word"
               title="Add this word to vocabulary"
             >
@@ -158,6 +235,21 @@ export function VocabularyList({ onAddNew, onEdit, clearSearchAndFocusRef }: Pro
             </button>
           )}
         </div>
+
+        {/* Voice Input Error */}
+        {voiceError && (
+          <div className="text-sm text-error bg-error/10 px-3 py-2 rounded-lg">
+            {voiceError}
+          </div>
+        )}
+
+        {/* Voice Input Status */}
+        {isListening && (
+          <div className="text-sm text-accent bg-accent/10 px-3 py-2 rounded-lg flex items-center gap-2">
+            <div className="w-2 h-2 bg-error rounded-full animate-pulse" />
+            <span>Listening... Speak now</span>
+          </div>
+        )}
 
         {/* Filters */}
         <div className="flex gap-2 overflow-x-auto pb-2">
