@@ -8,7 +8,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { translateToEnglish } from '@/lib/services/translation';
+import { getEnhancedTranslation } from '@/lib/services/translation';
 import { getCompleteWordData } from '@/lib/services/dictionary';
 import { getWordRelationships, getVerbConjugation } from '@/lib/services/word-relationships';
 import { getWordImages } from '@/lib/services/images';
@@ -26,13 +26,13 @@ export async function POST(request: NextRequest) {
 
     const cleanWord = word.trim().toLowerCase();
 
-    // Fetch translation and dictionary data in parallel
+    // Fetch enhanced translation (with alternatives) and dictionary data in parallel
     const [translationResult, dictionaryResult] = await Promise.allSettled([
-      translateToEnglish(cleanWord),
+      getEnhancedTranslation(cleanWord),
       getCompleteWordData(cleanWord),
     ]);
 
-    // Process translation result
+    // Process enhanced translation result
     const translation =
       translationResult.status === 'fulfilled'
         ? translationResult.value
@@ -62,10 +62,11 @@ export async function POST(request: NextRequest) {
     const conjugation = conjugationResult.status === 'fulfilled' ? conjugationResult.value : undefined;
     const images = imagesResult.status === 'fulfilled' ? imagesResult.value : undefined;
 
-    // Combine results
+    // Combine results with enhanced translations
     const response = {
       word: cleanWord,
-      translation: translation?.translatedText || '',
+      translation: translation?.primary || '',
+      alternativeTranslations: translation?.alternatives || [],
       translationConfidence: translation?.confidence,
       translationSource: translation?.source || 'fallback',
       gender: dictionary?.gender,

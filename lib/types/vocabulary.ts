@@ -132,8 +132,11 @@ export interface VocabularyWord {
   /** Spanish word or phrase */
   spanishWord: string;
   
-  /** English translation */
+  /** Primary English translation (lowercase) */
   englishTranslation: string;
+  
+  /** Alternative translations for richer context (all lowercase) */
+  alternativeTranslations?: string[];
   
   /** Gender (for nouns) */
   gender?: Gender;
@@ -322,8 +325,11 @@ export interface VocabularyLookupResult {
   /** Whether the lookup was successful */
   success: boolean;
   
-  /** English translation */
+  /** Primary English translation (lowercase) */
   translation?: string;
+  
+  /** Alternative translations (all lowercase) */
+  alternativeTranslations?: string[];
   
   /** Detected gender */
   gender?: Gender;

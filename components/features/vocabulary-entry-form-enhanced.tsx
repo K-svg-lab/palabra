@@ -42,6 +42,7 @@ interface Props {
 export function VocabularyEntryFormEnhanced({ initialWord, onSuccess, onCancel }: Props) {
   const [lookupData, setLookupData] = useState<{
     translation?: string;
+    alternativeTranslations?: string[];
     gender?: Gender;
     partOfSpeech?: PartOfSpeech;
     examples?: ExampleSentence[];
@@ -52,6 +53,7 @@ export function VocabularyEntryFormEnhanced({ initialWord, onSuccess, onCancel }
     suggestions: string[];
     message?: string;
   } | null>(null);
+  const [selectedAlternatives, setSelectedAlternatives] = useState<string[]>([]);
   const [isCheckingSpelling, setIsCheckingSpelling] = useState(false);
   const [lastLookedUpWord, setLastLookedUpWord] = useState<string>('');
   const [hasAutoTriggered, setHasAutoTriggered] = useState(false);
@@ -203,7 +205,8 @@ export function VocabularyEntryFormEnhanced({ initialWord, onSuccess, onCancel }
       
       const vocabularyWord: Omit<VocabularyWord, 'id' | 'createdAt' | 'updatedAt'> = {
         spanishWord: data.spanishWord.trim(),
-        englishTranslation: data.englishTranslation.trim(),
+        englishTranslation: data.englishTranslation.trim().toLowerCase(),
+        alternativeTranslations: selectedAlternatives.length > 0 ? selectedAlternatives : undefined,
         gender: data.gender,
         partOfSpeech: data.partOfSpeech,
         examples: examplesArray,
@@ -356,9 +359,49 @@ export function VocabularyEntryFormEnhanced({ initialWord, onSuccess, onCancel }
               id="englishTranslation"
               type="text"
               {...register('englishTranslation', { required: 'Translation is required' })}
-              className="w-full px-3 sm:px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-black focus:ring-2 focus:ring-accent focus:border-transparent text-base"
-              placeholder="Dog"
+              className="w-full px-3 sm:px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-black focus:ring-2 focus:ring-accent focus:border-transparent text-base lowercase"
+              placeholder="dog"
             />
+            
+            {/* Alternative Translations */}
+            {lookupData.alternativeTranslations && lookupData.alternativeTranslations.length > 0 && (
+              <div className="mt-3">
+                <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-2">
+                  Other meanings (click to select)
+                </label>
+                <div className="flex flex-wrap gap-2">
+                  {lookupData.alternativeTranslations.map((alt, index) => {
+                    const isSelected = selectedAlternatives.includes(alt);
+                    return (
+                      <button
+                        key={index}
+                        type="button"
+                        onClick={() => {
+                          setSelectedAlternatives(prev =>
+                            isSelected
+                              ? prev.filter(a => a !== alt)
+                              : [...prev, alt]
+                          );
+                        }}
+                        className={`px-3 py-1.5 text-sm rounded-full transition-all ${
+                          isSelected
+                            ? 'bg-accent text-white border-2 border-accent'
+                            : 'bg-white dark:bg-gray-800 border-2 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:border-accent hover:bg-accent/10'
+                        }`}
+                        title={isSelected ? 'Click to deselect' : 'Click to select as alternative'}
+                      >
+                        {alt}
+                      </button>
+                    );
+                  })}
+                </div>
+                {selectedAlternatives.length > 0 && (
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+                    {selectedAlternatives.length} alternative{selectedAlternatives.length > 1 ? 's' : ''} selected
+                  </p>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Gender and Part of Speech - Compact */}

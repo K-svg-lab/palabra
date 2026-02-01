@@ -11,8 +11,15 @@
 export interface TranslationResult {
   translatedText: string;
   confidence?: number;
-  source: 'deepl' | 'mymemory' | 'fallback' | 'cache';
+  source: 'deepl' | 'mymemory' | 'dictionary' | 'fallback' | 'cache';
   detectedLanguage?: string;
+}
+
+export interface EnhancedTranslationResult {
+  primary: string; // Main translation (lowercase)
+  alternatives: string[]; // Alternative translations (all lowercase)
+  source: string;
+  confidence?: number;
 }
 
 export interface TranslationError {
@@ -33,6 +40,7 @@ export interface TranslationError {
  */
 /**
  * Translates using DeepL API (premium quality)
+ * Now returns precise, lowercase translations
  */
 async function translateWithDeepL(text: string): Promise<TranslationResult> {
   const apiKey = process.env.NEXT_PUBLIC_DEEPL_API_KEY;
@@ -55,7 +63,9 @@ async function translateWithDeepL(text: string): Promise<TranslationResult> {
     body: JSON.stringify({
       text: [text],
       source_lang: 'ES',
-      target_lang: 'EN',
+      target_lang: 'EN-US',
+      formality: 'default',
+      context: 'Translate this single Spanish word to its most common English equivalent(s).',
     }),
   });
 
@@ -66,11 +76,12 @@ async function translateWithDeepL(text: string): Promise<TranslationResult> {
   const data = await response.json();
   const rawTranslation = data.translations[0].text;
   
-  // Clean the translation to remove Spanish word if present
+  // Clean and format the translation
   const cleanedTranslation = cleanTranslation(rawTranslation, text);
+  const lowercaseTranslation = cleanedTranslation.toLowerCase();
 
   return {
-    translatedText: cleanedTranslation,
+    translatedText: lowercaseTranslation,
     source: 'deepl',
     detectedLanguage: data.translations[0].detected_source_language,
   };
@@ -120,6 +131,7 @@ function cleanTranslation(text: string, originalSpanishWord: string): string {
 
 /**
  * Translates using MyMemory API (free, good quality)
+ * Now returns precise, lowercase translations
  */
 async function translateWithMyMemory(text: string): Promise<TranslationResult> {
   const apiUrl = 'https://api.mymemory.translated.net/get';
@@ -140,12 +152,13 @@ async function translateWithMyMemory(text: string): Promise<TranslationResult> {
 
   const data = await response.json();
   
-  // Clean the translation to remove Spanish word if present
+  // Clean and format the translation
   const rawTranslation = data.responseData.translatedText;
   const cleanedTranslation = cleanTranslation(rawTranslation, text);
+  const lowercaseTranslation = cleanedTranslation.toLowerCase();
 
   return {
-    translatedText: cleanedTranslation,
+    translatedText: lowercaseTranslation,
     confidence: data.responseData.match,
     source: 'mymemory',
     detectedLanguage: data.responseData.detectedLanguage,
@@ -166,7 +179,12 @@ export async function translateToEnglish(
   // Try DeepL first if API key is available
   if (process.env.NEXT_PUBLIC_DEEPL_API_KEY) {
     try {
-      return await translateWithDeepL(text);
+      const result = await translateWithDeepL(text);
+      // Ensure lowercase
+      return {
+        ...result,
+        translatedText: result.translatedText.toLowerCase(),
+      };
     } catch (error) {
       console.warn('DeepL translation failed, falling back to MyMemory:', error);
       // Fall through to MyMemory
@@ -176,7 +194,11 @@ export async function translateToEnglish(
   // Use MyMemory as fallback (or primary if no DeepL key)
   try {
     const result = await translateWithMyMemory(text);
-    return result;
+    // Ensure lowercase
+    return {
+      ...result,
+      translatedText: result.translatedText.toLowerCase(),
+    };
   } catch (error) {
     console.error('Translation error:', error);
     
@@ -186,6 +208,49 @@ export async function translateToEnglish(
       fallbackAvailable: true,
     } as TranslationError;
   }
+}
+
+/**
+ * Get enhanced translation with multiple options
+ * Returns primary translation plus alternatives for richer understanding
+ * 
+ * @param text - Spanish word to translate
+ * @returns Enhanced translation result with alternatives
+ */
+export async function getEnhancedTranslation(
+  text: string
+): Promise<EnhancedTranslationResult> {
+  if (!text || text.trim().length === 0) {
+    throw {
+      error: 'INVALID_INPUT',
+      message: 'Text cannot be empty',
+      fallbackAvailable: false,
+    } as TranslationError;
+  }
+
+  // Get multiple translations
+  const translations = await getMultipleTranslations(text);
+
+  if (translations.length === 0) {
+    // Fallback to single translation
+    const singleTranslation = await translateToEnglish(text);
+    return {
+      primary: singleTranslation.translatedText,
+      alternatives: [],
+      source: singleTranslation.source,
+      confidence: singleTranslation.confidence,
+    };
+  }
+
+  // First translation is primary, rest are alternatives
+  const [primary, ...rest] = translations;
+
+  return {
+    primary: primary.translatedText,
+    alternatives: rest.map(t => t.translatedText),
+    source: primary.source,
+    confidence: primary.confidence,
+  };
 }
 
 /**
@@ -275,11 +340,73 @@ export async function translateToSpanish(
 }
 
 /**
- * Get multiple translation perspectives for a word
- * Calls both DeepL and MyMemory to provide learners with different viewpoints
+ * Get multiple translation options for a word using a dictionary API
+ * Provides comprehensive translation perspectives including synonyms and different meanings
  * 
  * @param text - Spanish word to translate
- * @returns Array of translation results from different sources
+ * @returns Array of unique translation options
+ */
+async function getSpanishEnglishDictionary(text: string): Promise<string[]> {
+  try {
+    // Try Spanish Dict API (free dictionary with multiple translations)
+    const response = await fetch(
+      `https://api.dictionaryapi.dev/api/v2/entries/es/${encodeURIComponent(text)}`
+    );
+
+    if (response.ok) {
+      const data = await response.json();
+      const translations = new Set<string>();
+      
+      // Extract definitions and synonyms
+      data.forEach((entry: any) => {
+        entry.meanings?.forEach((meaning: any) => {
+          meaning.definitions?.forEach((def: any) => {
+            if (def.definition) {
+              // Extract English words from definitions
+              const englishWords = extractEnglishWords(def.definition);
+              englishWords.forEach(word => translations.add(word.toLowerCase()));
+            }
+          });
+          
+          // Add synonyms if available
+          meaning.synonyms?.forEach((syn: string) => {
+            translations.add(syn.toLowerCase());
+          });
+        });
+      });
+
+      return Array.from(translations).slice(0, 5); // Limit to 5 translations
+    }
+  } catch (error) {
+    // Fallback to basic translation
+  }
+
+  return [];
+}
+
+/**
+ * Extracts English words from a definition or translation
+ * Removes articles, prepositions, and extracts key translation words
+ */
+function extractEnglishWords(text: string): string[] {
+  // Common words to filter out
+  const filterWords = new Set(['the', 'a', 'an', 'to', 'of', 'in', 'on', 'at', 'for', 'with', 'by', 'from', 'as', 'is', 'are', 'was', 'were', 'be', 'been', 'being']);
+  
+  // Extract words, remove punctuation
+  const words = text.toLowerCase()
+    .replace(/[^\w\s]/g, ' ')
+    .split(/\s+/)
+    .filter(word => word.length > 2 && !filterWords.has(word));
+  
+  return words;
+}
+
+/**
+ * Get multiple translation perspectives for a word
+ * Now enhanced to provide more diverse and precise translations
+ * 
+ * @param text - Spanish word to translate
+ * @returns Array of unique translation results
  */
 export async function getMultipleTranslations(
   text: string
@@ -289,29 +416,49 @@ export async function getMultipleTranslations(
   }
 
   const translations: TranslationResult[] = [];
+  const seenTranslations = new Set<string>();
 
-  // Try to get both DeepL and MyMemory translations
-  const [deeplResult, mymemoryResult] = await Promise.allSettled([
+  // Try to get translations from multiple sources in parallel
+  const [deeplResult, mymemoryResult, dictionaryWords] = await Promise.allSettled([
     process.env.NEXT_PUBLIC_DEEPL_API_KEY ? translateWithDeepL(text) : Promise.reject('No API key'),
     translateWithMyMemory(text),
+    getSpanishEnglishDictionary(text),
   ]);
 
-  // Add DeepL translation if successful
-  if (deeplResult.status === 'fulfilled') {
-    translations.push(deeplResult.value);
-  }
-
-  // Add MyMemory translation if successful and different from DeepL
-  if (mymemoryResult.status === 'fulfilled') {
-    const mymemoryTranslation = mymemoryResult.value;
-    // Only add if it's different from DeepL translation
-    if (translations.length === 0 || 
-        translations[0].translatedText.toLowerCase() !== mymemoryTranslation.translatedText.toLowerCase()) {
-      translations.push(mymemoryTranslation);
+  // Helper to add unique translation
+  const addUniqueTranslation = (translation: string, source: 'deepl' | 'mymemory' | 'dictionary', confidence?: number) => {
+    const normalized = translation.toLowerCase().trim();
+    if (normalized && !seenTranslations.has(normalized) && normalized !== text.toLowerCase()) {
+      seenTranslations.add(normalized);
+      translations.push({
+        translatedText: normalized,
+        source,
+        confidence,
+      });
     }
+  };
+
+  // Add DeepL translation (highest quality, first priority)
+  if (deeplResult.status === 'fulfilled') {
+    const result = deeplResult.value;
+    addUniqueTranslation(result.translatedText, 'deepl', result.confidence);
   }
 
-  return translations;
+  // Add MyMemory translation
+  if (mymemoryResult.status === 'fulfilled') {
+    const result = mymemoryResult.value;
+    addUniqueTranslation(result.translatedText, 'mymemory', result.confidence);
+  }
+
+  // Add dictionary translations (multiple meanings for richer context)
+  if (dictionaryWords.status === 'fulfilled' && dictionaryWords.value.length > 0) {
+    dictionaryWords.value.forEach(word => {
+      addUniqueTranslation(word, 'dictionary', 0.7);
+    });
+  }
+
+  // Limit to top 5 translations to avoid overwhelming users
+  return translations.slice(0, 5);
 }
 
 /**
