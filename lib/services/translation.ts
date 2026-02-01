@@ -90,32 +90,34 @@ async function translateWithDeepL(text: string): Promise<TranslationResult> {
 /**
  * Cleans translation text to extract only English
  * Removes Spanish word if it appears in format "spanish (english)" or "spanish/english"
+ * Returns result in lowercase
  */
 function cleanTranslation(text: string, originalSpanishWord: string): string {
   if (!text) return text;
   
-  const cleaned = text.trim();
+  const cleaned = text.trim().toLowerCase();
+  const spanishLower = originalSpanishWord.toLowerCase();
   
   // Remove the Spanish word if it appears at the start
   // Pattern: "spanish (english)" -> "english"
-  const parenPattern = new RegExp(`^${originalSpanishWord}\\s*\\(([^)]+)\\)`, 'i');
+  const parenPattern = new RegExp(`^${spanishLower}\\s*\\(([^)]+)\\)`, 'i');
   const parenMatch = cleaned.match(parenPattern);
   if (parenMatch) {
-    return parenMatch[1].trim();
+    return parenMatch[1].trim().toLowerCase();
   }
   
   // Pattern: "spanish / english" or "spanish/english" -> "english"
-  const slashPattern = new RegExp(`^${originalSpanishWord}\\s*/\\s*(.+)`, 'i');
+  const slashPattern = new RegExp(`^${spanishLower}\\s*/\\s*(.+)`, 'i');
   const slashMatch = cleaned.match(slashPattern);
   if (slashMatch) {
-    return slashMatch[1].trim();
+    return slashMatch[1].trim().toLowerCase();
   }
   
   // Pattern: "spanish - english" -> "english"
-  const dashPattern = new RegExp(`^${originalSpanishWord}\\s*-\\s*(.+)`, 'i');
+  const dashPattern = new RegExp(`^${spanishLower}\\s*-\\s*(.+)`, 'i');
   const dashMatch = cleaned.match(dashPattern);
   if (dashMatch) {
-    return dashMatch[1].trim();
+    return dashMatch[1].trim().toLowerCase();
   }
   
   // If translation starts with the Spanish word followed by anything in parentheses
@@ -123,10 +125,10 @@ function cleanTranslation(text: string, originalSpanishWord: string): string {
   const genericParenPattern = /^[^(]+\(([^)]+)\)/;
   const genericMatch = cleaned.match(genericParenPattern);
   if (genericMatch) {
-    return genericMatch[1].trim();
+    return genericMatch[1].trim().toLowerCase();
   }
   
-  return cleaned;
+  return cleaned.toLowerCase();
 }
 
 /**
@@ -213,6 +215,7 @@ export async function translateToEnglish(
 /**
  * Get enhanced translation with multiple options
  * Returns primary translation plus alternatives for richer understanding
+ * All translations are returned in lowercase
  * 
  * @param text - Spanish word to translate
  * @returns Enhanced translation result with alternatives
@@ -235,7 +238,7 @@ export async function getEnhancedTranslation(
     // Fallback to single translation
     const singleTranslation = await translateToEnglish(text);
     return {
-      primary: singleTranslation.translatedText,
+      primary: singleTranslation.translatedText.toLowerCase(),
       alternatives: [],
       source: singleTranslation.source,
       confidence: singleTranslation.confidence,
@@ -243,11 +246,12 @@ export async function getEnhancedTranslation(
   }
 
   // First translation is primary, rest are alternatives
+  // Ensure all are lowercase
   const [primary, ...rest] = translations;
 
   return {
-    primary: primary.translatedText,
-    alternatives: rest.map(t => t.translatedText),
+    primary: primary.translatedText.toLowerCase(),
+    alternatives: rest.map(t => t.translatedText.toLowerCase()),
     source: primary.source,
     confidence: primary.confidence,
   };
@@ -340,65 +344,55 @@ export async function translateToSpanish(
 }
 
 /**
- * Get multiple translation options for a word using a dictionary API
- * Provides comprehensive translation perspectives including synonyms and different meanings
- * 
- * @param text - Spanish word to translate
- * @returns Array of unique translation options
+ * Common Spanish words with their alternative English translations
+ * Manually curated for quality and accuracy
  */
-async function getSpanishEnglishDictionary(text: string): Promise<string[]> {
-  try {
-    // Try Spanish Dict API (free dictionary with multiple translations)
-    const response = await fetch(
-      `https://api.dictionaryapi.dev/api/v2/entries/es/${encodeURIComponent(text)}`
-    );
-
-    if (response.ok) {
-      const data = await response.json();
-      const translations = new Set<string>();
-      
-      // Extract definitions and synonyms
-      data.forEach((entry: any) => {
-        entry.meanings?.forEach((meaning: any) => {
-          meaning.definitions?.forEach((def: any) => {
-            if (def.definition) {
-              // Extract English words from definitions
-              const englishWords = extractEnglishWords(def.definition);
-              englishWords.forEach(word => translations.add(word.toLowerCase()));
-            }
-          });
-          
-          // Add synonyms if available
-          meaning.synonyms?.forEach((syn: string) => {
-            translations.add(syn.toLowerCase());
-          });
-        });
-      });
-
-      return Array.from(translations).slice(0, 5); // Limit to 5 translations
-    }
-  } catch (error) {
-    // Fallback to basic translation
-  }
-
-  return [];
-}
+const COMMON_ALTERNATIVES: Record<string, string[]> = {
+  // Abstract concepts
+  'meta': ['goal', 'finish', 'milestone', 'target', 'aim'],
+  'esperanza': ['hope', 'expectation', 'prospect', 'aspiration'],
+  'libertad': ['freedom', 'liberty', 'independence', 'autonomy'],
+  'amor': ['love', 'affection', 'fondness', 'devotion'],
+  'paz': ['peace', 'calm', 'tranquility', 'serenity'],
+  
+  // Context-dependent words
+  'banco': ['bank', 'bench', 'pew', 'shoal'],
+  'luz': ['light', 'daylight', 'lamp', 'brightness'],
+  'suelto': ['loose', 'separate', 'free', 'unattached'],
+  'cara': ['face', 'side', 'surface', 'appearance'],
+  'letra': ['letter', 'handwriting', 'lyrics', 'typeface'],
+  
+  // Common adjectives
+  'bonito': ['beautiful', 'pretty', 'lovely', 'nice'],
+  'grande': ['big', 'large', 'great', 'grand'],
+  'pequeño': ['small', 'little', 'tiny', 'minor'],
+  'bueno': ['good', 'kind', 'nice', 'fine'],
+  'malo': ['bad', 'evil', 'poor', 'wicked'],
+  
+  // Common verbs
+  'hacer': ['do', 'make', 'perform', 'create'],
+  'tener': ['have', 'possess', 'hold', 'own'],
+  'ir': ['go', 'leave', 'travel', 'head'],
+  'ver': ['see', 'watch', 'view', 'look'],
+  'dar': ['give', 'provide', 'grant', 'offer'],
+  
+  // Time and quantity
+  'tiempo': ['time', 'weather', 'period', 'season'],
+  'vez': ['time', 'occasion', 'turn', 'instance'],
+  'poco': ['little', 'few', 'bit', 'scarce'],
+  'mucho': ['much', 'lot', 'many', 'plenty'],
+};
 
 /**
- * Extracts English words from a definition or translation
- * Removes articles, prepositions, and extracts key translation words
+ * Get multiple translation options from local dictionary
+ * Provides reliable alternative translations for common words
+ * 
+ * @param text - Spanish word to translate
+ * @returns Array of alternative translation options
  */
-function extractEnglishWords(text: string): string[] {
-  // Common words to filter out
-  const filterWords = new Set(['the', 'a', 'an', 'to', 'of', 'in', 'on', 'at', 'for', 'with', 'by', 'from', 'as', 'is', 'are', 'was', 'were', 'be', 'been', 'being']);
-  
-  // Extract words, remove punctuation
-  const words = text.toLowerCase()
-    .replace(/[^\w\s]/g, ' ')
-    .split(/\s+/)
-    .filter(word => word.length > 2 && !filterWords.has(word));
-  
-  return words;
+function getLocalAlternatives(text: string): string[] {
+  const normalized = text.toLowerCase().trim();
+  return COMMON_ALTERNATIVES[normalized] || [];
 }
 
 /**
@@ -418,12 +412,14 @@ export async function getMultipleTranslations(
   const translations: TranslationResult[] = [];
   const seenTranslations = new Set<string>();
 
-  // Try to get translations from multiple sources in parallel
-  const [deeplResult, mymemoryResult, dictionaryWords] = await Promise.allSettled([
+  // Try to get translations from API sources
+  const [deeplResult, mymemoryResult] = await Promise.allSettled([
     process.env.NEXT_PUBLIC_DEEPL_API_KEY ? translateWithDeepL(text) : Promise.reject('No API key'),
     translateWithMyMemory(text),
-    getSpanishEnglishDictionary(text),
   ]);
+
+  // Get local alternatives for common words
+  const localAlternatives = getLocalAlternatives(text);
 
   // Helper to add unique translation
   const addUniqueTranslation = (translation: string, source: 'deepl' | 'mymemory' | 'dictionary', confidence?: number) => {
@@ -450,15 +446,21 @@ export async function getMultipleTranslations(
     addUniqueTranslation(result.translatedText, 'mymemory', result.confidence);
   }
 
-  // Add dictionary translations (multiple meanings for richer context)
-  if (dictionaryWords.status === 'fulfilled' && dictionaryWords.value.length > 0) {
-    dictionaryWords.value.forEach(word => {
-      addUniqueTranslation(word, 'dictionary', 0.7);
+  // Add local alternatives (curated translations for common words)
+  if (localAlternatives.length > 0) {
+    localAlternatives.forEach(word => {
+      addUniqueTranslation(word, 'dictionary', 0.9);
     });
   }
 
-  // Limit to top 5 translations to avoid overwhelming users
-  return translations.slice(0, 5);
+  // Debug logging
+  console.log('[Translation] Multiple translations for', text, ':', {
+    count: translations.length,
+    translations: translations.map(t => t.translatedText)
+  });
+
+  // Return up to 8 translations (1 primary + up to 7 alternatives)
+  return translations.slice(0, 8);
 }
 
 /**

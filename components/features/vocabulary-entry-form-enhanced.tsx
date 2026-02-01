@@ -97,6 +97,11 @@ export function VocabularyEntryFormEnhanced({ initialWord, onSuccess, onCancel }
 
                 // If spelling is correct, proceed with lookup
                 const data = await lookupMutation.mutateAsync(cleanWord);
+                console.log('[Form] Received lookup data:', {
+                  translation: data.translation,
+                  alternativeTranslations: data.alternativeTranslations,
+                  alternativesCount: data.alternativeTranslations?.length || 0
+                });
                 setLookupData(data);
                 setLastLookedUpWord(cleanWord);
                 

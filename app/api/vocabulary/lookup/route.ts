@@ -84,6 +84,13 @@ export async function POST(request: NextRequest) {
       },
     };
 
+    // Debug logging
+    console.log('[Lookup API] Enhanced translation result:', {
+      primary: translation?.primary,
+      alternatives: translation?.alternatives,
+      alternativesCount: translation?.alternatives?.length || 0
+    });
+
     return NextResponse.json(response);
   } catch (error) {
     console.error('Vocabulary lookup error:', error);
