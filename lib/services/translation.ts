@@ -67,6 +67,7 @@ async function translateWithDeepL(text: string): Promise<TranslationResult> {
       formality: 'default',
       context: 'Translate this single Spanish word to its most common English equivalent(s).',
     }),
+    signal: AbortSignal.timeout(4000), // 4s timeout for speed
   });
 
   if (!response.ok) {
@@ -396,137 +397,84 @@ function getLocalAlternatives(text: string): string[] {
 }
 
 /**
- * Extract multiple translations from MyMemory API matches
- * MyMemory returns multiple translation candidates that we can use
- * Also extracts individual words from phrase translations for better coverage
+ * Get MyMemory translation with alternatives in a SINGLE call
+ * Returns both primary translation and alternative options
+ * Optimized to avoid duplicate API calls
  * 
  * @param text - Spanish word to translate
- * @returns Array of translation options from MyMemory
+ * @returns Object with primary translation and alternatives
  */
-async function getMyMemoryAlternatives(text: string): Promise<string[]> {
-  try {
-    const apiUrl = 'https://api.mymemory.translated.net/get';
-    const response = await fetch(
-      `${apiUrl}?q=${encodeURIComponent(text)}&langpair=es|en`,
-      {
-        method: 'GET',
-        headers: {
-          'Accept': 'application/json',
-        },
-      }
-    );
-
-    if (!response.ok) {
-      return [];
+async function getMyMemoryWithAlternatives(text: string): Promise<{
+  primary: TranslationResult;
+  alternatives: string[];
+}> {
+  const apiUrl = 'https://api.mymemory.translated.net/get';
+  const response = await fetch(
+    `${apiUrl}?q=${encodeURIComponent(text)}&langpair=es|en`,
+    {
+      method: 'GET',
+      headers: {
+        'Accept': 'application/json',
+      },
+      signal: AbortSignal.timeout(3000), // 3s timeout for speed
     }
+  );
 
-    const data = await response.json();
-    const translations = new Set<string>();
-    const filterWords = new Set(['the', 'a', 'an', 'to', 'of', 'in', 'on', 'at', 'for', 'with', 'by', 'from']);
+  if (!response.ok) {
+    throw new Error(`MyMemory API returned ${response.status}`);
+  }
 
-    // Add primary translation
-    if (data.responseData?.translatedText) {
-      const primary = data.responseData.translatedText.toLowerCase().trim();
-      translations.add(primary);
-      
-      // Extract individual words from primary if it's a phrase
-      if (primary.includes(' ') && primary.split(' ').length <= 4) {
-        primary.split(' ').forEach(word => {
-          const cleaned = word.replace(/[^a-z]/g, '');
-          if (cleaned.length > 2 && !filterWords.has(cleaned)) {
-            translations.add(cleaned);
-          }
-        });
-      }
-    }
+  const data = await response.json();
+  const alternatives = new Set<string>();
+  const filterWords = new Set(['the', 'a', 'an', 'to', 'of', 'in', 'on', 'at', 'for', 'with', 'by', 'from']);
 
-    // Add translations from matches (multiple translation examples)
-    if (data.matches && Array.isArray(data.matches)) {
-      data.matches.forEach((match: any) => {
-        if (match.translation) {
-          const translation = match.translation.toLowerCase().trim();
-          
-          // Add full translation if it's short
-          if (translation.split(' ').length <= 2) {
-            translations.add(translation);
-          }
-          
-          // Extract individual words from longer translations
-          if (translation.split(' ').length >= 2 && translation.split(' ').length <= 4) {
-            translation.split(' ').forEach(word => {
-              const cleaned = word.replace(/[^a-z]/g, '');
-              if (cleaned.length > 2 && !filterWords.has(cleaned)) {
-                translations.add(cleaned);
-              }
-            });
-          }
+  // Get primary translation
+  const rawTranslation = data.responseData.translatedText;
+  const cleanedTranslation = cleanTranslation(rawTranslation, text);
+  const primaryTranslation = cleanedTranslation.toLowerCase();
+
+  const primary: TranslationResult = {
+    translatedText: primaryTranslation,
+    confidence: data.responseData.match,
+    source: 'mymemory',
+    detectedLanguage: data.responseData.detectedLanguage,
+  };
+
+  // Extract alternatives from matches
+  if (data.matches && Array.isArray(data.matches)) {
+    // Take only top 5 matches for speed
+    data.matches.slice(0, 5).forEach((match: any) => {
+      if (match.translation) {
+        const translation = match.translation.toLowerCase().trim();
+        
+        // Add full translation if it's short (1-2 words)
+        if (translation.split(' ').length <= 2) {
+          alternatives.add(translation);
         }
-      });
-    }
-
-    // Filter out the original Spanish word
-    const filtered = Array.from(translations).filter(t => t !== text.toLowerCase());
-    return filtered.slice(0, 8);
-  } catch (error) {
-    console.error('MyMemory alternatives fetch failed:', error);
-    return [];
-  }
-}
-
-/**
- * Get word synonyms and alternative meanings using dictionary lookup
- * Tries to extract multiple English equivalents for better context
- * 
- * @param text - Spanish word to translate
- * @returns Array of alternative translations
- */
-async function getDictionaryAlternatives(text: string): Promise<string[]> {
-  try {
-    // Try Spanish-English dictionary API
-    const response = await fetch(
-      `https://api.dictionaryapi.dev/api/v2/entries/es/${encodeURIComponent(text)}`
-    );
-
-    if (!response.ok) {
-      return [];
-    }
-
-    const data = await response.json();
-    const alternatives = new Set<string>();
-
-    // Extract definitions and meanings
-    data.forEach((entry: any) => {
-      entry.meanings?.forEach((meaning: any) => {
-        meaning.definitions?.forEach((def: any) => {
-          // Extract English words from definitions
-          if (def.definition) {
-            const words = def.definition
-              .toLowerCase()
-              .match(/\b[a-z]+\b/g) || [];
-            
-            // Add first few meaningful words (excluding common articles)
-            const filterWords = new Set(['the', 'a', 'an', 'to', 'of', 'in', 'on', 'for', 'with', 'is', 'are', 'was', 'were']);
-            words
-              .filter(w => w.length > 2 && !filterWords.has(w))
-              .slice(0, 3)
-              .forEach(w => alternatives.add(w));
-          }
-        });
-
-        // Add synonyms
-        meaning.synonyms?.forEach((syn: string) => {
-          if (syn.split(' ').length <= 2) {
-            alternatives.add(syn.toLowerCase());
-          }
-        });
-      });
+        
+        // Extract individual words from longer translations
+        else if (translation.split(' ').length <= 4) {
+          translation.split(' ').forEach(word => {
+            const cleaned = word.replace(/[^a-z]/g, '');
+            if (cleaned.length > 2 && !filterWords.has(cleaned)) {
+              alternatives.add(cleaned);
+            }
+          });
+        }
+      }
     });
-
-    return Array.from(alternatives).slice(0, 5);
-  } catch (error) {
-    return [];
   }
+
+  // Filter out the original Spanish word and primary translation
+  const filtered = Array.from(alternatives)
+    .filter(t => t !== text.toLowerCase() && t !== primaryTranslation)
+    .slice(0, 6); // Limit to 6 alternatives for speed
+
+  return { primary, alternatives: filtered };
 }
+
+// Dictionary API removed - was slow and unreliable
+// Now using: DeepL (best quality) + MyMemory (fast) + Local dictionary (curated common words)
 
 /**
  * Get multiple translation perspectives for a word
@@ -545,13 +493,13 @@ export async function getMultipleTranslations(
   const translations: TranslationResult[] = [];
   const seenTranslations = new Set<string>();
 
-  // Try to get translations from multiple sources in parallel
-  const [deeplResult, mymemoryResult, myMemoryAlts, dictionaryAlts, localAlts] = await Promise.allSettled([
+  // Get local alternatives (instant, no API call)
+  const localAlts = getLocalAlternatives(text);
+
+  // Get translations from ONLY fast sources in parallel (reduced from 4 to 2 API calls)
+  const [deeplResult, myMemoryResult] = await Promise.allSettled([
     process.env.NEXT_PUBLIC_DEEPL_API_KEY ? translateWithDeepL(text) : Promise.reject('No API key'),
-    translateWithMyMemory(text),
-    getMyMemoryAlternatives(text),
-    getDictionaryAlternatives(text),
-    Promise.resolve(getLocalAlternatives(text)),
+    getMyMemoryWithAlternatives(text), // Single call returns both primary + alternatives
   ]);
 
   // Helper to add unique translation
@@ -573,42 +521,27 @@ export async function getMultipleTranslations(
     addUniqueTranslation(result.translatedText, 'deepl', result.confidence);
   }
 
-  // Add MyMemory translation
-  if (mymemoryResult.status === 'fulfilled') {
-    const result = mymemoryResult.value;
-    addUniqueTranslation(result.translatedText, 'mymemory', result.confidence);
-  }
-
-  // Add local alternatives first (highest quality curated translations)
-  if (localAlts.status === 'fulfilled' && localAlts.value.length > 0) {
-    localAlts.value.forEach(word => {
-      addUniqueTranslation(word, 'dictionary', 0.9);
+  // Add MyMemory primary translation + alternatives (from single call)
+  if (myMemoryResult.status === 'fulfilled') {
+    const { primary, alternatives } = myMemoryResult.value;
+    addUniqueTranslation(primary.translatedText, 'mymemory', primary.confidence);
+    
+    // Add alternatives from MyMemory
+    alternatives.forEach(alt => {
+      addUniqueTranslation(alt, 'mymemory', 0.8);
     });
   }
 
-  // Add MyMemory alternatives (from translation examples)
-  if (myMemoryAlts.status === 'fulfilled' && myMemoryAlts.value.length > 0) {
-    myMemoryAlts.value.forEach(word => {
-      addUniqueTranslation(word, 'mymemory', 0.8);
-    });
-  }
-
-  // Add dictionary alternatives (from definitions/synonyms)
-  if (dictionaryAlts.status === 'fulfilled' && dictionaryAlts.value.length > 0) {
-    dictionaryAlts.value.forEach(word => {
-      addUniqueTranslation(word, 'dictionary', 0.7);
-    });
-  }
+  // Add local curated alternatives (highest quality for common words)
+  localAlts.forEach(word => {
+    addUniqueTranslation(word, 'dictionary', 0.9);
+  });
 
   // Debug logging
-  console.log('[Translation] Multiple translations for', text, ':', {
+  console.log('[Translation] Translations for', text, ':', {
     count: translations.length,
-    translations: translations.map(t => t.translatedText),
-    sources: {
-      local: localAlts.status === 'fulfilled' ? localAlts.value.length : 0,
-      myMemory: myMemoryAlts.status === 'fulfilled' ? myMemoryAlts.value.length : 0,
-      dictionary: dictionaryAlts.status === 'fulfilled' ? dictionaryAlts.value.length : 0
-    }
+    primary: translations[0]?.translatedText,
+    alternatives: translations.slice(1).map(t => t.translatedText),
   });
 
   // Return up to 8 translations (1 primary + up to 7 alternatives)
