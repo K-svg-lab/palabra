@@ -2,7 +2,7 @@
 
 > An intelligent vocabulary learning application with AI-powered translation, spaced repetition, and progress tracking.
 
-[![Status](https://img.shields.io/badge/Status-Phase%2014%20Complete-success)](./PHASE14_VOICE_INPUT.md)
+[![Status](https://img.shields.io/badge/Status-Phase%2015%20Complete-success)](./PHASE15_ENHANCED_TRANSLATIONS.md)
 [![Next.js](https://img.shields.io/badge/Next.js-16.1-black)](https://nextjs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue)](https://www.typescriptlang.org/)
 [![PWA](https://img.shields.io/badge/PWA-Enabled-orange)](./PHASE12_COMPLETE.md)
@@ -33,7 +33,7 @@ Palabra is a modern, mobile-first Spanish vocabulary learning application that h
 - ✅ **Offline Support** - All data stored locally (IndexedDB)
 - ✅ **Dark Mode** - Easy on the eyes, day or night
 
-### Advanced Features (Phase 7-14: Complete ✅)
+### Advanced Features (Phase 7-15: Complete ✅)
 
 - ✅ **Multiple Example Sentences** - Context-rich learning
 - ✅ **Bidirectional Flashcards** - Spanish→English & English→Spanish
@@ -47,6 +47,7 @@ Palabra is a modern, mobile-first Spanish vocabulary learning application that h
 - ✅ **PWA Support** - Install as native app
 - ✅ **Background Sync** - Automatic data synchronization
 - ✅ **Voice Input** - Speak words instead of typing (Phase 14)
+- ✅ **Enhanced Translations** - Multiple precise translations with context (Phase 15)
 
 ### Future Enhancements (Phase 13+)
 
