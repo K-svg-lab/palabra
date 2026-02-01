@@ -55,7 +55,7 @@ export async function POST(request: NextRequest) {
     const [relationshipsResult, conjugationResult, imagesResult] = await Promise.allSettled([
       timeoutPromise(getWordRelationships(cleanWord, dictionary?.partOfSpeech), 5000),
       dictionary?.partOfSpeech === 'verb' ? timeoutPromise(getVerbConjugation(cleanWord), 5000) : Promise.resolve(null),
-      timeoutPromise(getWordImages(cleanWord, translation?.translatedText, 3), 5000),
+      timeoutPromise(getWordImages(cleanWord, translation?.primary, 3), 5000),
     ]);
 
     const relationships = relationshipsResult.status === 'fulfilled' ? relationshipsResult.value : undefined;
