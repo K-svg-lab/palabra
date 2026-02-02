@@ -21,7 +21,6 @@ import { checkSpanishSpelling } from '@/lib/services/spellcheck';
 import { useOnlineStatusOnly } from '@/lib/hooks/use-online-status';
 import { getOfflineQueueService } from '@/lib/services/offline-queue';
 import type { VocabularyWord, Gender, PartOfSpeech, ExampleSentence } from '@/lib/types/vocabulary';
-import { AudioPlayerEnhanced } from './audio-player-enhanced';
 
 interface VocabularyFormData {
   spanishWord: string;
@@ -78,6 +77,9 @@ export function VocabularyEntryFormEnhanced({ initialWord, onSuccess, onCancel }
           setValue('spanishWord', initialWord.trim());
           setHasAutoTriggered(true);
           
+          // Blur input to keep mobile keyboard closed
+          input.blur();
+          
           // Only trigger lookup if online
           if (isOnline) {
             // Trigger lookup after setting the value
@@ -109,6 +111,11 @@ export function VocabularyEntryFormEnhanced({ initialWord, onSuccess, onCancel }
                 setValue('englishTranslation', data.translation);
                 setValue('gender', data.gender);
                 setValue('partOfSpeech', data.partOfSpeech);
+                
+                // Keep keyboard closed after auto-fill
+                if (document.activeElement instanceof HTMLElement) {
+                  document.activeElement.blur();
+                }
               } catch (error) {
                 console.error('Auto-lookup error:', error);
               }
@@ -271,7 +278,7 @@ export function VocabularyEntryFormEnhanced({ initialWord, onSuccess, onCancel }
             className="flex-1 min-w-0 px-3 sm:px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-black focus:ring-2 focus:ring-accent focus:border-transparent text-base"
             placeholder="perro"
             autoComplete="off"
-            autoFocus
+            autoFocus={!initialWord}
             aria-required="true"
             aria-invalid={!!errors.spanishWord}
           />
@@ -458,15 +465,6 @@ export function VocabularyEntryFormEnhanced({ initialWord, onSuccess, onCancel }
                 </select>
               </div>
             </div>
-          </div>
-
-          {/* Simple Audio Player - Centered */}
-          <div className="py-3 flex justify-center">
-            <AudioPlayerEnhanced
-              text={spanishWord}
-              showSpeedControl={false}
-              showAccentSelector={false}
-            />
           </div>
 
           {/* Example Sentence - Editable on click, Centered */}
