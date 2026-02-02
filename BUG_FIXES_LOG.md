@@ -5,6 +5,40 @@ This log tracks all critical bug fixes across development sessions.
 
 ---
 
+# Session: Gender Detection for Consonant-Ending Nouns (2026-02-02)
+
+## Summary
+Fixed gender detection for Spanish nouns ending in consonants (l, r, n, j, z, s) which were incorrectly returning undefined gender.
+
+---
+
+## Bug: Gender Not Detected for Consonant-Ending Nouns
+**Date**: 2026-02-02  
+**Severity**: Medium (User Experience & Data Quality)  
+**Status**: ✅ Fixed
+
+### Issue
+Spanish nouns ending in consonants (like "reloj", "papel", "amor") showed empty gender field in the "Add New Word" dialog, requiring manual correction.
+
+### Root Cause
+The `inferGenderFromWord()` function only handled vowel endings and specific feminine patterns, but missed the common rule that consonant-ending nouns are typically masculine.
+
+### Solution
+Added consonant detection rule: words ending in l, r, n, j, z, or s → masculine
+
+### Examples
+✅ **reloj** → Gender: Masculine (el reloj)  
+✅ **papel** → Gender: Masculine (el papel)  
+✅ **amor** → Gender: Masculine (el amor)
+
+### Files Modified
+- `lib/services/dictionary.ts` - Function: `inferGenderFromWord()`
+
+### Documentation
+- See: `BUG_FIX_2026_02_02_GENDER_DETECTION.md` for complete details
+
+---
+
 # Session: Translation Quality Improvements (2026-02-02)
 
 ## Summary

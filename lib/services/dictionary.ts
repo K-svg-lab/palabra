@@ -517,6 +517,15 @@ function inferGenderFromWord(word: string): Gender | undefined {
     return 'masculine';
   }
   
+  // Most words ending in consonants (l, r, n, j, z, s) are masculine
+  // Examples: el papel, el amor, el pan, el reloj, el pez, el mes
+  // Note: -ión is feminine (already handled above)
+  const lastChar = lower.slice(-1);
+  if (lastChar === 'l' || lastChar === 'r' || lastChar === 'n' || 
+      lastChar === 'j' || lastChar === 'z' || lastChar === 's') {
+    return 'masculine';
+  }
+  
   // Words ending in -e could be either, don't guess
   return undefined;
 }
