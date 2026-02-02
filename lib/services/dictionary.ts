@@ -62,8 +62,8 @@ export async function lookupWord(word: string): Promise<DictionaryResult> {
       if (response.status === 404) {
         // Word not found, use intelligent heuristics
         const partOfSpeech = inferPartOfSpeechFromWord(word);
-        // Don't assign gender to adjectives (they change form: rojo/roja)
-        const gender = partOfSpeech === 'adjective' ? undefined : inferGenderFromWord(word);
+        // Only assign gender to nouns (all other parts of speech have no grammatical gender)
+        const gender = partOfSpeech === 'noun' ? inferGenderFromWord(word) : undefined;
         
         return {
           word,
@@ -80,8 +80,8 @@ export async function lookupWord(word: string): Promise<DictionaryResult> {
 
     // Extract part of speech and gender from extract text
     const partOfSpeech = extractPartOfSpeech(data.extract || '');
-    // Don't assign gender to adjectives (they change form: rojo/roja)
-    const gender = partOfSpeech === 'adjective' ? undefined : extractGender(data.extract || '', word, partOfSpeech);
+    // Only assign gender to nouns (all other parts of speech have no grammatical gender)
+    const gender = partOfSpeech === 'noun' ? extractGender(data.extract || '', word, partOfSpeech) : undefined;
 
     return {
       word,
@@ -96,8 +96,8 @@ export async function lookupWord(word: string): Promise<DictionaryResult> {
     
     // Return data with intelligent heuristics
     const partOfSpeech = inferPartOfSpeechFromWord(word);
-    // Don't assign gender to adjectives (they change form: rojo/roja)
-    const gender = partOfSpeech === 'adjective' ? undefined : inferGenderFromWord(word);
+    // Only assign gender to nouns (all other parts of speech have no grammatical gender)
+    const gender = partOfSpeech === 'noun' ? inferGenderFromWord(word) : undefined;
     
     return {
       word,
@@ -431,8 +431,8 @@ function extractPartOfSpeech(text: string): PartOfSpeech | undefined {
  * @returns Detected gender (undefined for adjectives)
  */
 function extractGender(text: string, word: string, partOfSpeech?: PartOfSpeech): Gender | undefined {
-  // Adjectives don't have a fixed gender (e.g., rojo/roja)
-  if (partOfSpeech === 'adjective') {
+  // Only nouns have grammatical gender (all other parts of speech should not have gender assigned)
+  if (partOfSpeech !== 'noun') {
     return undefined;
   }
   

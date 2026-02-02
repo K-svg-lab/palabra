@@ -5,6 +5,45 @@ This log tracks all critical bug fixes across development sessions.
 
 ---
 
+# Session: Gender Assignment for Non-Noun Parts of Speech (2026-02-02)
+
+## Summary
+Fixed incorrect gender assignment to verbs and other non-noun parts of speech. Only nouns should have gender in Spanish.
+
+---
+
+## Bug: Verbs and Non-Nouns Incorrectly Assigned Gender
+**Date**: 2026-02-02  
+**Severity**: High (Data Quality & Grammatical Accuracy)  
+**Status**: ✅ Fixed
+
+### Issue
+Verbs, adjectives, adverbs, and other non-noun parts of speech were being assigned gender (e.g., "comer" showing as "masculine"), which is grammatically incorrect in Spanish.
+
+### Root Cause
+Code only excluded adjectives from gender assignment, but failed to exclude verbs and all other non-noun parts of speech.
+
+### Solution
+Inverted logic to **only assign gender when part of speech is explicitly a noun**: `const gender = partOfSpeech === 'noun' ? inferGenderFromWord(word) : undefined;`
+
+### Examples
+✅ **comer** (verb) → Gender: — (no gender)  
+✅ **hablar** (verb) → Gender: — (no gender)  
+✅ **rojo** (adjective) → Gender: — (no gender)  
+✅ **casa** (noun) → Gender: Feminine  
+✅ **reloj** (noun) → Gender: Masculine
+
+### Impact
+Ensures all non-noun parts of speech (verbs, adjectives, adverbs, pronouns, prepositions, conjunctions, interjections) are never assigned gender.
+
+### Files Modified
+- `lib/services/dictionary.ts` - Functions: `lookupWord()` (3 locations), `extractGender()` (1 location)
+
+### Documentation
+- See: `BUG_FIX_2026_02_02_VERB_GENDER.md` for complete details
+
+---
+
 # Session: Gender Detection for Consonant-Ending Nouns (2026-02-02)
 
 ## Summary
