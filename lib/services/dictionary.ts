@@ -384,6 +384,9 @@ function extractPartOfSpeech(text: string): PartOfSpeech | undefined {
   // English: adverb, adv.
   if (lower.match(/\badverbio\b/) || lower.match(/\badverb\b/) || 
       lower.match(/\badv\.\b/)) {
+    // #region agent log
+    fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'lib/services/dictionary.ts:387',message:'Extracted ADVERB from Wiktionary',data:{result:'adverb'},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'B'})}).catch(()=>{});
+    // #endregion
     return 'adverb';
   }
   
@@ -392,6 +395,9 @@ function extractPartOfSpeech(text: string): PartOfSpeech | undefined {
   // English: preposition, prep.
   if (lower.match(/\bpreposición\b/) || lower.match(/\bpreposition\b/) || 
       lower.match(/\bprep\.\b/)) {
+    // #region agent log
+    fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'lib/services/dictionary.ts:395',message:'Extracted PREPOSITION from Wiktionary',data:{result:'preposition'},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'B'})}).catch(()=>{});
+    // #endregion
     return 'preposition';
   }
   
@@ -418,6 +424,7 @@ function extractPartOfSpeech(text: string): PartOfSpeech | undefined {
       lower.match(/\binterj\.\b/)) {
     return 'interjection';
   }
+  
   
   return undefined;
 }
@@ -531,6 +538,79 @@ function inferGenderFromWord(word: string): Gender | undefined {
 }
 
 /**
+ * Common Spanish prepositions (closed class - complete list)
+ * These are function words that connect nouns, pronouns, and phrases
+ */
+const COMMON_PREPOSITIONS = new Set([
+  'a', 'ante', 'bajo', 'cabe', 'con', 'contra', 'de', 'desde', 'durante',
+  'en', 'entre', 'hacia', 'hasta', 'mediante', 'para', 'por', 'según',
+  'sin', 'so', 'sobre', 'tras', 'versus', 'vía',
+]);
+
+/**
+ * Common Spanish adverbs (most common)
+ * Adverbs modify verbs, adjectives, or other adverbs
+ */
+const COMMON_ADVERBS = new Set([
+  // Frequency
+  'siempre', 'nunca', 'jamás', 'a menudo', 'frecuentemente', 'raramente',
+  'a veces', 'todavía', 'aún', 'ya',
+  // Manner (non -mente)
+  'bien', 'mal', 'así', 'mejor', 'peor', 'despacio', 'deprisa',
+  // Degree
+  'muy', 'mucho', 'poco', 'bastante', 'demasiado', 'más', 'menos', 'tan', 'tanto',
+  // Time
+  'hoy', 'ayer', 'mañana', 'ahora', 'luego', 'después', 'antes', 'pronto', 'tarde', 'temprano',
+  // Place
+  'aquí', 'ahí', 'allí', 'acá', 'allá', 'donde', 'cerca', 'lejos', 'arriba', 'abajo',
+  'delante', 'detrás', 'dentro', 'fuera', 'encima', 'debajo',
+  // Affirmation/Negation
+  'sí', 'no', 'también', 'tampoco',
+]);
+
+/**
+ * Common Spanish pronouns (closed class)
+ * Subject, object, reflexive, and demonstrative pronouns
+ */
+const COMMON_PRONOUNS = new Set([
+  // Subject
+  'yo', 'tú', 'usted', 'él', 'ella', 'nosotros', 'nosotras', 'vosotros', 'vosotras',
+  'ustedes', 'ellos', 'ellas',
+  // Object
+  'me', 'te', 'se', 'lo', 'la', 'le', 'nos', 'os', 'los', 'las', 'les',
+  // Reflexive (standalone)
+  'mí', 'ti', 'sí',
+  // Possessive
+  'mío', 'mía', 'míos', 'mías', 'tuyo', 'tuya', 'tuyos', 'tuyas',
+  'suyo', 'suya', 'suyos', 'suyas', 'nuestro', 'nuestra', 'nuestros', 'nuestras',
+  'vuestro', 'vuestra', 'vuestros', 'vuestras',
+  // Demonstrative
+  'este', 'esta', 'estos', 'estas', 'ese', 'esa', 'esos', 'esas',
+  'aquel', 'aquella', 'aquellos', 'aquellas', 'esto', 'eso', 'aquello',
+]);
+
+/**
+ * Common Spanish conjunctions (closed class)
+ * Coordinating and subordinating conjunctions
+ */
+const COMMON_CONJUNCTIONS = new Set([
+  // Coordinating
+  'y', 'e', 'o', 'u', 'pero', 'mas', 'sino', 'ni',
+  // Subordinating
+  'que', 'porque', 'como', 'si', 'cuando', 'aunque', 'mientras', 'donde',
+  'pues', 'puesto que', 'ya que', 'sino que',
+]);
+
+/**
+ * Common Spanish interjections
+ * Exclamatory words expressing emotion
+ */
+const COMMON_INTERJECTIONS = new Set([
+  'ah', 'oh', 'eh', 'ay', 'uy', 'hola', 'adiós', 'bravo', 'caramba',
+  'ojalá', 'vaya', 'dale', 'ándale',
+]);
+
+/**
  * Common Spanish adjectives that don't follow predictable patterns
  * These are frequently used adjectives that need explicit identification
  */
@@ -622,24 +702,56 @@ const COMMON_NOUNS = new Set([
  * @returns Inferred part of speech or undefined
  */
 function inferPartOfSpeechFromWord(word: string): PartOfSpeech | undefined {
-  const lower = word.toLowerCase();
+  const lower = word.toLowerCase().trim();
   
-  // First, check explicit word lists (most reliable)
-  if (COMMON_ADJECTIVES.has(lower)) {
+  // For multi-word phrases, try to extract the main word (first word for idioms)
+  const words = lower.split(/\s+/);
+  const firstWord = words[0];
+  const lastWord = words[words.length - 1];
+  
+  // Check closed-class words FIRST (prepositions, adverbs, pronouns, conjunctions, interjections)
+  // These are definitive and should override pattern matching
+  
+  if (COMMON_PREPOSITIONS.has(lower) || COMMON_PREPOSITIONS.has(firstWord)) {
+    return 'preposition';
+  }
+  
+  if (COMMON_ADVERBS.has(lower) || COMMON_ADVERBS.has(firstWord)) {
+    return 'adverb';
+  }
+  
+  if (COMMON_PRONOUNS.has(lower) || COMMON_PRONOUNS.has(firstWord)) {
+    return 'pronoun';
+  }
+  
+  if (COMMON_CONJUNCTIONS.has(lower) || COMMON_CONJUNCTIONS.has(firstWord)) {
+    return 'conjunction';
+  }
+  
+  if (COMMON_INTERJECTIONS.has(lower) || COMMON_INTERJECTIONS.has(firstWord)) {
+    return 'interjection';
+  }
+  
+  // Check explicit word lists for open-class words
+  if (COMMON_ADJECTIVES.has(lower) || COMMON_ADJECTIVES.has(lastWord)) {
     return 'adjective';
   }
   
-  if (COMMON_NOUNS.has(lower)) {
+  if (COMMON_NOUNS.has(lower) || COMMON_NOUNS.has(lastWord)) {
     return 'noun';
   }
   
+  // Check patterns (also check first word for multi-word phrases)
+  
   // Reflexive verb infinitives end in -arse, -erse, -irse (CHECK THESE FIRST!)
-  if (lower.endsWith('arse') || lower.endsWith('erse') || lower.endsWith('irse')) {
+  if (lower.endsWith('arse') || lower.endsWith('erse') || lower.endsWith('irse') ||
+      firstWord.endsWith('arse') || firstWord.endsWith('erse') || firstWord.endsWith('irse')) {
     return 'verb';
   }
   
   // Regular verb infinitives end in -ar, -er, -ir
-  if (lower.endsWith('ar') || lower.endsWith('er') || lower.endsWith('ir')) {
+  if (lower.endsWith('ar') || lower.endsWith('er') || lower.endsWith('ir') ||
+      firstWord.endsWith('ar') || firstWord.endsWith('er') || firstWord.endsWith('ir')) {
     return 'verb';
   }
   
