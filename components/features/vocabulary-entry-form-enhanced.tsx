@@ -112,6 +112,12 @@ export function VocabularyEntryFormEnhanced({ initialWord, onSuccess, onCancel }
                 setValue('gender', data.gender);
                 setValue('partOfSpeech', data.partOfSpeech);
                 
+                // Update example sentence fields if new examples are available
+                if (data.examples && data.examples.length > 0) {
+                  setValue('exampleSpanish', data.examples[0].spanish);
+                  setValue('exampleEnglish', data.examples[0].english);
+                }
+                
                 // Keep keyboard closed after auto-fill
                 if (document.activeElement instanceof HTMLElement) {
                   document.activeElement.blur();
@@ -167,6 +173,12 @@ export function VocabularyEntryFormEnhanced({ initialWord, onSuccess, onCancel }
       setValue('englishTranslation', data.translation);
       setValue('gender', data.gender);
       setValue('partOfSpeech', data.partOfSpeech);
+      
+      // Update example sentence fields if new examples are available
+      if (data.examples && data.examples.length > 0) {
+        setValue('exampleSpanish', data.examples[0].spanish);
+        setValue('exampleEnglish', data.examples[0].english);
+      }
     } catch (error) {
       console.error('Lookup error:', error);
     }

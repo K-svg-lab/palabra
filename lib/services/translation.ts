@@ -356,12 +356,16 @@ const COMMON_ALTERNATIVES: Record<string, string[]> = {
   'amor': ['love', 'affection', 'fondness', 'devotion'],
   'paz': ['peace', 'calm', 'tranquility', 'serenity'],
   
+  // COMMON_ALTERNATIVES map
   // Context-dependent words
   'banco': ['bank', 'bench', 'pew', 'shoal'],
   'luz': ['light', 'daylight', 'lamp', 'brightness'],
   'suelto': ['loose', 'separate', 'free', 'unattached'],
   'cara': ['face', 'side', 'surface', 'appearance'],
   'letra': ['letter', 'handwriting', 'lyrics', 'typeface'],
+  
+  // Context-sensitive words (regional variations)
+  'coger': ['take', 'grab', 'catch', 'seize'], // Note: Can be vulgar in some regions
   
   // Common adjectives
   'bonito': ['beautiful', 'pretty', 'lovely', 'nice'],
@@ -607,6 +611,9 @@ export async function getMultipleTranslations(
 
   // Get local alternatives (instant, no API call)
   const localAlts = getLocalAlternatives(text);
+  
+  // Check if this word has curated local alternatives (priority override for offensive/regional words)
+  const hasLocalAlternatives = localAlts.length > 0;
 
   // Get translations from ONLY fast sources in parallel (reduced from 4 to 2 API calls)
   const [deeplResult, myMemoryResult] = await Promise.allSettled([
@@ -673,13 +680,14 @@ export async function getMultipleTranslations(
   };
 
   // Add DeepL translation (highest quality, first priority)
-  if (deeplResult.status === 'fulfilled') {
+  // UNLESS we have local curated alternatives (which override for offensive/regional words)
+  if (deeplResult.status === 'fulfilled' && !hasLocalAlternatives) {
     const result = deeplResult.value;
     addUniqueTranslation(result.translatedText, 'deepl', result.confidence);
   }
 
-  // Add local curated alternatives FIRST (highest quality for common words)
-  // These are manually verified and override MyMemory
+  // Add local curated alternatives FIRST (highest priority for words like "coger")
+  // These are manually verified and override API translations
   localAlts.forEach((word: string) => {
     addUniqueTranslation(word, 'dictionary', 0.95);
   });
