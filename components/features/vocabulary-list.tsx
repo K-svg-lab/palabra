@@ -175,7 +175,11 @@ export function VocabularyList({ onAddNew, onEdit, clearSearchAndFocusRef }: Pro
   const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter' && showAddButton && onAddNew && searchTerm.trim().length > 0) {
       e.preventDefault();
-      onAddNew(searchTerm.trim());
+      // Blur search input to close mobile keyboard before opening modal
+      searchInputRef.current?.blur();
+      setTimeout(() => {
+        onAddNew(searchTerm.trim());
+      }, 50);
     }
   };
 
@@ -224,7 +228,13 @@ export function VocabularyList({ onAddNew, onEdit, clearSearchAndFocusRef }: Pro
           {showAddButton && onAddNew && (
             <button
               type="button"
-              onClick={() => onAddNew(searchTerm.trim())}
+              onClick={() => {
+                // Blur search input to close mobile keyboard before opening modal
+                searchInputRef.current?.blur();
+                setTimeout(() => {
+                  onAddNew(searchTerm.trim());
+                }, 50);
+              }}
               className={`absolute top-1/2 -translate-y-1/2 w-8 h-8 bg-accent text-white rounded-full flex items-center justify-center hover:bg-accent/90 transition-colors shadow-md ${
                 isVoiceSupported ? 'right-12' : 'right-2'
               }`}
