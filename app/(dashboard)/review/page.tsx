@@ -326,9 +326,10 @@ export default function ReviewPage() {
         // #endregion
         
         // CRITICAL FIX: Force immediate refetch of stats from IndexedDB
+        // Must use the EXACT query key ['stats', 'today'] from useTodayStats hook
         // invalidateQueries() only marks as stale; refetchQueries() forces immediate refetch
         // This ensures dashboard shows correct stats INSTANTLY, even offline
-        await queryClient.refetchQueries({ queryKey: ['stats'] });
+        await queryClient.refetchQueries({ queryKey: ['stats', 'today'] });
         console.log('✅ Stats refetched - dashboard will show updated stats immediately');
         // #region agent log
         const statsAfterRefetch = await getTodayStats();
