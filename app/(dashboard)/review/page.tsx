@@ -322,6 +322,7 @@ export default function ReviewPage() {
           accuracyRate: updatedStats.accuracyRate,
           updatedAt: updatedStats.updatedAt
         });
+        fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'review/page.tsx:319',message:'H6: Stats after session update, before refetch',data:{cardsReviewed:updatedStats.cardsReviewed,updatedAt:updatedStats.updatedAt},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H6'})}).catch(()=>{});
         // #endregion
         
         // CRITICAL FIX: Force immediate refetch of stats from IndexedDB
@@ -329,6 +330,19 @@ export default function ReviewPage() {
         // This ensures dashboard shows correct stats INSTANTLY, even offline
         await queryClient.refetchQueries({ queryKey: ['stats'] });
         console.log('✅ Stats refetched - dashboard will show updated stats immediately');
+        // #region agent log
+        const statsAfterRefetch = await getTodayStats();
+        console.log('[DEBUG-H6] Stats after refetchQueries completes', {
+          cardsReviewed: statsAfterRefetch.cardsReviewed,
+          updatedAt: statsAfterRefetch.updatedAt,
+          timeSinceUpdate: Date.now() - statsAfterRefetch.updatedAt
+        });
+        fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'review/page.tsx:332',message:'H6: After refetchQueries completes, before navigation',data:{cardsReviewed:statsAfterRefetch.cardsReviewed,updatedAt:statsAfterRefetch.updatedAt},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H6'})}).catch(()=>{});
+        // Add small delay to ensure React Query cache propagates to all consumers
+        await new Promise(resolve => setTimeout(resolve, 100));
+        console.log('[DEBUG-H6] Waited 100ms for cache propagation before navigation');
+        fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'review/page.tsx:335',message:'H6: About to navigate to dashboard',data:{willNavigateAt:Date.now()},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H6'})}).catch(()=>{});
+        // #endregion
       }
 
       // Update badge count after session completion

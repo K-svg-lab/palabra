@@ -90,6 +90,7 @@ export default function HomePage() {
         dueCount: dueCount,
         updatedAt: todayStats.updatedAt
       });
+      fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'dashboard/page.tsx:84',message:'H7/H8: Dashboard rendered with stats',data:{cardsReviewed:todayStats.cardsReviewed,updatedAt:todayStats.updatedAt,renderTime:Date.now()},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H7,H8'})}).catch(()=>{});
       // #endregion
     }
   }, [todayStats, dueCount]);

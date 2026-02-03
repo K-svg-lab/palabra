@@ -253,6 +253,7 @@ export function useTodayStats() {
         actualNewWords,
         dueCount
       });
+      fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'use-vocabulary.ts:229',message:'H7/H9: useTodayStats fetch executed',data:{cardsReviewed:storedStats.cardsReviewed,updatedAt:storedStats.updatedAt,fetchTime:Date.now()},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H7,H9'})}).catch(()=>{});
       // #endregion
       
       return {
