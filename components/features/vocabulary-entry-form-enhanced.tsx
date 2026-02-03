@@ -64,6 +64,7 @@ export function VocabularyEntryFormEnhanced({ initialWord, onSuccess, onCancel }
   const addMutation = useAddVocabulary();
 
   const spanishWord = watch('spanishWord');
+  const englishTranslation = watch('englishTranslation');
   const notes = watch('notes');
 
   // Auto-focus input field when component mounts and populate initial word if provided
@@ -198,8 +199,9 @@ export function VocabularyEntryFormEnhanced({ initialWord, onSuccess, onCancel }
       e.preventDefault();
       
       const currentWord = spanishWord.trim();
+      const englishTranslation = watch('englishTranslation');
       const hasValidLookup = hasLookupData && 
-                            watch('englishTranslation') && 
+                            englishTranslation && 
                             currentWord === lastLookedUpWord;
       
       if (hasValidLookup) {
@@ -269,6 +271,39 @@ export function VocabularyEntryFormEnhanced({ initialWord, onSuccess, onCancel }
   const hasLookupData = lookupData !== null;
   const canSave = watch('spanishWord') && watch('englishTranslation');
   const hasSpellingError = spellCheckResult && !spellCheckResult.isCorrect;
+
+  // Global Enter key handler - works even when no specific field is focused
+  useEffect(() => {
+    const handleGlobalKeyDown = (e: KeyboardEvent) => {
+      // Only handle Enter key
+      if (e.key !== 'Enter') return;
+      
+      // Don't handle if user is typing in textarea (notes field)
+      if (document.activeElement?.tagName === 'TEXTAREA') return;
+      
+      // Don't handle if already loading
+      if (isLoading || addMutation.isPending) return;
+      
+      const currentWord = spanishWord?.trim();
+      if (!currentWord) return;
+      
+      const hasValidLookup = hasLookupData && 
+                            englishTranslation && 
+                            currentWord === lastLookedUpWord;
+      
+      if (hasValidLookup) {
+        e.preventDefault();
+        handleSubmit(onSubmit)();
+      } else if (currentWord) {
+        e.preventDefault();
+        handleLookup();
+      }
+    };
+    
+    // Attach to document to catch Enter anywhere in the form
+    document.addEventListener('keydown', handleGlobalKeyDown);
+    return () => document.removeEventListener('keydown', handleGlobalKeyDown);
+  }, [spanishWord, englishTranslation, hasLookupData, lastLookedUpWord, isLoading, addMutation.isPending, handleSubmit, onSubmit]);
 
   return (
     <form 

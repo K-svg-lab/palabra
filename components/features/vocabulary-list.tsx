@@ -173,7 +173,7 @@ export function VocabularyList({ onAddNew, onEdit, clearSearchAndFocusRef }: Pro
   };
 
   const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter' && showAddButton && onAddNew && searchTerm.trim().length > 0) {
+    if (e.key === 'Enter' && onAddNew && searchTerm.trim().length > 0) {
       e.preventDefault();
       // Blur search input to close mobile keyboard before opening modal
       searchInputRef.current?.blur();
