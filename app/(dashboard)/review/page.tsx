@@ -323,6 +323,11 @@ export default function ReviewPage() {
           updatedAt: updatedStats.updatedAt
         });
         // #endregion
+        
+        // CRITICAL FIX: Invalidate stats cache immediately after updating
+        // This ensures dashboard shows correct stats even offline or before sync completes
+        queryClient.invalidateQueries({ queryKey: ['stats'] });
+        console.log('✅ Stats cache invalidated - dashboard will show updated stats');
       }
 
       // Update badge count after session completion
