@@ -340,11 +340,12 @@ export default function ReviewPage() {
         // #region agent log
         console.log('[DEBUG-H1/H5] Enqueueing offline reviews', {
           resultsCount: results.length,
-          firstResult: {
-            id: results[0]?.id,
-            vocabId: results[0]?.vocabularyId,
-            rating: results[0]?.rating
-          }
+          firstResult: results[0] ? {
+            vocabId: results[0].vocabularyId,
+            rating: results[0].rating,
+            mode: results[0].mode,
+            direction: results[0].direction
+          } : null
         });
         // #endregion
         try {
