@@ -206,7 +206,15 @@ export class CloudSyncService implements SyncService {
       try {
         const { getOfflineQueueService } = await import('@/lib/services/offline-queue');
         const queueService = getOfflineQueueService();
+        // #region agent log
+        const queueStatus = await queueService.getQueueStatus();
+        console.log('[DEBUG-H4] Pre-queue processing status', { queueStatus, isOnline: navigator.onLine });
+        // #endregion
         await queueService.processQueue();
+        // #region agent log
+        const queueStatusAfter = await queueService.getQueueStatus();
+        console.log('[DEBUG-H4] Post-queue processing status', { queueStatusBefore: queueStatus, queueStatusAfter });
+        // #endregion
       } catch (error) {
         console.error('[Sync] Error processing offline queue:', error);
         // Continue with sync even if queue processing fails
@@ -239,7 +247,23 @@ export class CloudSyncService implements SyncService {
       
       // Collect local changes
       const operations = await this.collectLocalChanges(lastSyncTime);
-      console.log(`📤 Uploading: ${operations.vocabulary.length} vocab, ${operations.reviews.length} reviews, ${operations.stats.length} stats`);      
+      console.log(`📤 Uploading: ${operations.vocabulary.length} vocab, ${operations.reviews.length} reviews, ${operations.stats.length} stats`);
+      // #region agent log
+      const statsSnapshot = await getAllStats();
+      const todayStats = statsSnapshot.find(s => s.date === new Date().toISOString().split('T')[0]);
+      console.log('[DEBUG-H2/H3] Collecting local changes', {
+        vocabCount: operations.vocabulary.length,
+        reviewsCount: operations.reviews.length,
+        statsCount: operations.stats.length,
+        todayStats: todayStats ? {
+          date: todayStats.date,
+          cardsReviewed: todayStats.cardsReviewed,
+          accuracyRate: todayStats.accuracyRate,
+          updatedAt: todayStats.updatedAt
+        } : null,
+        lastSyncTime: lastSyncTime?.toISOString()
+      });
+      // #endregion      
       // Sync vocabulary
       const vocabResult = await this.syncVocabulary(operations.vocabulary, lastSyncTime);
       
@@ -341,6 +365,18 @@ export class CloudSyncService implements SyncService {
       // Sync stats
       const statsResult = await this.syncStats(operations.stats, lastSyncTime);
       console.log(`📥 Downloaded ${statsResult.stats?.length || 0} stats`);
+      // #region agent log
+      console.log('[DEBUG-H2/H3] Stats sync result', {
+        uploadedStatsCount: operations.stats.length,
+        downloadedStatsCount: statsResult.stats?.length || 0,
+        downloadedStats: statsResult.stats?.map((s: any) => ({
+          date: s.date,
+          cardsReviewed: s.cardsReviewed,
+          accuracyRate: s.accuracyRate,
+          updatedAt: s.updatedAt
+        }))
+      });
+      // #endregion
       
       // Apply remote stats changes to local database
       if (statsResult.stats && statsResult.stats.length > 0) {

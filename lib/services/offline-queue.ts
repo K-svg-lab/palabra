@@ -245,6 +245,21 @@ export class OfflineQueueService {
    * Process submit review operation
    */
   private async _processSubmitReview(item: OfflineQueueItem): Promise<void> {
+    // #region agent log
+    console.log('[DEBUG-H1] Processing offline review submission', {
+      itemId: item.id,
+      dataType: typeof item.data,
+      isArray: Array.isArray(item.data),
+      dataLength: Array.isArray(item.data) ? item.data.length : 1,
+      timestamp: item.timestamp,
+      firstItemSample: Array.isArray(item.data) ? {
+        id: item.data[0]?.id,
+        vocabId: item.data[0]?.vocabularyId,
+        rating: item.data[0]?.rating
+      } : null
+    });
+    // #endregion
+    
     const response = await fetch('/api/sync/reviews', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -265,6 +280,14 @@ export class OfflineQueueService {
         }],
       }),
     });
+
+    // #region agent log
+    console.log('[DEBUG-H1] Offline review sync response', {
+      ok: response.ok,
+      status: response.status,
+      statusText: response.statusText
+    });
+    // #endregion
 
     if (!response.ok) {
       throw new Error(`Failed to sync reviews: ${response.statusText}`);

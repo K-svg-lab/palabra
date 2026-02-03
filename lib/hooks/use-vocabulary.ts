@@ -243,6 +243,18 @@ export function useTodayStats() {
         newWordsAdded: actualNewWords,
       };
       
+      // #region agent log
+      console.log('[DEBUG-H3/H5] useTodayStats fetched', {
+        storedStats: {
+          cardsReviewed: storedStats.cardsReviewed,
+          accuracyRate: storedStats.accuracyRate,
+          updatedAt: storedStats.updatedAt
+        },
+        actualNewWords,
+        dueCount
+      });
+      // #endregion
+      
       return {
         stats: correctedStats,
         dueCount,

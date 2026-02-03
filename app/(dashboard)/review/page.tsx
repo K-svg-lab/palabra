@@ -305,7 +305,24 @@ export default function ReviewPage() {
         // Update daily stats
         const timeSpent = sessionEndTime - currentSession.startTime;
         
+        // #region agent log
+        console.log('[DEBUG-H2] Updating stats after session', {
+          resultsLength: results.length,
+          accuracyRate,
+          timeSpent,
+          isOnline: navigator.onLine
+        });
+        // #endregion
         await updateStatsAfterSession(results.length, accuracyRate, timeSpent);
+        // #region agent log
+        const {getTodayStats} = await import('@/lib/db/stats');
+        const updatedStats = await getTodayStats();
+        console.log('[DEBUG-H2] Stats after session update', {
+          cardsReviewed: updatedStats.cardsReviewed,
+          accuracyRate: updatedStats.accuracyRate,
+          updatedAt: updatedStats.updatedAt
+        });
+        // #endregion
       }
 
       // Update badge count after session completion
@@ -320,9 +337,23 @@ export default function ReviewPage() {
       // If offline, queue the reviews for later sync
       if (!navigator.onLine) {
         console.log('📴 Offline - queueing reviews for sync');
+        // #region agent log
+        console.log('[DEBUG-H1/H5] Enqueueing offline reviews', {
+          resultsCount: results.length,
+          firstResult: {
+            id: results[0]?.id,
+            vocabId: results[0]?.vocabularyId,
+            rating: results[0]?.rating
+          }
+        });
+        // #endregion
         try {
           const queueService = getOfflineQueueService();
           await queueService.enqueue('submit_review', results);
+          // #region agent log
+          const queueStatus = await queueService.getQueueStatus();
+          console.log('[DEBUG-H1/H5] Reviews enqueued', { queueStatus });
+          // #endregion
         } catch (error) {
           console.error("Failed to queue reviews:", error);
         }

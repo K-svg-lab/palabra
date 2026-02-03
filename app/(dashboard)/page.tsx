@@ -82,6 +82,15 @@ export default function HomePage() {
   useEffect(() => {
     if (todayStats) {
       console.log(`📊 Today's stats updated: reviewed=${todayStats.cardsReviewed}, added=${todayStats.newWordsAdded}, accuracy=${(todayStats.accuracyRate * 100).toFixed(1)}%`);
+      // #region agent log
+      console.log('[DEBUG-H3/H5] Dashboard stats displayed', {
+        cardsReviewed: todayStats.cardsReviewed,
+        newWordsAdded: todayStats.newWordsAdded,
+        accuracyRate: todayStats.accuracyRate,
+        dueCount: dueCount,
+        updatedAt: todayStats.updatedAt
+      });
+      // #endregion
     }
   }, [todayStats, dueCount]);
 
