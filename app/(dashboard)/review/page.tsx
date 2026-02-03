@@ -335,9 +335,9 @@ export default function ReviewPage() {
         console.log('[DEBUG-H6] Stats after refetchQueries completes', {
           cardsReviewed: statsAfterRefetch.cardsReviewed,
           updatedAt: statsAfterRefetch.updatedAt,
-          timeSinceUpdate: Date.now() - statsAfterRefetch.updatedAt
+          timeSinceUpdate: statsAfterRefetch.updatedAt ? Date.now() - statsAfterRefetch.updatedAt : 'N/A'
         });
-        fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'review/page.tsx:332',message:'H6: After refetchQueries completes, before navigation',data:{cardsReviewed:statsAfterRefetch.cardsReviewed,updatedAt:statsAfterRefetch.updatedAt},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H6'})}).catch(()=>{});
+        fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'review/page.tsx:332',message:'H6: After refetchQueries completes, before navigation',data:{cardsReviewed:statsAfterRefetch.cardsReviewed,updatedAt:statsAfterRefetch.updatedAt||0},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H6'})}).catch(()=>{});
         // Add small delay to ensure React Query cache propagates to all consumers
         await new Promise(resolve => setTimeout(resolve, 100));
         console.log('[DEBUG-H6] Waited 100ms for cache propagation before navigation');
