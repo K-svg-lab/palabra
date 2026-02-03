@@ -173,23 +173,11 @@ export function VocabularyList({ onAddNew, onEdit, clearSearchAndFocusRef }: Pro
   };
 
   const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    // #region agent log
-    fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'vocabulary-list.tsx:175',message:'Search keydown',data:{key:e.key,hasOnAddNew:!!onAddNew,searchTerm:searchTerm.trim(),searchTermLength:searchTerm.trim().length},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'MOBILE_ENTER'})}).catch(()=>{});
-    // #endregion
-    
     if (e.key === 'Enter') {
       e.preventDefault();
       e.stopPropagation();
       
-      // #region agent log
-      fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'vocabulary-list.tsx:184',message:'Enter detected, preventDefault called',data:{hasCallback:!!onAddNew,hasSearchTerm:searchTerm.trim().length>0},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'MOBILE_ENTER'})}).catch(()=>{});
-      // #endregion
-      
       if (onAddNew && searchTerm.trim().length > 0) {
-        // #region agent log
-        fetch('http://127.0.0.1:7243/ingest/d79d142f-c32e-4ecd-a071-4aceb3e5ea20',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'vocabulary-list.tsx:190',message:'Calling onAddNew',data:{searchTerm:searchTerm.trim()},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'MOBILE_ENTER'})}).catch(()=>{});
-        // #endregion
-        
         // Blur search input to close mobile keyboard before opening modal
         searchInputRef.current?.blur();
         setTimeout(() => {
