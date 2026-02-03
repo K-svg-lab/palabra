@@ -324,10 +324,11 @@ export default function ReviewPage() {
         });
         // #endregion
         
-        // CRITICAL FIX: Invalidate stats cache immediately after updating
-        // This ensures dashboard shows correct stats even offline or before sync completes
-        queryClient.invalidateQueries({ queryKey: ['stats'] });
-        console.log('✅ Stats cache invalidated - dashboard will show updated stats');
+        // CRITICAL FIX: Force immediate refetch of stats from IndexedDB
+        // invalidateQueries() only marks as stale; refetchQueries() forces immediate refetch
+        // This ensures dashboard shows correct stats INSTANTLY, even offline
+        await queryClient.refetchQueries({ queryKey: ['stats'] });
+        console.log('✅ Stats refetched - dashboard will show updated stats immediately');
       }
 
       // Update badge count after session completion
