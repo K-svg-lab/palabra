@@ -12,6 +12,9 @@ import { useState, useMemo, useEffect, useRef } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { Search, Filter, Plus } from 'lucide-react';
 import { VocabularyCard } from './vocabulary-card';
+import { VocabularyCardEnhanced } from './vocabulary-card-enhanced';
+import { SearchBarEnhanced } from '@/components/ui/search-bar-enhanced';
+import { ViewToggle, type ViewMode } from '@/components/ui/view-toggle';
 import { useVocabulary, useDeleteVocabulary } from '@/lib/hooks/use-vocabulary';
 import { useVoiceInput } from '@/lib/hooks/use-voice-input';
 import { VoiceInputButton } from '@/components/ui/voice-input-button';
@@ -28,6 +31,7 @@ export function VocabularyList({ onAddNew, onEdit, clearSearchAndFocusRef }: Pro
   const [filterStatus, setFilterStatus] = useState<'all' | 'new' | 'learning' | 'mastered'>('all');
   const [sortBy, setSortBy] = useState<'newest' | 'oldest' | 'alphabetical'>('newest');
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
+  const [viewMode, setViewMode] = useState<ViewMode>('list');
   
   const searchInputRef = useRef<HTMLInputElement>(null);
   const searchParams = useSearchParams();
@@ -267,9 +271,10 @@ export function VocabularyList({ onAddNew, onEdit, clearSearchAndFocusRef }: Pro
           </div>
         )}
 
-        {/* Filters */}
-        <div className="flex gap-2 overflow-x-auto pb-2">
-          <button
+        {/* Filters and View Toggle - Phase 16.4 Enhanced */}
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex gap-2 overflow-x-auto pb-2 flex-1">
+            <button
             type="button"
             onClick={() => setFilterStatus('all')}
             className={`px-3 py-1.5 text-sm rounded-full whitespace-nowrap ${
@@ -367,15 +372,15 @@ export function VocabularyList({ onAddNew, onEdit, clearSearchAndFocusRef }: Pro
         </div>
       )}
 
-      {/* Vocabulary Grid */}
+      {/* Vocabulary Grid - Phase 16.4 Enhanced */}
       {filteredVocabulary.length > 0 && (
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className={viewMode === 'grid' ? 'grid gap-4 sm:grid-cols-2 lg:grid-cols-3' : 'space-y-4'}>
           {filteredVocabulary.map(word => (
-            <VocabularyCard
+            <VocabularyCardEnhanced
               key={word.id}
               word={word}
               onEdit={onEdit}
-              onDelete={(id) => setShowDeleteConfirm(id)}
+              onDelete={(word) => setShowDeleteConfirm(word.id)}
             />
           ))}
         </div>

@@ -12,6 +12,8 @@ import { TagManagement } from '@/components/features/tag-management';
 import { NotificationSettings } from '@/components/features/notification-settings';
 import { AccountSettings } from '@/components/features/account-settings';
 import { OfflineSettings } from '@/components/features/offline-settings';
+import { AppHeader } from '@/components/ui/app-header';
+import { SegmentedControl } from '@/components/ui/segmented-control';
 import { useVocabulary } from '@/lib/hooks/use-vocabulary';
 
 /**
@@ -35,79 +37,27 @@ export default function SettingsPage() {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-black pb-20">
       {/* Header */}
-      <header className="sticky top-0 z-10 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800">
-        <div className="px-4 py-4 max-w-7xl mx-auto">
-          <h1 className="text-2xl font-bold">Settings</h1>
-          <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-            Manage your preferences and data
-          </p>
-        </div>
-      </header>
+      <AppHeader
+        icon="⚙️"
+        title="Settings"
+        subtitle="Manage your preferences and data"
+        showProfile={true}
+      />
 
-      {/* Tabs */}
+      {/* Tabs - Phase 16.4 Enhanced */}
       <div className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800">
-        <div className="px-4 max-w-7xl mx-auto">
-          <div className="flex gap-1 overflow-x-auto">
-            <button
-              onClick={() => setActiveTab('account')}
-              className={`flex items-center gap-2 px-4 py-3 border-b-2 transition-colors whitespace-nowrap ${
-                activeTab === 'account'
-                  ? 'border-blue-600 text-blue-600 dark:text-blue-400'
-                  : 'border-transparent text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
-              }`}
-            >
-              <User className="h-4 w-4" />
-              <span className="font-medium">Account</span>
-            </button>
-            
-            <button
-              onClick={() => setActiveTab('notifications')}
-              className={`flex items-center gap-2 px-4 py-3 border-b-2 transition-colors whitespace-nowrap ${
-                activeTab === 'notifications'
-                  ? 'border-blue-600 text-blue-600 dark:text-blue-400'
-                  : 'border-transparent text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
-              }`}
-            >
-              <Bell className="h-4 w-4" />
-              <span className="font-medium">Notifications</span>
-            </button>
-            
-            <button
-              onClick={() => setActiveTab('tags')}
-              className={`flex items-center gap-2 px-4 py-3 border-b-2 transition-colors whitespace-nowrap ${
-                activeTab === 'tags'
-                  ? 'border-blue-600 text-blue-600 dark:text-blue-400'
-                  : 'border-transparent text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
-              }`}
-            >
-              <Tag className="h-4 w-4" />
-              <span className="font-medium">Tags</span>
-            </button>
-            
-            <button
-              onClick={() => setActiveTab('data')}
-              className={`flex items-center gap-2 px-4 py-3 border-b-2 transition-colors whitespace-nowrap ${
-                activeTab === 'data'
-                  ? 'border-blue-600 text-blue-600 dark:text-blue-400'
-                  : 'border-transparent text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
-              }`}
-            >
-              <Database className="h-4 w-4" />
-              <span className="font-medium">Import/Export</span>
-            </button>
-            
-            <button
-              onClick={() => setActiveTab('offline')}
-              className={`flex items-center gap-2 px-4 py-3 border-b-2 transition-colors whitespace-nowrap ${
-                activeTab === 'offline'
-                  ? 'border-blue-600 text-blue-600 dark:text-blue-400'
-                  : 'border-transparent text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
-              }`}
-            >
-              <CloudOff className="h-4 w-4" />
-              <span className="font-medium">Offline Mode</span>
-            </button>
-          </div>
+        <div className="px-4 py-4 max-w-7xl mx-auto flex justify-center overflow-x-auto">
+          <SegmentedControl
+            tabs={[
+              { id: 'account', label: 'Account', icon: <User className="h-4 w-4" /> },
+              { id: 'notifications', label: 'Notifications', icon: <Bell className="h-4 w-4" /> },
+              { id: 'tags', label: 'Tags', icon: <Tag className="h-4 w-4" /> },
+              { id: 'data', label: 'Data', icon: <Database className="h-4 w-4" /> },
+              { id: 'offline', label: 'Offline', icon: <CloudOff className="h-4 w-4" /> },
+            ]}
+            activeTab={activeTab}
+            onChange={(tabId) => setActiveTab(tabId as typeof activeTab)}
+          />
         </div>
       </div>
 

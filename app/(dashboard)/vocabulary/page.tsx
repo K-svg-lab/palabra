@@ -15,6 +15,7 @@ import { VocabularyEntryFormEnhanced } from '@/components/features/vocabulary-en
 import { VocabularyEditModal } from '@/components/features/vocabulary-edit-modal';
 import { AdvancedFilter } from '@/components/features/advanced-filter';
 import { BulkOperationsPanel } from '@/components/features/bulk-operations-panel';
+import { AppHeader } from '@/components/ui/app-header';
 import { useVocabulary } from '@/lib/hooks/use-vocabulary';
 import { filterVocabulary, type VocabularyFilterCriteria, type VocabularySortBy } from '@/lib/utils/filtering';
 import { getAllTags } from '@/lib/db/tags';
@@ -157,45 +158,30 @@ export default function VocabularyPage() {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-black pb-20">
       {/* Header */}
-      <header className="sticky top-0 z-10 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800">
-        <div className="px-4 py-4 flex items-center justify-between max-w-7xl mx-auto">
-          <div>
-            <h1 className="text-2xl font-bold">Vocabulary</h1>
-            <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-              {filteredWords.length} of {vocabulary.length} {vocabulary.length === 1 ? 'word' : 'words'}
-            </p>
-          </div>
-          
-          {/* User Icon */}
-          {!userLoading && (
-            <Link
-              href={user ? "/settings" : "/signin"}
-              className="flex items-center gap-2 px-3 py-2 bg-white dark:bg-gray-800 rounded-full hover:bg-gray-50 dark:hover:bg-gray-700 transition-all border border-gray-200 dark:border-gray-700"
-              title={user ? `Signed in as ${user.name || user.email}` : 'Sign in to sync across devices'}
+      <AppHeader
+        icon="📚"
+        title="Vocabulary"
+        subtitle={`${filteredWords.length} of ${vocabulary.length} ${vocabulary.length === 1 ? 'word' : 'words'}`}
+        showProfile={true}
+        actions={
+          <>
+            <button
+              onClick={() => setShowFilters(!showFilters)}
+              className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+              title="Filter"
             >
-              {user ? (
-                <>
-                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white text-sm font-semibold">
-                    {(user.name || user.email).charAt(0).toUpperCase()}
-                  </div>
-                  <div className="hidden sm:block">
-                    <p className="text-xs text-gray-600 dark:text-gray-400 leading-tight">
-                      {user.name || user.email.split('@')[0]}
-                    </p>
-                  </div>
-                </>
-              ) : (
-                <>
-                  <svg className="w-5 h-5 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                  </svg>
-                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300 hidden sm:inline">Sign In</span>
-                </>
-              )}
-            </Link>
-          )}
-        </div>
-      </header>
+              <FilterIcon className="w-5 h-5" />
+            </button>
+            <button
+              onClick={() => setShowAddModal(true)}
+              className="p-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition-colors"
+              title="Add word"
+            >
+              <Plus className="w-5 h-5" />
+            </button>
+          </>
+        }
+      />
 
       {/* Content */}
       <div className="px-4 py-6 max-w-7xl mx-auto space-y-6">

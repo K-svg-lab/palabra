@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 import { ReviewSessionEnhanced } from "@/components/features/review-session-enhanced";
 import { SessionConfig } from "@/components/features/session-config";
+import { AppHeader } from "@/components/ui/app-header";
 import { useVocabulary } from "@/lib/hooks/use-vocabulary";
 import { getReviewByVocabId, createReviewRecord, updateReviewRecord as updateReviewRecordDB, getDueReviews, getAllReviews } from "@/lib/db/reviews";
 import { createSession, updateSession } from "@/lib/db/sessions";

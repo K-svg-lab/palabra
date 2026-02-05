@@ -489,3 +489,17 @@ textarea:focus-visible {
   background-size: 200% 200%;
   animation: gradient-shift 6s ease infinite;
 }
+
+/* Shimmer animation for skeleton loaders - Phase 16.4 */
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.animate-shimmer {
+  animation: shimmer 2s infinite;
+}

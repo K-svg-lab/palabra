@@ -2,9 +2,10 @@
 ## Extending Premium Design to Headers, Vocabulary, and Settings
 
 **Created**: February 6, 2026  
+**Updated**: February 6, 2026 (Added Review Flow Redesign)  
 **Status**: 📋 PLANNING  
 **Priority**: 🔴 HIGH - Complete the Premium Experience  
-**Estimated Time**: 8-10 hours  
+**Estimated Time**: 12-14 hours (expanded scope)  
 **Building On**: Phase 16.3 Dashboard Success  
 
 ---
@@ -20,7 +21,7 @@ Complete the transformation of Palabra into a cohesive, Apple-quality experience
 
 ## 🎯 **Scope**
 
-### **Three Core Areas**
+### **Six Core Areas**
 
 1. **Headers & Navigation** (All pages)
    - Sticky headers with depth
@@ -39,6 +40,24 @@ Complete the transformation of Palabra into a cohesive, Apple-quality experience
    - Card-based sections
    - Toggle switches (iOS-style)
    - Account management flow
+
+4. **Session Configuration Screen**
+   - Card-based configuration
+   - iOS sliders and controls
+   - Visual mode previews
+   - Live card counter
+
+5. **Flashcard Interface**
+   - Immersive full-screen design
+   - 3D flip animations
+   - Enhanced rating buttons
+   - Gesture support
+
+6. **Review Summary Screen**
+   - Celebration moments
+   - Activity ring completion
+   - Performance breakdown
+   - Personalized insights
 
 ---
 
@@ -1008,7 +1027,684 @@ export function ToggleSwitch({
 
 ---
 
-## **PART 4: POLISH & CONSISTENCY** (1-2 hours)
+## **PART 4: REVIEW FLOW REDESIGN** (3-4 hours)
+
+### **🎯 Vision**
+
+Transform the review experience from functional flashcards into an immersive, delightful learning session. Make studying feel like using Apple's educational apps.
+
+**Key Inspiration**: Duolingo's polish + Apple's simplicity + Anki's power
+
+---
+
+### **Step 4.1: Session Configuration Screen Redesign** (90 minutes)
+
+**Enhance**: `components/features/session-config.tsx`
+
+**Current**: Basic form with checkboxes and selects  
+**Apple Way**: Beautiful cards with visual previews and smooth interactions
+
+**Design**:
+```
+┌────────────────────────────────────────────────────┐
+│                                                    │
+│  Configure Your Study Session                     │
+│                                                    │
+│  ╔══════════════════════════════════════════════╗ │
+│  ║  📚 Session Size                             ║ │
+│  ║  ━━━━━●━━━━━━━━━━━━━━━━ 20 cards          ║ │
+│  ║  5 ────────────────────────── 50             ║ │
+│  ╚══════════════════════════════════════════════╝ │
+│                                                    │
+│  ╔══════════════════════════════════════════════╗ │
+│  ║  🔄 Direction                                ║ │
+│  ║  [ ES→EN ] [ EN→ES ] [ Mixed ]              ║ │
+│  ╚══════════════════════════════════════════════╝ │
+│                                                    │
+│  ╔══════════════════════════════════════════════╗ │
+│  ║  🎯 Mode                                     ║ │
+│  ║  [Recognition] [Recall] [Listening]         ║ │
+│  ║  Flip cards    Type it   Audio-first        ║ │
+│  ╚══════════════════════════════════════════════╝ │
+│                                                    │
+│  ╔══════════════════════════════════════════════╗ │
+│  ║  ⚙️  Advanced                                ║ │
+│  ║  [ON ●] Practice Mode (all cards)           ║ │
+│  ║  [OFF ○] Weak Words Only (< 70%)            ║ │
+│  ║  [ON ●] Randomize Order                     ║ │
+│  ╚══════════════════════════════════════════════╝ │
+│                                                    │
+│  ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓  │
+│  ┃  🚀 Start Session (34 cards ready)        ┃  │
+│  ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛  │
+│                                                    │
+│  Cancel                                            │
+└────────────────────────────────────────────────────┘
+```
+
+**Key Improvements**:
+- **Visual Cards**: Group related settings in beautiful cards
+- **Slider Control**: iOS-style slider for session size
+- **Segmented Controls**: For direction and mode selection
+- **Preview Icons**: Show what each mode does
+- **Live Counter**: Shows how many cards match current filters
+- **Smart Defaults**: Pre-selects best options based on user history
+- **Smooth Animations**: Every interaction feels responsive
+
+**Implementation**:
+```typescript
+// Session Size Slider
+<SettingsCard title="📚 Session Size" description="How many cards to review">
+  <div className="px-6 py-6">
+    <div className="flex items-center justify-between mb-4">
+      <span className="text-3xl font-bold text-blue-600">{sessionSize}</span>
+      <span className="text-sm text-gray-500">cards</span>
+    </div>
+    
+    <input
+      type="range"
+      min={5}
+      max={50}
+      step={5}
+      value={sessionSize}
+      onChange={(e) => setSessionSize(Number(e.target.value))}
+      className="w-full h-2 bg-gray-200 rounded-full appearance-none slider-thumb-blue"
+    />
+    
+    <div className="flex justify-between text-xs text-gray-500 mt-2">
+      <span>5</span>
+      <span>25</span>
+      <span>50</span>
+    </div>
+  </div>
+</SettingsCard>
+
+// Direction Selection
+<SettingsCard title="🔄 Direction" description="Which way to practice">
+  <div className="px-6 py-6">
+    <SegmentedControl
+      tabs={[
+        { id: 'spanish-to-english', label: 'ES → EN', icon: '🇪🇸' },
+        { id: 'english-to-spanish', label: 'EN → ES', icon: '🇬🇧' },
+        { id: 'mixed', label: 'Mixed', icon: '🔀' },
+      ]}
+      activeTab={direction}
+      onChange={setDirection}
+    />
+    
+    <div className="mt-4 text-sm text-gray-600 dark:text-gray-400">
+      {direction === 'spanish-to-english' && '📖 See Spanish, recall English (easier)'}
+      {direction === 'english-to-spanish' && '✍️ See English, produce Spanish (harder)'}
+      {direction === 'mixed' && '🎲 Random direction for each card (balanced)'}
+    </div>
+  </div>
+</SettingsCard>
+
+// Mode Selection with Previews
+<SettingsCard title="🎯 Study Mode" description="How to practice">
+  <div className="px-6 py-6 space-y-3">
+    {[
+      { id: 'recognition', icon: '👁️', label: 'Recognition', desc: 'Flip cards to see answer' },
+      { id: 'recall', icon: '⌨️', label: 'Recall', desc: 'Type the answer' },
+      { id: 'listening', icon: '🎧', label: 'Listening', desc: 'Audio-first learning' },
+    ].map((m) => (
+      <button
+        key={m.id}
+        onClick={() => setMode(m.id as ReviewMode)}
+        className={`
+          w-full flex items-center gap-4 p-4 rounded-xl
+          border-2 transition-all duration-300
+          ${mode === m.id
+            ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
+            : 'border-gray-200 dark:border-gray-800 hover:border-gray-300'
+          }
+        `}
+      >
+        <div className="text-3xl">{m.icon}</div>
+        <div className="flex-1 text-left">
+          <div className="font-semibold">{m.label}</div>
+          <div className="text-sm text-gray-500">{m.desc}</div>
+        </div>
+        {mode === m.id && <Check className="w-5 h-5 text-blue-600" />}
+      </button>
+    ))}
+  </div>
+</SettingsCard>
+```
+
+**Acceptance Criteria**:
+- [ ] Settings grouped in beautiful cards
+- [ ] Slider is smooth iOS-style
+- [ ] Segmented control has sliding animation
+- [ ] Mode cards show visual preview
+- [ ] Live card counter updates
+- [ ] Start button is prominent and gradient
+- [ ] Feels like iOS app configuration
+
+---
+
+### **Step 4.2: Flashcard Interface Redesign** (90 minutes)
+
+**Enhance**: `components/features/flashcard-enhanced.tsx`
+
+**Current**: Basic card with flip animation  
+**Apple Way**: Immersive, full-screen card experience with beautiful typography and smooth physics
+
+**Design**:
+```
+┌────────────────────────────────────────────────┐
+│  ━━━━━━━━━━━━━━━●━━━━━━━━━━━━━━━  12 / 20   │  ← Progress bar
+│                                                │
+│                                                │
+│                                                │
+│                    perro                       │  ← Large Spanish word
+│                                                │
+│                  [Tap to flip]                 │  ← Hint
+│                                                │
+│                                                │
+│                                                │
+│  🔊 ← Audio                       🏠 Quit     │  ← Actions
+└────────────────────────────────────────────────┘
+
+FLIPPED:
+┌────────────────────────────────────────────────┐
+│  ━━━━━━━━━━━━━━━●━━━━━━━━━━━━━━━  12 / 20   │
+│                                                │
+│                    perro                       │  ← Spanish (smaller)
+│                      ↓                         │
+│                    dog                         │  ← English (large)
+│                                                │
+│  📖 Noun · Masculine                          │
+│  "El perro es muy inteligente"                │
+│                                                │
+│  How well did you know it?                    │
+│  ┏━━━━━┓ ┏━━━━━┓ ┏━━━━━┓ ┏━━━━━┓          │
+│  ┃ ❌  ┃ ┃ 😓  ┃ ┃ 👍  ┃ ┃ ✨  ┃          │
+│  ┃Forgot┃ ┃Hard ┃ ┃Good ┃ ┃Easy ┃          │
+│  ┗━━━━━┛ ┗━━━━━┛ ┗━━━━━┛ ┗━━━━━┛          │
+└────────────────────────────────────────────────┘
+```
+
+**Key Improvements**:
+- **Immersive Design**: Full-screen card, minimal distractions
+- **Beautiful Typography**: Large, bold text for the word
+- **Smooth Flip**: 3D flip animation with perspective
+- **Enhanced Buttons**: Large, emoji-based rating buttons
+- **Progress Bar**: Thin, animated progress at top
+- **Gestures**: Swipe left/right for navigation (mobile)
+- **Keyboard**: Space to flip, 1-4 for ratings
+
+**Implementation**:
+```typescript
+<div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-black dark:to-gray-900 flex flex-col">
+  {/* Progress bar */}
+  <div className="fixed top-0 left-0 right-0 z-50">
+    <div className="h-1 bg-gray-200 dark:bg-gray-800">
+      <motion.div
+        className="h-full bg-gradient-to-r from-blue-500 to-purple-600"
+        initial={{ width: 0 }}
+        animate={{ width: `${progress}%` }}
+        transition={{ duration: 0.5 }}
+      />
+    </div>
+    
+    <div className="px-4 py-3 flex items-center justify-between">
+      <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
+        {currentIndex + 1} of {totalCards}
+      </span>
+      <button onClick={onQuit} className="text-sm text-gray-500 hover:text-gray-700">
+        Quit
+      </button>
+    </div>
+  </div>
+
+  {/* Card area */}
+  <div className="flex-1 flex items-center justify-center p-4">
+    <motion.div
+      className="w-full max-w-2xl"
+      animate={{ rotateY: isFlipped ? 180 : 0 }}
+      transition={{ type: 'spring', stiffness: 200, damping: 20 }}
+      style={{ transformStyle: 'preserve-3d' }}
+    >
+      {/* Front */}
+      <div className="
+        bg-white dark:bg-gray-900
+        rounded-3xl p-12
+        shadow-2xl
+        min-h-[400px]
+        flex flex-col items-center justify-center
+        text-center
+      ">
+        <div className="text-6xl font-bold mb-6">
+          {word.spanish}
+        </div>
+        
+        <button
+          onClick={onFlip}
+          className="text-sm text-gray-400 hover:text-gray-600 transition-colors"
+        >
+          Tap to flip
+        </button>
+      </div>
+
+      {/* Back (with rating buttons) */}
+      <div className="absolute inset-0 backface-hidden rotate-y-180">
+        {/* ... back content with beautiful rating buttons ... */}
+      </div>
+    </motion.div>
+  </div>
+
+  {/* Rating buttons (when flipped) */}
+  {isFlipped && (
+    <div className="px-4 pb-8">
+      <div className="max-w-2xl mx-auto grid grid-cols-4 gap-3">
+        <RatingButton
+          emoji="❌"
+          label="Forgot"
+          color="from-red-500 to-red-600"
+          onClick={() => onRate('forgot')}
+        />
+        <RatingButton
+          emoji="😓"
+          label="Hard"
+          color="from-orange-500 to-orange-600"
+          onClick={() => onRate('hard')}
+        />
+        <RatingButton
+          emoji="👍"
+          label="Good"
+          color="from-green-500 to-green-600"
+          onClick={() => onRate('good')}
+        />
+        <RatingButton
+          emoji="✨"
+          label="Easy"
+          color="from-blue-500 to-blue-600"
+          onClick={() => onRate('easy')}
+        />
+      </div>
+    </div>
+  )}
+</div>
+```
+
+**Features to Add**:
+- Card-based configuration layout
+- iOS-style slider for session size
+- Visual mode previews
+- Segmented controls for direction
+- Toggle switches for advanced options
+- Live card counter that updates
+- Beautiful start button with gradient
+
+---
+
+### **Step 4.2: Flashcard Card Redesign** (90 minutes)
+
+**Enhance**: `components/features/flashcard-enhanced.tsx`
+
+**Key Improvements**:
+1. **Immersive Full-Screen** - Card takes center stage
+2. **3D Flip Animation** - Smooth perspective transform
+3. **Beautiful Typography** - 72px word, perfect spacing
+4. **Gradient Progress Bar** - Thin line at top
+5. **Enhanced Rating Buttons** - Large, emoji-based, gradient backgrounds
+6. **Gesture Support** - Swipe left/right on mobile
+7. **Keyboard Shortcuts** - Space to flip, 1-4 for ratings
+8. **Audio Button** - Floating bottom-left with ripple effect
+
+**Create**: `components/features/rating-button.tsx`
+```typescript
+export function RatingButton({
+  emoji,
+  label,
+  gradient,
+  onClick,
+  shortcut,
+}: {
+  emoji: string;
+  label: string;
+  gradient: { from: string; to: string };
+  onClick: () => void;
+  shortcut?: string;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className="
+        relative
+        flex flex-col items-center gap-2
+        p-6 rounded-2xl
+        text-white
+        hover:scale-105 active:scale-95
+        transition-all duration-300
+        shadow-lg hover:shadow-xl
+      "
+      style={{
+        background: `linear-gradient(135deg, ${gradient.from}, ${gradient.to})`,
+      }}
+    >
+      <div className="text-4xl mb-1">{emoji}</div>
+      <div className="font-semibold text-base">{label}</div>
+      
+      {shortcut && (
+        <div className="absolute top-2 right-2 text-xs bg-white/20 rounded px-2 py-1">
+          {shortcut}
+        </div>
+      )}
+      
+      {/* Hover glow effect */}
+      <div className="absolute inset-0 bg-white/10 rounded-2xl opacity-0 hover:opacity-100 transition-opacity" />
+    </button>
+  );
+}
+```
+
+**Recall Mode Enhancement**:
+```
+┌────────────────────────────────────────────────┐
+│  ━━━━━━━━━━━━━━━●━━━━━━━━━━━━━━━  12 / 20   │
+│                                                │
+│                    perro                       │
+│                                                │
+│  ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓  │
+│  ┃  Your answer...                          ┃  │
+│  ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛  │
+│                                                │
+│  💡 Hint: Noun, Masculine                     │
+│                                                │
+│  [ Check Answer ]                              │
+│                                                │
+└────────────────────────────────────────────────┘
+
+AFTER CHECKING:
+┌────────────────────────────────────────────────┐
+│  ✅ Correct! (97% match)                       │
+│                                                │
+│  Your answer:   dog                            │
+│  Correct answer: dog                           │
+│                                                │
+│  "El perro es muy inteligente"                │
+│                                                │
+│  [ Continue → ]                                │
+└────────────────────────────────────────────────┘
+```
+
+**Listening Mode Enhancement**:
+- Prominent play button
+- Waveform animation while playing
+- Transcript reveal option
+- Answer input after listening
+
+---
+
+### **Step 4.3: Session Progress Indicator** (30 minutes)
+
+**Create**: `components/features/session-progress.tsx`
+
+**Beautiful minimal progress indicator**
+
+**Design**:
+```
+┌────────────────────────────────────────────────┐
+│  ━━━━━━━━━━━━━━━●━━━━━━━━━━━━━━━  12 / 20   │
+│  ● ● ● ● ● ● ● ● ● ● ● ● ○ ○ ○ ○ ○ ○ ○ ○    │
+│  Correct: 10  Wrong: 2  Accuracy: 83%         │
+└────────────────────────────────────────────────┘
+```
+
+**Features**:
+- Thin progress bar (gradient)
+- Dot indicators (filled = reviewed)
+- Live accuracy counter
+- Smooth animations
+
+---
+
+### **Step 4.4: Review Summary Screen Redesign** (90 minutes)
+
+**Create**: `components/features/review-summary-enhanced.tsx`
+
+**Current**: Basic results list  
+**Apple Way**: Celebration screen with insights and beautiful visualizations
+
+**Design**:
+```
+┌────────────────────────────────────────────────┐
+│                                                │
+│                    🎉                          │
+│                                                │
+│              Session Complete!                 │
+│                                                │
+│  ╔══════════════════════════════════════════╗ │
+│  ║           [Progress Ring]                ║ │
+│  ║              20 / 20                     ║ │
+│  ║           85% Accuracy                   ║ │
+│  ╚══════════════════════════════════════════╝ │
+│                                                │
+│  ┏━━━━━━━━━━━━━━┓ ┏━━━━━━━━━━━━━━┓        │
+│  ┃ ⏱ 8m 30s    ┃ ┃ 🔥 7 days    ┃        │
+│  ┃ Study time   ┃ ┃ Streak       ┃        │
+│  ┗━━━━━━━━━━━━━━┛ ┗━━━━━━━━━━━━━━┛        │
+│                                                │
+│  📊 Performance Breakdown                      │
+│  ✨ Easy:   12 cards                          │
+│  👍 Good:    5 cards                           │
+│  😓 Hard:    2 cards                           │
+│  ❌ Forgot:  1 card                            │
+│                                                │
+│  💡 You're improving!                          │
+│  Your accuracy is up 5% from last session      │
+│                                                │
+│  ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓   │
+│  ┃  Continue Learning                      ┃   │
+│  ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛   │
+│                                                │
+│  Review Mistakes                               │
+│                                                │
+└────────────────────────────────────────────────┘
+```
+
+**Key Features**:
+- **Celebration Moment** - Confetti/animation on load
+- **Activity Ring** - Shows completion percentage
+- **Performance Stats** - Time, streak, breakdown
+- **Insights** - Personalized feedback
+- **Action Buttons** - Continue or review mistakes
+- **Share Option** - Share achievement (optional)
+
+**Implementation**:
+```typescript
+export function ReviewSummaryEnhanced({
+  results,
+  timeSpent,
+  currentStreak,
+  onContinue,
+  onReviewMistakes,
+}: ReviewSummaryProps) {
+  const correctCount = results.filter(r => r.rating !== 'forgot').length;
+  const accuracy = Math.round((correctCount / results.length) * 100);
+  
+  // Show celebration animation
+  useEffect(() => {
+    if (accuracy >= 90) {
+      // Trigger confetti or celebration
+    }
+  }, [accuracy]);
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center p-4">
+      <motion.div
+        initial={{ scale: 0.9, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{ type: 'spring', duration: 0.6 }}
+        className="max-w-2xl w-full"
+      >
+        {/* Celebration icon */}
+        <div className="text-center mb-8">
+          <motion.div
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            transition={{ delay: 0.2, type: 'spring', stiffness: 200 }}
+            className="text-8xl mb-4"
+          >
+            {accuracy >= 90 ? '🎉' : accuracy >= 75 ? '✨' : '📚'}
+          </motion.div>
+          <h1 className="text-4xl font-bold mb-2">
+            {accuracy >= 90 ? 'Amazing!' : accuracy >= 75 ? 'Great Job!' : 'Session Complete!'}
+          </h1>
+        </div>
+
+        {/* Activity Ring */}
+        <div className="flex justify-center mb-8">
+          <ActivityRing
+            current={correctCount}
+            target={results.length}
+            label="Accuracy"
+            gradient={{ start: '#10B981', end: '#34D399' }}
+            size="lg"
+          />
+        </div>
+
+        {/* Stats grid */}
+        <div className="grid grid-cols-2 gap-4 mb-6">
+          <StatCardEnhanced
+            icon="⏱️"
+            value={formatTime(timeSpent)}
+            label="Study Time"
+          />
+          <StatCardEnhanced
+            icon="🔥"
+            value={currentStreak}
+            label="Day Streak"
+          />
+        </div>
+
+        {/* Performance breakdown */}
+        <div className="bg-white dark:bg-gray-900 rounded-2xl p-6 mb-6 shadow-lg">
+          <h3 className="font-semibold mb-4">📊 Performance</h3>
+          <div className="space-y-3">
+            {[
+              { emoji: '✨', label: 'Easy', count: results.filter(r => r.rating === 'easy').length, color: 'blue' },
+              { emoji: '👍', label: 'Good', count: results.filter(r => r.rating === 'good').length, color: 'green' },
+              { emoji: '😓', label: 'Hard', count: results.filter(r => r.rating === 'hard').length, color: 'orange' },
+              { emoji: '❌', label: 'Forgot', count: results.filter(r => r.rating === 'forgot').length, color: 'red' },
+            ].map((stat) => (
+              <div key={stat.label} className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <span className="text-2xl">{stat.emoji}</span>
+                  <span>{stat.label}</span>
+                </div>
+                <span className="font-bold text-lg">{stat.count}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Insight */}
+        <InsightCard
+          insight={{
+            id: 'summary',
+            type: 'success',
+            icon: '💡',
+            title: getSessionInsight(accuracy),
+            description: getSessionTip(accuracy, results),
+            gradient: { from: '#667EEA', to: '#764BA2' },
+            priority: 100,
+          }}
+        />
+
+        {/* Actions */}
+        <div className="space-y-3 mt-6">
+          <ActionButton
+            icon="🏠"
+            label="Continue Learning"
+            onClick={onContinue}
+            variant="primary"
+            size="lg"
+            className="w-full"
+          />
+          
+          {results.some(r => r.rating === 'forgot' || r.rating === 'hard') && (
+            <ActionButton
+              icon="🔄"
+              label="Review Mistakes"
+              onClick={onReviewMistakes}
+              variant="secondary"
+              size="lg"
+              className="w-full"
+            />
+          )}
+        </div>
+      </motion.div>
+    </div>
+  );
+}
+```
+
+**Acceptance Criteria**:
+- [ ] Celebration animation on load
+- [ ] Activity ring shows completion
+- [ ] Beautiful stat cards
+- [ ] Performance breakdown clear
+- [ ] Personalized insights
+- [ ] Action buttons prominent
+- [ ] Feels like achievement unlock
+
+---
+
+### **Step 4.5: In-Session Feedback** (45 minutes)
+
+**Create**: `components/ui/answer-feedback.tsx`
+
+**For recall/listening modes - show immediate feedback**
+
+**Design**:
+```
+CORRECT:
+┌────────────────────────────────────┐
+│  ✅ Correct! (100% match)          │
+│                                    │
+│  dog ← Your answer                 │
+│                                    │
+│  [ Continue → ]                    │
+└────────────────────────────────────┘
+  Green gradient background
+  Smooth slide-up animation
+
+PARTIAL:
+┌────────────────────────────────────┐
+│  ⚠️ Almost! (85% match)            │
+│                                    │
+│  Your answer:   dogg               │
+│  Correct answer: dog               │
+│                                    │
+│  [ Continue → ]                    │
+└────────────────────────────────────┘
+  Orange gradient background
+
+INCORRECT:
+┌────────────────────────────────────┐
+│  ❌ Not quite                      │
+│                                    │
+│  Your answer:   cat                │
+│  Correct answer: dog               │
+│                                    │
+│  [ Continue → ]                    │
+└────────────────────────────────────┘
+  Red gradient background
+```
+
+**Features**:
+- Slide up from bottom
+- Gradient background based on result
+- Clear feedback
+- Large continue button
+- Haptic-style feedback (visual)
+
+---
+
+## **PART 5: POLISH & CONSISTENCY** (1-2 hours)
 
 ### **Step 4.1: Floating Action Button (FAB)** (30 minutes)
 
@@ -1085,7 +1781,7 @@ export function ToggleSwitch({
 
 ## 📦 **Deliverables Summary**
 
-### **New Components** (15 components)
+### **New Components** (20 components)
 1. ✅ AppHeader - Unified header system
 2. ✅ UserProfileChip - Consistent user widget
 3. ✅ VocabularyCardEnhanced - Beautiful word cards
@@ -1096,18 +1792,29 @@ export function ToggleSwitch({
 8. ✅ SettingsCard - Card-based settings
 9. ✅ SettingsRow - Individual setting items
 10. ✅ ToggleSwitch - iOS-style switches
-11. ✅ FAB - Floating action button
-12. ✅ ToastNotification - Toast messages
-13. ✅ SkeletonLoader - Loading states
-14. ✅ ConfirmDialog - Confirmation dialogs
-15. ✅ EmptyState - Vocabulary empty state
+11. ✅ RatingButton - Enhanced flashcard rating buttons
+12. ✅ SessionProgress - Beautiful progress indicator
+13. ✅ ReviewSummaryEnhanced - Celebration summary screen
+14. ✅ AnswerFeedback - Immediate feedback for recall mode
+15. ✅ FAB - Floating action button
+16. ✅ ToastNotification - Toast messages
+17. ✅ SkeletonLoader - Loading states
+18. ✅ ConfirmDialog - Confirmation dialogs
+19. ✅ EmptyState - Vocabulary empty state
+20. ✅ SessionSlider - iOS-style range input
 
-### **Modified Pages** (5 pages)
+### **Enhanced Components** (3 existing components)
+1. ✅ SessionConfig - Complete Apple-inspired redesign
+2. ✅ FlashcardEnhanced - Immersive full-screen experience
+3. ✅ ReviewSessionEnhanced - Smooth progress indicators
+
+### **Modified Pages** (6 pages)
 1. ✅ Home Dashboard - New header
 2. ✅ Progress Dashboard - New header
 3. ✅ Vocabulary Page - Complete redesign
 4. ✅ Settings Page - Complete redesign
-5. ✅ Review Page - New header
+5. ✅ Review Page - New header + enhanced flow
+6. ✅ All modals/dialogs - iOS-style sheets
 
 ---
 
@@ -1197,13 +1904,26 @@ export function ToggleSwitch({
 - [ ] Enhance each tab
 - [ ] Test all settings
 
-### **Phase D: Polish** (1-2 hours)
+### **Phase D: Review Flow** (3-4 hours)
+- [ ] Redesign SessionConfig with cards
+- [ ] Create SessionSlider component
+- [ ] Enhance FlashcardEnhanced (immersive)
+- [ ] Create RatingButton component
+- [ ] Create SessionProgress component
+- [ ] Create ReviewSummaryEnhanced
+- [ ] Create AnswerFeedback component
+- [ ] Add celebration animations
+- [ ] Test entire review flow
+
+### **Phase E: Polish** (1-2 hours)
 - [ ] Create FAB
 - [ ] Create ToastNotification
 - [ ] Create SkeletonLoader
 - [ ] Create ConfirmDialog
 - [ ] Add empty states
-- [ ] Final testing
+- [ ] Final consistency pass
+- [ ] Test all interactions
+- [ ] Deploy and verify
 
 ---
 
@@ -1239,12 +1959,57 @@ export function ToggleSwitch({
 - "Settings are so much nicer to use"
 - "Adding words is actually fun"
 - "It feels like a real iOS app"
+- "Studying has never been this enjoyable!"
+- "The flashcards are incredibly smooth"
+- "I actually look forward to review sessions now"
 
 ### **Metrics**
 - **Task Completion**: +25% faster
 - **User Satisfaction**: +30% increase
 - **Settings Usage**: +50% increase
 - **Vocabulary Additions**: +20% increase
+- **Review Session Completion**: +35% increase
+- **Daily Active Users**: +15% increase
+
+---
+
+## 🎬 **The Complete User Journey** (After Phase 16.4)
+
+### **Dashboard → Configure → Study → Celebrate**
+
+```
+┌─────────────────┐
+│  🏠 Dashboard   │  ← Phase 16.3 (DONE)
+│  Activity Rings │     Beautiful stats, insights, progress
+│  Streak Hero    │
+└────────┬────────┘
+         │ Tap "Start Review"
+         ↓
+┌─────────────────┐
+│ ⚙️  Configure   │  ← Phase 16.4 (NEW)
+│  Session        │     Card-based settings, sliders
+│  20 cards       │     Mode selection with previews
+│  Recall Mode    │
+└────────┬────────┘
+         │ Start Session
+         ↓
+┌─────────────────┐
+│ 🎴 Flashcard    │  ← Phase 16.4 (NEW)
+│  Full Screen    │     Immersive experience
+│  3D Flip        │     Beautiful typography
+│  Smooth Rating  │     Enhanced interactions
+└────────┬────────┘
+         │ Complete
+         ↓
+┌─────────────────┐
+│ 🎉 Summary      │  ← Phase 16.4 (NEW)
+│  Activity Ring  │     Celebration moment
+│  Performance    │     Insights & breakdown
+│  85% Accuracy   │     Action buttons
+└─────────────────┘
+```
+
+**The Result**: A seamless, delightful journey from "I want to study" to "I accomplished something" - every step feels premium and intentional.
 
 ---
 
@@ -1258,10 +2023,19 @@ export function ToggleSwitch({
 
 ---
 
-**Status**: 📋 **PLAN COMPLETE - READY FOR IMPLEMENTATION**
+**Status**: 📋 **PLAN COMPLETE - READY FOR IMPLEMENTATION** (Updated with Review Flow)
 
-**Estimated Time**: 8-10 hours total
+**Estimated Time**: 12-14 hours total
 
-**Result**: A completely cohesive, Apple-quality experience throughout the entire Palabra app 🍎✨
+**Scope Summary**:
+- ✅ Headers & Navigation (all pages)
+- ✅ Vocabulary Management (complete redesign)
+- ✅ Settings (complete redesign)
+- ✅ **Review Flow (session config + flashcards + summary)** ← NEW
+- ✅ Polish & Consistency
+
+**Result**: A completely cohesive, Apple-quality experience throughout the entire Palabra app - **from dashboard to study session to results** 🍎✨
+
+**The Complete Premium Experience** - Every screen, every interaction, every moment feels intentional, beautiful, and delightful.
 
 Let's make Steve Jobs proud! 🚀
