@@ -12,28 +12,29 @@ import { getEnhancedTranslation } from '@/lib/services/translation';
 import { getCompleteWordData } from '@/lib/services/dictionary';
 import { getWordRelationships, getVerbConjugation } from '@/lib/services/word-relationships';
 import { getWordImages } from '@/lib/services/images';
-// PRISMA IMPORTS TEMPORARILY DISABLED - CAUSING BUILD HANGS
-// import { PrismaClient } from '@prisma/client';
+import { PrismaClient } from '@prisma/client';
 import type { PartOfSpeech } from '@/lib/types/vocabulary';
 import type { LanguagePair, VerifiedVocabularyData, CacheStrategy } from '@/lib/types/verified-vocabulary';
 
-// PRISMA CLIENT TEMPORARILY DISABLED
-// const globalForPrisma = globalThis as unknown as {
-//   prisma: PrismaClient | undefined;
-// };
-// const prisma = globalForPrisma.prisma ?? new PrismaClient();
-// if (process.env.NODE_ENV !== 'production') {
-//   globalForPrisma.prisma = prisma;
-// }
+// Prisma client singleton (API route only - proper Next.js pattern)
+const globalForPrisma = globalThis as unknown as {
+  prisma: PrismaClient | undefined;
+};
 
-// Cache strategy for verified vocabulary (inline to avoid import issues)
-// const CACHE_STRATEGY: CacheStrategy = {
-//   minVerifications: 3,
-//   minConfidence: 0.80,
-//   maxEditFrequency: 0.30,
-//   maxAge: 180, // 6 months
-//   requiresAgreement: true,
-// };
+const prisma = globalForPrisma.prisma ?? new PrismaClient();
+
+if (process.env.NODE_ENV !== 'production') {
+  globalForPrisma.prisma = prisma;
+}
+
+// Cache strategy for verified vocabulary
+const CACHE_STRATEGY: CacheStrategy = {
+  minVerifications: 3,
+  minConfidence: 0.80,
+  maxEditFrequency: 0.30,
+  maxAge: 180, // 6 months
+  requiresAgreement: true,
+};
 
 /**
  * Converts gerund (-ing) forms to infinitive base form
@@ -360,11 +361,6 @@ export async function POST(request: NextRequest) {
     // TIER 1: CHECK VERIFIED VOCABULARY CACHE (Phase 16)
     // 🚀 Performance: ~50ms (vs ~2000ms for API calls)
     // ═══════════════════════════════════════════════════════════════════
-    // TEMPORARILY DISABLED: Prisma causing Next.js build hangs
-    // TODO: Re-enable once bundling issue is resolved
-    const cachedWord: VerifiedVocabularyData | null = null;
-    
-    /* DATABASE LOGIC TEMPORARILY DISABLED
     const startTime = Date.now();
     let cachedWord: VerifiedVocabularyData | null = null;
     
@@ -399,7 +395,6 @@ export async function POST(request: NextRequest) {
       console.error('[Verified Cache] Lookup error:', error);
       // Continue to API fallback
     }
-    */
     
     if (cachedWord) {
       const cacheTime = Date.now() - startTime;
