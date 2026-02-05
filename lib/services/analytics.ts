@@ -336,22 +336,46 @@ export async function getApiPerformanceSummary(
       createdAt: { gte: startDate },
     },
     _count: { id: true },
-    _sum: {
-      success: true,
-      rateLimited: true,
-    },
     _avg: {
       responseTime: true,
     },
   });
 
-  return apiStats.map((stat) => ({
-    apiName: stat.apiName,
-    totalCalls: stat._count.id,
-    successRate: stat._sum.success ? (stat._sum.success / stat._count.id) : 0,
-    avgResponseTime: stat._avg.responseTime || 0,
-    rateLimitedCount: stat._sum.rateLimited || 0,
-  }));
+  // Get success counts (cannot use _sum on boolean)
+  const successCounts = await prisma.apiCallEvent.groupBy({
+    by: ['apiName'],
+    where: {
+      createdAt: { gte: startDate },
+      success: true,
+    },
+    _count: { id: true },
+  });
+
+  // Get rate limited counts (cannot use _sum on boolean)
+  const rateLimitedCounts = await prisma.apiCallEvent.groupBy({
+    by: ['apiName'],
+    where: {
+      createdAt: { gte: startDate },
+      rateLimited: true,
+    },
+    _count: { id: true },
+  });
+
+  const successMap = new Map(successCounts.map(s => [s.apiName, s._count.id]));
+  const rateLimitedMap = new Map(rateLimitedCounts.map(r => [r.apiName, r._count.id]));
+
+  return apiStats.map((stat) => {
+    const successCount = successMap.get(stat.apiName) || 0;
+    const rateLimitedCount = rateLimitedMap.get(stat.apiName) || 0;
+
+    return {
+      apiName: stat.apiName,
+      totalCalls: stat._count.id,
+      successRate: stat._count.id > 0 ? successCount / stat._count.id : 0,
+      avgResponseTime: stat._avg.responseTime || 0,
+      rateLimitedCount,
+    };
+  });
 }
 
 /**
