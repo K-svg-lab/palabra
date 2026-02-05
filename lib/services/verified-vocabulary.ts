@@ -10,6 +10,8 @@
  * @module lib/services/verified-vocabulary
  */
 
+import 'server-only';
+
 import type {
   VerifiedVocabularyData,
   VerificationInput,
