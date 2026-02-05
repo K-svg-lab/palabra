@@ -308,39 +308,48 @@ function meetsCacheCriteria(word: any, strategy: CacheStrategy): boolean {
 
 /**
  * Transform database word to verified data structure
+ * Only includes fields defined in VerifiedVocabularyData type
  */
 function transformToVerifiedData(word: any): VerifiedVocabularyData {
   return {
+    // Multi-language identifiers
     sourceLanguage: word.sourceLanguage,
     targetLanguage: word.targetLanguage,
     languagePair: word.languagePair,
+    
+    // Core translation data
     sourceWord: word.sourceWord,
     targetWord: word.targetWord,
     alternativeTranslations: word.alternativeTranslations || [],
+    
+    // Universal metadata
     partOfSpeech: word.partOfSpeech,
     grammarMetadata: word.grammarMetadata,
+    
+    // Rich content
     examples: word.examples || [],
     conjugations: word.conjugations,
     synonyms: word.synonyms,
     antonyms: word.antonyms,
     relatedWords: word.relatedWords,
     regionalVariants: word.regionalVariants,
+    
+    // Verification metadata
     verificationCount: word.verificationCount,
     confidenceScore: word.confidenceScore,
     lastVerified: word.lastVerified,
-    primarySource: word.primarySource,
-    apiSources: word.apiSources,
+    
+    // Quality indicators
     hasDisagreement: word.hasDisagreement,
-    disagreementCount: word.disagreementCount,
     requiresReview: word.requiresReview,
-    isOffensive: word.isOffensive,
+    
+    // Usage statistics
     lookupCount: word.lookupCount,
     saveCount: word.saveCount,
     editFrequency: word.editFrequency,
-    avgReviewSuccessRate: word.avgReviewSuccessRate,
-    createdAt: word.createdAt,
-    updatedAt: word.updatedAt,
-    lastRefreshedAt: word.lastRefreshedAt,
+    
+    // Backward compatibility
+    gender: word.grammarMetadata?.gender,
   };
 }
 
