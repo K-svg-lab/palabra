@@ -288,19 +288,29 @@ export async function getPopularWords(
       createdAt: { gte: startDate },
     },
     _count: { id: true },
-    _sum: {
-      wasSaved: true,
-    },
     orderBy: {
       _count: { id: 'desc' },
     },
     take: limit,
   });
 
+  // Get save counts for each word (cannot use _sum on boolean)
+  const savedCounts = await prisma.wordLookupEvent.groupBy({
+    by: ['sourceWord'],
+    where: {
+      languagePair,
+      createdAt: { gte: startDate },
+      wasSaved: true,
+    },
+    _count: { id: true },
+  });
+
+  const savedMap = new Map(savedCounts.map(s => [s.sourceWord, s._count.id]));
+
   return popularWords.map((word) => ({
     word: word.sourceWord,
     count: word._count.id,
-    saveRate: word._sum.wasSaved ? (word._sum.wasSaved / word._count.id) : 0,
+    saveRate: word._count.id > 0 ? (savedMap.get(word.sourceWord) || 0) / word._count.id : 0,
   }));
 }
 
