@@ -173,9 +173,9 @@ export function VocabularyCardEnhanced({
       </div>
 
       {/* Example sentence */}
-      {word.exampleSentence && (
+      {word.examples && word.examples.length > 0 && (
         <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3 mb-3 text-sm italic text-gray-700 dark:text-gray-300">
-          "{word.exampleSentence}"
+          "{word.examples[0].spanish}"
         </div>
       )}
 
