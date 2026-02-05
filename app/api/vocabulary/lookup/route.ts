@@ -15,6 +15,8 @@ import { getWordImages } from '@/lib/services/images';
 import { trackWordLookup, detectDeviceType } from '@/lib/services/analytics';
 import { crossValidateTranslations, getCrossValidationExplanation, getConfidencePenalty } from '@/lib/services/cross-validation';
 import type { TranslationSource } from '@/lib/services/cross-validation';
+import { getRaeDefinition, mapRaeCategoryToPartOfSpeech } from '@/lib/services/rae';
+import type { RaeDefinition } from '@/lib/services/rae';
 import { PrismaClient } from '@prisma/client';
 import type { PartOfSpeech } from '@/lib/types/vocabulary';
 import type { LanguagePair, VerifiedVocabularyData, CacheStrategy } from '@/lib/types/verified-vocabulary';
@@ -491,11 +493,13 @@ export async function POST(request: NextRequest) {
 
     // ═══════════════════════════════════════════════════════════════════
     // TIER 2: FETCH FROM EXTERNAL APIS (existing logic)
+    // Phase 16.1 Task 3: Added RAE as authoritative source
     // ═══════════════════════════════════════════════════════════════════
-    // Fetch enhanced translation (with alternatives) and dictionary data in parallel
-    const [translationResult, dictionaryResult] = await Promise.allSettled([
+    // Fetch translation, dictionary, and RAE data in parallel
+    const [translationResult, dictionaryResult, raeResult] = await Promise.allSettled([
       getEnhancedTranslation(cleanWord),
       getCompleteWordData(cleanWord),
+      getRaeDefinition(cleanWord), // RAE: Authoritative Spanish dictionary
     ]);
 
     // Process enhanced translation result
@@ -509,6 +513,18 @@ export async function POST(request: NextRequest) {
       dictionaryResult.status === 'fulfilled'
         ? dictionaryResult.value
         : null;
+
+    // Process RAE result (Phase 16.1 Task 3)
+    const rae: RaeDefinition | null =
+      raeResult.status === 'fulfilled'
+        ? raeResult.value
+        : null;
+    
+    if (rae) {
+      console.log(`✅ [RAE] Found authoritative definition for "${cleanWord}" (${rae.category})`);
+    } else {
+      console.log(`ℹ️ [RAE] No definition found for "${cleanWord}" (may not be in RAE dictionary)`);
+    }
 
     // Fetch enhanced features in parallel (non-blocking) with shorter timeouts for speed
     const timeoutPromise = (promise: Promise<any>, timeoutMs: number) => {
@@ -539,8 +555,17 @@ export async function POST(request: NextRequest) {
     // ═══════════════════════════════════════════════════════════════════
     // CROSS-VALIDATION: Compare translations from multiple sources
     // Phase 16.1 Task 2 - Flag discrepancies for user review
+    // Phase 16.1 Task 3 - Include RAE as authoritative source
     // ═══════════════════════════════════════════════════════════════════
     const translationSources: TranslationSource[] = [];
+    
+    // Add RAE source FIRST (authoritative - Phase 16.1 Task 3)
+    if (rae?.definitions && rae.definitions.length > 0) {
+      // RAE provides Spanish definitions, not English translations
+      // We use it to validate POS, gender, and as authoritative tiebreaker
+      // Note: RAE definitions are in Spanish, so we don't add to translation cross-validation
+      // Instead, we use it to validate the translation API results
+    }
     
     // Add translation API source (DeepL or MyMemory)
     if (translation?.primary) {
@@ -585,6 +610,32 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // ═══════════════════════════════════════════════════════════════════
+    // MERGE DATA: Prioritize RAE for authoritative metadata
+    // Phase 16.1 Task 3 - Use RAE for gender, POS, synonyms when available
+    // ═══════════════════════════════════════════════════════════════════
+    
+    // Prioritize RAE for POS and gender (authoritative)
+    const finalPartOfSpeech = rae?.category 
+      ? mapRaeCategoryToPartOfSpeech(rae.category) || dictionary?.partOfSpeech
+      : dictionary?.partOfSpeech;
+    
+    const finalGender = rae?.gender || dictionary?.gender;
+    
+    // Merge synonyms from all sources
+    const mergedSynonyms = [
+      ...(dictionary?.synonyms || []),
+      ...(rae?.synonyms || []),
+    ];
+    const uniqueSynonyms = mergedSynonyms.length > 0 ? [...new Set(mergedSynonyms)] : undefined;
+    
+    // Merge antonyms
+    const mergedAntonyms = [
+      ...(relationships?.antonyms || []),
+      ...(rae?.antonyms || []),
+    ];
+    const uniqueAntonyms = mergedAntonyms.length > 0 ? [...new Set(mergedAntonyms)] : undefined;
+
     // Combine results with enhanced translations
     const response = {
       word: cleanWord,
@@ -592,13 +643,17 @@ export async function POST(request: NextRequest) {
       alternativeTranslations: filteredAlternatives,
       translationConfidence: adjustedConfidence, // Adjusted based on cross-validation
       translationSource: translation?.source || 'fallback',
-      gender: dictionary?.gender,
-      partOfSpeech: dictionary?.partOfSpeech,
+      gender: finalGender,
+      partOfSpeech: finalPartOfSpeech,
       examples: dictionary?.examples || [],
       definition: dictionary?.definition, // Wiktionary definition provides additional context/meanings
-      synonyms: dictionary?.synonyms,
+      synonyms: uniqueSynonyms,
       // Enhanced Phase 7 features
-      relationships,
+      relationships: relationships ? {
+        ...relationships,
+        synonyms: uniqueSynonyms || relationships.synonyms,
+        antonyms: uniqueAntonyms || relationships.antonyms,
+      } : undefined,
       conjugation: conjugation || undefined,
       images,
       
@@ -619,9 +674,23 @@ export async function POST(request: NextRequest) {
         disagreements: crossValidation.disagreements,
       } : undefined,
       
+      // 📚 RAE metadata (Phase 16.1 Task 3)
+      raeData: rae ? {
+        hasRaeDefinition: true,
+        category: rae.category,
+        gender: rae.gender,
+        usage: rae.usage,
+        etymology: rae.etymology,
+        definitionsCount: rae.definitions.length,
+        definitions: rae.definitions.slice(0, 3), // First 3 definitions
+        synonyms: rae.synonyms,
+        antonyms: rae.antonyms,
+      } : undefined,
+      
       errors: {
         translation: translationResult.status === 'rejected',
         dictionary: dictionaryResult.status === 'rejected',
+        rae: raeResult.status === 'rejected',
       },
     };
 

@@ -56,6 +56,17 @@ export function VocabularyEntryFormEnhanced({ initialWord, onSuccess, onCancel }
       sources: Array<{ source: string; translation: string }>;
       disagreements: Array<{ source1: string; source2: string; translation1: string; translation2: string }>;
     };
+    raeData?: {
+      hasRaeDefinition: boolean;
+      category?: string;
+      gender?: string;
+      usage?: string;
+      etymology?: string;
+      definitionsCount: number;
+      definitions: string[];
+      synonyms?: string[];
+      antonyms?: string[];
+    };
   } | null>(null);
   const [spellCheckResult, setSpellCheckResult] = useState<{
     isCorrect: boolean;
@@ -568,6 +579,51 @@ export function VocabularyEntryFormEnhanced({ initialWord, onSuccess, onCancel }
                 : '💡 Review suggested translations carefully'
               }
             </p>
+          </div>
+        </div>
+      )}
+
+      {/* 📚 RAE VERIFICATION INDICATOR (Phase 16.1 Task 3) */}
+      {/* Shows when word is in authoritative RAE dictionary */}
+      {lookupData?.raeData?.hasRaeDefinition && (
+        <div className="flex items-start gap-2 px-3 py-2 rounded-lg bg-blue-50 dark:bg-blue-950 border border-blue-100 dark:border-blue-900 mb-4 transition-all duration-300">
+          <Check className="h-4 w-4 text-blue-600 dark:text-blue-400 shrink-0 mt-0.5" />
+          
+          <div className="flex-1">
+            <p className="text-sm text-blue-800 dark:text-blue-200">
+              <span className="font-medium">RAE Dictionary</span>
+              <span className="text-blue-600 dark:text-blue-400 ml-1">
+                · Authoritative Spanish source
+              </span>
+            </p>
+            
+            {/* Show RAE-specific info */}
+            {(lookupData.raeData.category || lookupData.raeData.gender || lookupData.raeData.usage) && (
+              <div className="mt-1 flex flex-wrap gap-2 text-xs">
+                {lookupData.raeData.category && (
+                  <span className="px-2 py-0.5 rounded-full bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300">
+                    {lookupData.raeData.category}
+                  </span>
+                )}
+                {lookupData.raeData.gender && (
+                  <span className="px-2 py-0.5 rounded-full bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300">
+                    {lookupData.raeData.gender}
+                  </span>
+                )}
+                {lookupData.raeData.usage && lookupData.raeData.usage !== 'common' && (
+                  <span className="px-2 py-0.5 rounded-full bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300">
+                    {lookupData.raeData.usage}
+                  </span>
+                )}
+              </div>
+            )}
+            
+            {/* Show etymology if available */}
+            {lookupData.raeData.etymology && (
+              <p className="mt-1 text-xs text-blue-600 dark:text-blue-400 italic">
+                Origin: {lookupData.raeData.etymology}
+              </p>
+            )}
           </div>
         </div>
       )}

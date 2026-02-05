@@ -12,10 +12,12 @@
 // ============================================================================
 
 export interface TranslationSource {
-  source: 'deepl' | 'mymemory' | 'wiktionary' | 'verified-cache' | 'dictionary';
+  source: 'deepl' | 'mymemory' | 'wiktionary' | 'verified-cache' | 'dictionary' | 'rae';
   translation: string;
   confidence?: number;
   alternatives?: string[];
+  // RAE-specific metadata (Phase 16.1 Task 3)
+  isAuthoritative?: boolean; // True for RAE
 }
 
 export interface CrossValidationResult {
@@ -358,26 +360,43 @@ function compareTranslations(
 /**
  * Find the most agreed-upon translation
  * Uses majority voting and confidence scores
+ * Phase 16.1 Task 3: Gives higher weight to authoritative sources (RAE)
  */
 function findPrimaryTranslation(sources: TranslationSource[]): string {
   if (sources.length === 0) return '';
   if (sources.length === 1) return sources[0].translation;
   
+  // Check if RAE (authoritative source) is present
+  const raeSource = sources.find(s => s.isAuthoritative || s.source === 'rae');
+  if (raeSource) {
+    // If RAE is present and has high confidence, prefer it
+    if ((raeSource.confidence || 0) >= 0.90) {
+      return raeSource.translation;
+    }
+  }
+  
   // Normalize all translations
-  const translationCounts = new Map<string, { count: number; confidence: number; original: string }>();
+  const translationCounts = new Map<string, { count: number; confidence: number; original: string; hasRae: boolean }>();
   
   for (const source of sources) {
     const normalized = normalizeTranslation(source.translation);
     const existing = translationCounts.get(normalized);
     
+    // Weight: RAE gets 2x weight, others get 1x
+    const weight = (source.isAuthoritative || source.source === 'rae') ? 2.0 : 1.0;
+    
     if (existing) {
-      existing.count++;
-      existing.confidence += source.confidence || 0.5;
+      existing.count += weight;
+      existing.confidence += (source.confidence || 0.5) * weight;
+      if (source.isAuthoritative || source.source === 'rae') {
+        existing.hasRae = true;
+      }
     } else {
       translationCounts.set(normalized, {
-        count: 1,
-        confidence: source.confidence || 0.5,
+        count: weight,
+        confidence: (source.confidence || 0.5) * weight,
         original: source.translation,
+        hasRae: source.isAuthoritative || source.source === 'rae',
       });
     }
   }
@@ -388,7 +407,9 @@ function findPrimaryTranslation(sources: TranslationSource[]): string {
   
   for (const [normalized, data] of translationCounts.entries()) {
     // Score = vote count + confidence average
-    const score = data.count + (data.confidence / data.count);
+    // Add bonus if RAE supports this translation
+    const raeBonus = data.hasRae ? 0.5 : 0;
+    const score = data.count + (data.confidence / data.count) + raeBonus;
     
     if (score > bestScore) {
       bestScore = score;
