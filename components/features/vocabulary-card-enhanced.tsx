@@ -61,22 +61,6 @@ export function VocabularyCardEnhanced({
 
   const config = statusConfig[word.status];
 
-  // Format next review date
-  const formatNextReview = (date: number | null) => {
-    if (!date) return 'Not scheduled';
-    
-    const now = Date.now();
-    const diff = date - now;
-    
-    if (diff < 0) return 'Due now';
-    if (diff < 60000) return 'In 1 minute';
-    if (diff < 3600000) return `In ${Math.floor(diff / 60000)} minutes`;
-    if (diff < 86400000) return `In ${Math.floor(diff / 3600000)} hours`;
-    if (diff < 604800000) return `In ${Math.floor(diff / 86400000)} days`;
-    
-    return new Date(date).toLocaleDateString();
-  };
-
   // Calculate progress percentage (0-100)
   const calculateProgress = () => {
     // Simple progress based on status
@@ -179,12 +163,8 @@ export function VocabularyCardEnhanced({
         </div>
       )}
 
-      {/* Progress bar (next review) */}
+      {/* Progress bar (learning status) */}
       <div className="mb-3">
-        <div className="flex items-center justify-between text-xs text-gray-500 mb-1">
-          <span>Next review</span>
-          <span className="font-medium">{formatNextReview(word.nextReviewDate || null)}</span>
-        </div>
         <div className="h-1 bg-gray-200 dark:bg-gray-800 rounded-full overflow-hidden">
           <div
             className={`h-full bg-gradient-to-r ${
