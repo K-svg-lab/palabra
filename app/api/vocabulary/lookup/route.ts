@@ -12,7 +12,7 @@ import { getEnhancedTranslation } from '@/lib/services/translation';
 import { getCompleteWordData } from '@/lib/services/dictionary';
 import { getWordRelationships, getVerbConjugation } from '@/lib/services/word-relationships';
 import { getWordImages } from '@/lib/services/images';
-import { lookupVerifiedWord } from '@/lib/services/verified-vocabulary';
+import { lookupVerifiedWordServer } from '@/lib/services/verified-vocabulary-server';
 import type { PartOfSpeech } from '@/lib/types/vocabulary';
 import type { LanguagePair } from '@/lib/types/verified-vocabulary';
 
@@ -279,7 +279,7 @@ export async function POST(request: NextRequest) {
     // 🚀 Performance: ~50ms (vs ~2000ms for API calls)
     // ═══════════════════════════════════════════════════════════════════
     const startTime = Date.now();
-    const cachedWord = await lookupVerifiedWord(cleanWord, languagePair as LanguagePair);
+    const cachedWord = await lookupVerifiedWordServer(cleanWord, languagePair as LanguagePair);
     
     if (cachedWord) {
       const cacheTime = Date.now() - startTime;

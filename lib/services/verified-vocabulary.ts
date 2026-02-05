@@ -10,7 +10,11 @@
  * @module lib/services/verified-vocabulary
  */
 
-import 'server-only';
+/**
+ * NOTE: This file exports types and helper functions ONLY.
+ * The actual database queries are in lib/services/verified-vocabulary-server.ts
+ * to avoid Prisma bundling issues on the client side.
+ */
 
 import type {
   VerifiedVocabularyData,
@@ -21,18 +25,6 @@ import type {
   CorrectionPattern,
   DEFAULT_CACHE_STRATEGY,
 } from '@/lib/types/verified-vocabulary';
-import { PrismaClient } from '@prisma/client';
-
-// Prisma client singleton
-const globalForPrisma = globalThis as unknown as {
-  prisma: PrismaClient | undefined;
-};
-
-const prisma = globalForPrisma.prisma ?? new PrismaClient();
-
-if (process.env.NODE_ENV !== 'production') {
-  globalForPrisma.prisma = prisma;
-}
 
 // ============================================================================
 // CONFIGURATION
@@ -42,7 +34,7 @@ if (process.env.NODE_ENV !== 'production') {
  * Default cache strategy (conservative)
  * Only serve highly-verified, high-confidence words from cache
  */
-const CACHE_STRATEGY: CacheStrategy = {
+export const CACHE_STRATEGY: CacheStrategy = {
   minVerifications: 3,
   minConfidence: 0.80,
   maxEditFrequency: 0.30,
@@ -77,55 +69,19 @@ const CACHE_STRATEGY: CacheStrategy = {
  * const french = await lookupVerifiedWord('chien', 'fr-en');
  * ```
  */
+/**
+ * Look up word in verified vocabulary cache
+ * 
+ * NOTE: This is a client-safe stub. For actual database queries,
+ * use lookupVerifiedWordServer() from verified-vocabulary-server.ts
+ */
 export async function lookupVerifiedWord(
   sourceWord: string,
   languagePair: LanguagePair = 'es-en',
-  strategy: CacheStrategy = CACHE_STRATEGY
+  strategy?: CacheStrategy
 ): Promise<VerifiedVocabularyData | null> {
-  try {
-    const normalizedWord = sourceWord.toLowerCase().trim();
-    
-    console.log(`[VerifiedVocab] Cache lookup for "${normalizedWord}" (${languagePair})`);
-    
-    const word = await prisma.verifiedVocabulary.findUnique({
-      where: { 
-        unique_word_lang_pair: {
-          sourceWord: normalizedWord,
-          languagePair,
-        }
-      },
-      include: {
-        verifications: {
-          take: 5,
-          orderBy: { createdAt: 'desc' },
-        },
-      },
-    });
-    
-    if (!word) {
-      console.log(`[VerifiedVocab] ✗ Cache miss for "${normalizedWord}"`);
-      return null;
-    }
-    
-    // Check if word meets cache criteria
-    if (!meetsCacheCriteria(word, strategy)) {
-      console.log(`[VerifiedVocab] Word exists but doesn't meet cache criteria (confidence: ${word.confidenceScore}, verifications: ${word.verificationCount})`);
-      return null;
-    }
-    
-    console.log(`[VerifiedVocab] ✓ Cache hit for "${normalizedWord}" (confidence: ${word.confidenceScore}, verifications: ${word.verificationCount})`);
-    
-    // Increment lookup counter (async, don't block)
-    incrementLookupCount(word.id).catch(err => 
-      console.error('Failed to increment lookup count:', err)
-    );
-    
-    return transformToVerifiedData(word);
-    
-  } catch (error) {
-    console.error('[VerifiedVocab] Lookup error:', error);
-    return null;
-  }
+  console.warn('[VerifiedVocab] lookupVerifiedWord called on client side - returning null');
+  return null;
 }
 
 /**
@@ -402,12 +358,10 @@ function calculateDaysAgo(date: Date): number {
 /**
  * Increment lookup counter for a word
  * @internal
+ * NOTE: This is handled in verified-vocabulary-server.ts
  */
 async function incrementLookupCount(wordId: string): Promise<void> {
-  await prisma.verifiedVocabulary.update({
-    where: { id: wordId },
-    data: { lookupCount: { increment: 1 } },
-  });
+  // No-op on client side
 }
 
 /**
