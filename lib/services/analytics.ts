@@ -403,12 +403,25 @@ export async function getAnalyticsSummary(
     where: { createdAt: { gte: startDate } },
     _count: { id: true },
     _sum: {
-      wasSaved: true,
       apiCallsCount: true,
-      cacheHit: true,
     },
     _avg: {
       responseTime: true,
+    },
+  });
+
+  // Count boolean fields separately (cannot use _sum on booleans)
+  const cacheHitCount = await prisma.wordLookupEvent.count({
+    where: {
+      createdAt: { gte: startDate },
+      cacheHit: true,
+    },
+  });
+
+  const savedCount = await prisma.wordLookupEvent.count({
+    where: {
+      createdAt: { gte: startDate },
+      wasSaved: true,
     },
   });
 
@@ -419,8 +432,8 @@ export async function getAnalyticsSummary(
   const apiPerformance = await getApiPerformanceSummary(prisma, daysBack);
 
   const totalLookups = lookupStats._count.id || 0;
-  const cacheHits = lookupStats._sum.cacheHit || 0;
-  const totalSaves = lookupStats._sum.wasSaved || 0;
+  const cacheHits = cacheHitCount;
+  const totalSaves = savedCount;
 
   return {
     totalLookups,
