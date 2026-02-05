@@ -12,7 +12,9 @@ import { getEnhancedTranslation } from '@/lib/services/translation';
 import { getCompleteWordData } from '@/lib/services/dictionary';
 import { getWordRelationships, getVerbConjugation } from '@/lib/services/word-relationships';
 import { getWordImages } from '@/lib/services/images';
+import { lookupVerifiedWord } from '@/lib/services/verified-vocabulary';
 import type { PartOfSpeech } from '@/lib/types/vocabulary';
+import type { LanguagePair } from '@/lib/types/verified-vocabulary';
 
 /**
  * Converts gerund (-ing) forms to infinitive base form
@@ -261,7 +263,7 @@ function filterAndNormalizeAlternatives(
 
 export async function POST(request: NextRequest) {
   try {
-    const { word } = await request.json();
+    const { word, languagePair = 'es-en' } = await request.json();
 
     if (!word || typeof word !== 'string' || word.trim().length === 0) {
       return NextResponse.json(
@@ -272,6 +274,57 @@ export async function POST(request: NextRequest) {
 
     const cleanWord = word.trim().toLowerCase();
 
+    // ═══════════════════════════════════════════════════════════════════
+    // TIER 1: CHECK VERIFIED VOCABULARY CACHE (Phase 16)
+    // 🚀 Performance: ~50ms (vs ~2000ms for API calls)
+    // ═══════════════════════════════════════════════════════════════════
+    const startTime = Date.now();
+    const cachedWord = await lookupVerifiedWord(cleanWord, languagePair as LanguagePair);
+    
+    if (cachedWord) {
+      const cacheTime = Date.now() - startTime;
+      console.log(`✅ [Lookup] CACHE HIT for "${cleanWord}" (${cacheTime}ms, confidence: ${cachedWord.confidenceScore.toFixed(2)})`);
+      
+      // Return cached data (instant, high-quality, verified by multiple users)
+      return NextResponse.json({
+        word: cleanWord,
+        translation: cachedWord.targetWord,
+        alternativeTranslations: cachedWord.alternativeTranslations,
+        translationConfidence: cachedWord.confidenceScore,
+        translationSource: 'verified-cache',
+        gender: cachedWord.grammarMetadata?.gender || cachedWord.gender,
+        partOfSpeech: cachedWord.partOfSpeech,
+        examples: cachedWord.examples,
+        definition: undefined,
+        synonyms: cachedWord.synonyms,
+        relationships: {
+          synonyms: cachedWord.synonyms,
+          antonyms: cachedWord.antonyms,
+          related: cachedWord.relatedWords,
+        },
+        conjugation: cachedWord.conjugations,
+        images: undefined, // Images not cached
+        
+        // 🍎 Cache metadata (for UI indicators)
+        fromCache: true,
+        cacheMetadata: {
+          verificationCount: cachedWord.verificationCount,
+          confidenceScore: cachedWord.confidenceScore,
+          lastVerified: cachedWord.lastVerified,
+        },
+        
+        errors: {
+          translation: false,
+          dictionary: false,
+        },
+      });
+    }
+    
+    console.log(`⏳ [Lookup] Cache MISS for "${cleanWord}", fetching from APIs...`);
+
+    // ═══════════════════════════════════════════════════════════════════
+    // TIER 2: FETCH FROM EXTERNAL APIS (existing logic)
+    // ═══════════════════════════════════════════════════════════════════
     // Fetch enhanced translation (with alternatives) and dictionary data in parallel
     const [translationResult, dictionaryResult] = await Promise.allSettled([
       getEnhancedTranslation(cleanWord),
@@ -332,6 +385,11 @@ export async function POST(request: NextRequest) {
       relationships,
       conjugation: conjugation || undefined,
       images,
+      
+      // 🍎 Cache metadata (false for API lookups)
+      fromCache: false,
+      cacheMetadata: undefined,
+      
       errors: {
         translation: translationResult.status === 'rejected',
         dictionary: dictionaryResult.status === 'rejected',

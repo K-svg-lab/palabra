@@ -34,6 +34,7 @@ model User {
   settings      UserSettings?
   tags          Tag[]
   syncLog       SyncLog[]
+  vocabularyVerifications VocabularyVerification[]
 
   @@index([email])
 }
@@ -356,5 +357,131 @@ model DeviceInfo {
   @@index([userId])
   @@index([deviceId])
   @@index([lastActiveAt])
+}
+
+// ============================================================================
+// VERIFIED VOCABULARY CACHE (Phase 16)
+// Multi-language proprietary verified vocabulary database
+// ============================================================================
+
+model VerifiedVocabulary {
+  id                      String   @id @default(cuid())
+  
+  // 🌍 MULTI-LANGUAGE SUPPORT (language-agnostic design)
+  sourceLanguage          String   // ISO 639-1 code: "es", "de", "fr", "ja", etc.
+  targetLanguage          String   // ISO 639-1 code: "en", "es", etc.
+  languagePair            String   // Composite: "es-en", "de-en", etc. (indexed for fast lookup)
+  
+  // Core data (canonical form)
+  sourceWord              String   // Original word (Spanish, German, French, etc.)
+  targetWord              String   // Translation (English, Spanish, etc.)
+  alternativeTranslations Json?    @db.JsonB // string[] - alternative target translations
+  partOfSpeech            String?  // Universal: "noun", "verb", "adjective", etc.
+  
+  // Language-specific metadata (stored as JSON for flexibility)
+  // Spanish: { gender: "masculine", plural: "perros" }
+  // German: { article: "der", case: "nominative", plural: "Hunde" }
+  // Japanese: { kanji: "犬", hiragana: "いぬ", formality: "casual" }
+  grammarMetadata         Json?    @db.JsonB
+  
+  // Rich metadata
+  examples                Json?    @db.JsonB // ExampleSentence[]
+  conjugations            Json?    @db.JsonB // VerbConjugation
+  synonyms                Json?    @db.JsonB // string[]
+  antonyms                Json?    @db.JsonB // string[]
+  relatedWords            Json?    @db.JsonB // string[]
+  regionalVariants        Json?    @db.JsonB // { region: string, alternatives: string[] }[]
+  
+  // Verification metadata
+  verificationCount       Int      @default(1)
+  confidenceScore         Float    @default(0.0)
+  lastVerified            DateTime @default(now())
+  
+  // Source tracking
+  primarySource           String   // "deepl" | "mymemory" | "wiktionary" | "user"
+  apiSources              Json?    @db.JsonB // { source: string, data: any }[]
+  
+  // Quality flags
+  hasDisagreement         Boolean  @default(false)
+  disagreementCount       Int      @default(0)
+  requiresReview          Boolean  @default(false)
+  isOffensive             Boolean  @default(false)
+  
+  // Usage statistics
+  lookupCount             Int      @default(0)
+  saveCount               Int      @default(0)
+  editFrequency           Float    @default(0.0)
+  avgReviewSuccessRate    Float    @default(0.0)
+  
+  // Metadata
+  createdAt               DateTime @default(now())
+  updatedAt               DateTime @updatedAt
+  lastRefreshedAt         DateTime @default(now())
+  
+  // Legacy fields for backward compatibility (Spanish-specific)
+  // These will be deprecated once we migrate to multi-language structure
+  spanish                 String?  
+  english                 String?
+  gender                  String?
+  
+  // Relations
+  verifications           VocabularyVerification[]
+  
+  // Indexes for performance
+  @@index([sourceWord, sourceLanguage, targetLanguage], name: "idx_word_lang_lookup") // Fast lookups
+  @@index([languagePair, sourceWord], name: "idx_lang_pair_word")                     // Fast language-pair queries
+  @@index([verificationCount], name: "idx_verification_count")
+  @@index([confidenceScore], name: "idx_confidence_score")
+  @@index([lastVerified], name: "idx_last_verified")
+  @@index([requiresReview], name: "idx_requires_review")
+  @@index([spanish], name: "idx_spanish_legacy")                                      // Legacy Spanish index
+  
+  // Unique constraint: one entry per word per language pair
+  @@unique([sourceWord, languagePair], name: "unique_word_lang_pair")
+}
+
+model VocabularyVerification {
+  id                String   @id @default(cuid())
+  userId            String
+  verifiedWordId    String
+  
+  // 🌍 Language context
+  sourceLanguage    String   // "es", "de", "fr", etc.
+  targetLanguage    String   // "en", "es", etc.
+  
+  // What the API returned vs what user saved (language-agnostic)
+  apiTranslation    String
+  userTranslation   String
+  apiPOS            String?
+  userPOS           String?
+  apiGrammarData    Json?    @db.JsonB // Language-specific metadata from API
+  userGrammarData   Json?    @db.JsonB // Language-specific metadata from user
+  apiExamples       Json?    @db.JsonB
+  userExamples      Json?    @db.JsonB
+  
+  // Verification signals
+  wasEdited         Boolean
+  editedFields      Json?    @db.JsonB // string[] - which fields were changed
+  reviewCount       Int      @default(0)
+  reviewSuccessRate Float    @default(0.0)
+  lastReviewed      DateTime?
+  
+  // Context
+  lookupSource      String?  // "manual" | "import" | "voice"
+  deviceType        String?  // "mobile" | "desktop" | "tablet"
+  
+  // Metadata
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  
+  // Relations
+  user              User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  verifiedWord      VerifiedVocabulary @relation(fields: [verifiedWordId], references: [id], onDelete: Cascade)
+  
+  @@index([verifiedWordId], name: "idx_verified_word")
+  @@index([userId], name: "idx_user_verification")
+  @@index([wasEdited], name: "idx_was_edited")
+  @@index([createdAt], name: "idx_verification_created")
+  @@index([sourceLanguage, targetLanguage], name: "idx_verification_lang")
 }
 

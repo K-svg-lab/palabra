@@ -46,6 +46,8 @@ export function VocabularyEntryFormEnhanced({ initialWord, onSuccess, onCancel }
     partOfSpeech?: PartOfSpeech;
     examples?: ExampleSentence[];
     errors?: { translation?: boolean };
+    fromCache?: boolean;
+    cacheMetadata?: any;
   } | null>(null);
   const [spellCheckResult, setSpellCheckResult] = useState<{
     isCorrect: boolean;
@@ -57,6 +59,13 @@ export function VocabularyEntryFormEnhanced({ initialWord, onSuccess, onCancel }
   const [lastLookedUpWord, setLastLookedUpWord] = useState<string>('');
   const [hasAutoTriggered, setHasAutoTriggered] = useState(false);
   const [offlineMode, setOfflineMode] = useState(false);
+  
+  // ═══════════════════════════════════════════════════════════════════
+  // 📝 EDIT TRACKING (Phase 16.4.1)
+  // Track which fields user edits vs API suggestions
+  // ═══════════════════════════════════════════════════════════════════
+  const [originalApiData, setOriginalApiData] = useState<any>(null);
+  const [editedFields, setEditedFields] = useState<Set<string>>(new Set());
   
   const isOnline = useOnlineStatusOnly();
   const { register, handleSubmit, watch, setValue, formState: { errors } } = useForm<VocabularyFormData>();
@@ -107,6 +116,19 @@ export function VocabularyEntryFormEnhanced({ initialWord, onSuccess, onCancel }
                 });
                 setLookupData(data);
                 setLastLookedUpWord(cleanWord);
+                
+                // 📝 Store original API data for edit tracking
+                setOriginalApiData({
+                  translation: data.translation,
+                  gender: data.gender,
+                  partOfSpeech: data.partOfSpeech,
+                  exampleSpanish: data.examples?.[0]?.spanish,
+                  exampleEnglish: data.examples?.[0]?.english,
+                  alternativeTranslations: data.alternativeTranslations,
+                });
+                
+                // Reset edited fields for new lookup
+                setEditedFields(new Set());
                 
                 // Auto-fill form fields
                 setValue('englishTranslation', data.translation);
@@ -170,6 +192,19 @@ export function VocabularyEntryFormEnhanced({ initialWord, onSuccess, onCancel }
       setLookupData(data);
       setLastLookedUpWord(cleanWord);
       
+      // 📝 Store original API data for edit tracking
+      setOriginalApiData({
+        translation: data.translation,
+        gender: data.gender,
+        partOfSpeech: data.partOfSpeech,
+        exampleSpanish: data.examples?.[0]?.spanish,
+        exampleEnglish: data.examples?.[0]?.english,
+        alternativeTranslations: data.alternativeTranslations,
+      });
+      
+      // Reset edited fields for new lookup
+      setEditedFields(new Set());
+      
       // Auto-fill form fields
       setValue('englishTranslation', data.translation);
       setValue('gender', data.gender);
@@ -212,9 +247,57 @@ export function VocabularyEntryFormEnhanced({ initialWord, onSuccess, onCancel }
     }
   };
 
+  /**
+   * 📝 EDIT TRACKING (Phase 16.4.1)
+   * Detects which fields user edited vs API suggestions
+   * Used for verification tracking and confidence scoring
+   */
+  const detectEditedFields = (formData: VocabularyFormData): string[] => {
+    if (!originalApiData) return []; // No API data to compare
+    
+    const edited: string[] = [];
+    
+    // Check translation
+    if (formData.englishTranslation?.trim().toLowerCase() !== originalApiData.translation?.toLowerCase()) {
+      edited.push('englishTranslation');
+    }
+    
+    // Check gender
+    if (formData.gender !== originalApiData.gender) {
+      edited.push('gender');
+    }
+    
+    // Check part of speech
+    if (formData.partOfSpeech !== originalApiData.partOfSpeech) {
+      edited.push('partOfSpeech');
+    }
+    
+    // Check example Spanish
+    if (formData.exampleSpanish?.trim() !== originalApiData.exampleSpanish?.trim()) {
+      edited.push('exampleSpanish');
+    }
+    
+    // Check example English
+    if (formData.exampleEnglish?.trim() !== originalApiData.exampleEnglish?.trim()) {
+      edited.push('exampleEnglish');
+    }
+    
+    // Check alternative translations (if user changed selection)
+    const originalAlts = originalApiData.alternativeTranslations || [];
+    if (JSON.stringify(selectedAlternatives.sort()) !== JSON.stringify(originalAlts.sort())) {
+      edited.push('alternativeTranslations');
+    }
+    
+    return edited;
+  };
+
 
   const onSubmit = async (data: VocabularyFormData) => {
     try {
+      // 📝 Detect which fields user edited (Phase 16.4.1)
+      const edited = detectEditedFields(data);
+      console.log('[Form] User edited fields:', edited.length > 0 ? edited : 'none');
+      
       // Use custom example if provided, otherwise fall back to lookup data examples
       let examplesArray: ExampleSentence[] = [];
       if (data.exampleSpanish && data.exampleEnglish) {
@@ -229,7 +312,10 @@ export function VocabularyEntryFormEnhanced({ initialWord, onSuccess, onCancel }
         examplesArray = lookupData.examples;
       }
       
-      const vocabularyWord: Omit<VocabularyWord, 'id' | 'createdAt' | 'updatedAt'> = {
+      const vocabularyWord: Omit<VocabularyWord, 'id' | 'createdAt' | 'updatedAt'> & {
+        editedFields?: string[];
+        originalApiData?: any;
+      } = {
         spanishWord: data.spanishWord.trim(),
         englishTranslation: data.englishTranslation.trim().toLowerCase(),
         alternativeTranslations: selectedAlternatives.length > 0 ? selectedAlternatives : undefined,
@@ -237,6 +323,10 @@ export function VocabularyEntryFormEnhanced({ initialWord, onSuccess, onCancel }
         partOfSpeech: data.partOfSpeech,
         examples: examplesArray,
         status: 'new',
+        
+        // 📝 Include edit tracking data (Phase 16.4.1)
+        editedFields: edited,
+        originalApiData: originalApiData,
         audioUrl: '',
         notes: data.notes || '',
         tags: [],
@@ -403,6 +493,25 @@ export function VocabularyEntryFormEnhanced({ initialWord, onSuccess, onCancel }
               Fetching translation and details...
             </span>
           </div>
+        </div>
+      )}
+
+      {/* 🍎 VERIFIED TRANSLATION INDICATOR (Phase 16.4.2) */}
+      {/* Apple-inspired: Clean, minimal, non-technical */}
+      {lookupData?.fromCache && lookupData.cacheMetadata && (
+        <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-green-50 dark:bg-green-950 border border-green-100 dark:border-green-900 mb-4 transition-all duration-300">
+          {/* Simple checkmark - no clutter */}
+          <Check className="h-4 w-4 text-green-600 dark:text-green-400 shrink-0" />
+          
+          {/* Clear, human language - no technical jargon */}
+          <p className="text-sm text-green-800 dark:text-green-200 flex-1">
+            <span className="font-medium">Verified translation</span>
+            {lookupData.cacheMetadata.verificationCount > 1 && (
+              <span className="text-green-600 dark:text-green-400 ml-1">
+                · {lookupData.cacheMetadata.verificationCount} users
+              </span>
+            )}
+          </p>
         </div>
       )}
 
