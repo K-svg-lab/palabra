@@ -20,6 +20,8 @@ import { useLookupVocabulary, useAddVocabulary } from '@/lib/hooks/use-vocabular
 import { checkSpanishSpelling } from '@/lib/services/spellcheck';
 import { useOnlineStatusOnly } from '@/lib/hooks/use-online-status';
 import { getOfflineQueueService } from '@/lib/services/offline-queue';
+import { detectDeviceType, isMobile } from '@/lib/utils/device-detection';
+import { CacheIndicator } from '@/components/ui/cache-indicator';
 import type { VocabularyWord, Gender, PartOfSpeech, ExampleSentence } from '@/lib/types/vocabulary';
 
 interface VocabularyFormData {
@@ -85,6 +87,23 @@ export function VocabularyEntryFormEnhanced({ initialWord, onSuccess, onCancel }
   // ═══════════════════════════════════════════════════════════════════
   const [originalApiData, setOriginalApiData] = useState<any>(null);
   const [editedFields, setEditedFields] = useState<Set<string>>(new Set());
+  
+  // ═══════════════════════════════════════════════════════════════════
+  // 📱 MOBILE DETECTION (Phase 16.2 Task 4)
+  // Detect device type for responsive UI
+  // ═══════════════════════════════════════════════════════════════════
+  const [isCompact, setIsCompact] = useState(false);
+  
+  useEffect(() => {
+    // Detect mobile/small screen for compact UI
+    const checkCompact = () => {
+      setIsCompact(isMobile() || window.innerWidth < 768);
+    };
+    
+    checkCompact();
+    window.addEventListener('resize', checkCompact);
+    return () => window.removeEventListener('resize', checkCompact);
+  }, []);
   
   const isOnline = useOnlineStatusOnly();
   const { register, handleSubmit, watch, setValue, formState: { errors } } = useForm<VocabularyFormData>();
@@ -628,22 +647,18 @@ export function VocabularyEntryFormEnhanced({ initialWord, onSuccess, onCancel }
         </div>
       )}
 
-      {/* 🍎 VERIFIED TRANSLATION INDICATOR (Phase 16.4.2) */}
-      {/* Apple-inspired: Clean, minimal, non-technical */}
+      {/* 🍎 VERIFIED TRANSLATION INDICATOR (Phase 16.2 Tasks 3 & 4) */}
+      {/* A/B tested, mobile-optimized cache indicator */}
       {lookupData?.fromCache && lookupData.cacheMetadata && (
-        <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-green-50 dark:bg-green-950 border border-green-100 dark:border-green-900 mb-4 transition-all duration-300">
-          {/* Simple checkmark - no clutter */}
-          <Check className="h-4 w-4 text-green-600 dark:text-green-400 shrink-0" />
-          
-          {/* Clear, human language - no technical jargon */}
-          <p className="text-sm text-green-800 dark:text-green-200 flex-1">
-            <span className="font-medium">Verified translation</span>
-            {lookupData.cacheMetadata.verificationCount > 1 && (
-              <span className="text-green-600 dark:text-green-400 ml-1">
-                · {lookupData.cacheMetadata.verificationCount} users
-              </span>
-            )}
-          </p>
+        <div className="mb-4">
+          <CacheIndicator 
+            metadata={{
+              verificationCount: lookupData.cacheMetadata.verificationCount,
+              confidenceScore: lookupData.cacheMetadata.confidenceScore,
+              lastVerified: lookupData.cacheMetadata.lastVerified,
+            }}
+            compact={isCompact}
+          />
         </div>
       )}
 

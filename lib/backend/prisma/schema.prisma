@@ -660,3 +660,36 @@ model PopularWord {
   @@index([periodStart], name: "idx_popular_period_start")
 }
 
+// ============================================================================
+// A/B TESTING ANALYTICS (Phase 16.2 - Task 3)
+// ============================================================================
+
+model ABTestEvent {
+  id                String   @id @default(cuid())
+  
+  // Test identification
+  testName          String   // e.g., "cache-indicator-design-v1"
+  variant           String   // "control" | "variantA" | "variantB" | "variantC"
+  
+  // Event details
+  eventType         String   // "view" | "event"
+  eventName         String?  // For custom events: "click", "hover", "conversion"
+  eventData         String?  @db.Text // JSON data for custom events
+  
+  // User context
+  userAgent         String?  @db.Text
+  screenSize        String?  // e.g., "1920x1080"
+  deviceType        String   @default("unknown") // "mobile" | "tablet" | "desktop"
+  
+  // Metadata
+  timestamp         DateTime @default(now())
+  createdAt         DateTime @default(now())
+  
+  @@index([testName], name: "idx_ab_test_name")
+  @@index([variant], name: "idx_ab_variant")
+  @@index([eventType], name: "idx_ab_event_type")
+  @@index([timestamp], name: "idx_ab_timestamp")
+  @@index([testName, variant], name: "idx_ab_test_variant")
+  @@index([deviceType], name: "idx_ab_device_type")
+}
+
