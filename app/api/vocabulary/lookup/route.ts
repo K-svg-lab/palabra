@@ -12,9 +12,28 @@ import { getEnhancedTranslation } from '@/lib/services/translation';
 import { getCompleteWordData } from '@/lib/services/dictionary';
 import { getWordRelationships, getVerbConjugation } from '@/lib/services/word-relationships';
 import { getWordImages } from '@/lib/services/images';
-import { lookupVerifiedWordServer } from '@/lib/services/verified-vocabulary-server';
+// PRISMA IMPORTS TEMPORARILY DISABLED - CAUSING BUILD HANGS
+// import { PrismaClient } from '@prisma/client';
 import type { PartOfSpeech } from '@/lib/types/vocabulary';
-import type { LanguagePair } from '@/lib/types/verified-vocabulary';
+import type { LanguagePair, VerifiedVocabularyData, CacheStrategy } from '@/lib/types/verified-vocabulary';
+
+// PRISMA CLIENT TEMPORARILY DISABLED
+// const globalForPrisma = globalThis as unknown as {
+//   prisma: PrismaClient | undefined;
+// };
+// const prisma = globalForPrisma.prisma ?? new PrismaClient();
+// if (process.env.NODE_ENV !== 'production') {
+//   globalForPrisma.prisma = prisma;
+// }
+
+// Cache strategy for verified vocabulary (inline to avoid import issues)
+// const CACHE_STRATEGY: CacheStrategy = {
+//   minVerifications: 3,
+//   minConfidence: 0.80,
+//   maxEditFrequency: 0.30,
+//   maxAge: 180, // 6 months
+//   requiresAgreement: true,
+// };
 
 /**
  * Converts gerund (-ing) forms to infinitive base form
@@ -261,6 +280,69 @@ function filterAndNormalizeAlternatives(
   return filtered;
 }
 
+/**
+ * Check if a word meets the cache serving criteria
+ */
+function meetsCacheCriteria(word: any, strategy: CacheStrategy): boolean {
+  const meetsVerificationThreshold = word.verificationCount >= strategy.minVerifications;
+  const meetsConfidenceThreshold = word.confidenceScore >= strategy.minConfidence;
+  const meetsEditThreshold = word.editFrequency <= strategy.maxEditFrequency;
+  
+  // Check age (days)
+  const lastVerifiedDate = word.lastVerified instanceof Date ? word.lastVerified : new Date(word.lastVerified);
+  const daysAgo = Math.floor((Date.now() - lastVerifiedDate.getTime()) / (1000 * 60 * 60 * 24));
+  const meetsAgeThreshold = daysAgo <= strategy.maxAge;
+  
+  // Check agreement
+  const meetsAgreementThreshold = !strategy.requiresAgreement || !word.hasDisagreement;
+  
+  return (
+    meetsVerificationThreshold &&
+    meetsConfidenceThreshold &&
+    meetsEditThreshold &&
+    meetsAgeThreshold &&
+    meetsAgreementThreshold
+  );
+}
+
+/**
+ * Transform database word to verified data structure
+ */
+function transformToVerifiedData(word: any): VerifiedVocabularyData {
+  return {
+    sourceLanguage: word.sourceLanguage,
+    targetLanguage: word.targetLanguage,
+    languagePair: word.languagePair,
+    sourceWord: word.sourceWord,
+    targetWord: word.targetWord,
+    alternativeTranslations: word.alternativeTranslations || [],
+    partOfSpeech: word.partOfSpeech,
+    grammarMetadata: word.grammarMetadata,
+    examples: word.examples || [],
+    conjugations: word.conjugations,
+    synonyms: word.synonyms,
+    antonyms: word.antonyms,
+    relatedWords: word.relatedWords,
+    regionalVariants: word.regionalVariants,
+    verificationCount: word.verificationCount,
+    confidenceScore: word.confidenceScore,
+    lastVerified: word.lastVerified,
+    primarySource: word.primarySource,
+    apiSources: word.apiSources,
+    hasDisagreement: word.hasDisagreement,
+    disagreementCount: word.disagreementCount,
+    requiresReview: word.requiresReview,
+    isOffensive: word.isOffensive,
+    lookupCount: word.lookupCount,
+    saveCount: word.saveCount,
+    editFrequency: word.editFrequency,
+    avgReviewSuccessRate: word.avgReviewSuccessRate,
+    createdAt: word.createdAt,
+    updatedAt: word.updatedAt,
+    lastRefreshedAt: word.lastRefreshedAt,
+  };
+}
+
 export async function POST(request: NextRequest) {
   try {
     const { word, languagePair = 'es-en' } = await request.json();
@@ -278,8 +360,46 @@ export async function POST(request: NextRequest) {
     // TIER 1: CHECK VERIFIED VOCABULARY CACHE (Phase 16)
     // 🚀 Performance: ~50ms (vs ~2000ms for API calls)
     // ═══════════════════════════════════════════════════════════════════
+    // TEMPORARILY DISABLED: Prisma causing Next.js build hangs
+    // TODO: Re-enable once bundling issue is resolved
+    const cachedWord: VerifiedVocabularyData | null = null;
+    
+    /* DATABASE LOGIC TEMPORARILY DISABLED
     const startTime = Date.now();
-    const cachedWord = await lookupVerifiedWordServer(cleanWord, languagePair as LanguagePair);
+    let cachedWord: VerifiedVocabularyData | null = null;
+    
+    try {
+      // Lookup word in verified cache
+      const dbWord = await prisma.verifiedVocabulary.findUnique({
+        where: { 
+          unique_word_lang_pair: {
+            sourceWord: cleanWord,
+            languagePair: languagePair as LanguagePair,
+          }
+        },
+        include: {
+          verifications: {
+            take: 5,
+            orderBy: { createdAt: 'desc' },
+          },
+        },
+      });
+      
+      // Check if word meets cache criteria
+      if (dbWord && meetsCacheCriteria(dbWord, CACHE_STRATEGY)) {
+        cachedWord = transformToVerifiedData(dbWord);
+        
+        // Increment lookup counter (async, don't block)
+        prisma.verifiedVocabulary.update({
+          where: { id: dbWord.id },
+          data: { lookupCount: { increment: 1 } },
+        }).catch(err => console.error('Failed to increment lookup count:', err));
+      }
+    } catch (error) {
+      console.error('[Verified Cache] Lookup error:', error);
+      // Continue to API fallback
+    }
+    */
     
     if (cachedWord) {
       const cacheTime = Date.now() - startTime;

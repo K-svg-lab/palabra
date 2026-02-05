@@ -11,9 +11,12 @@
  */
 
 /**
- * NOTE: This file exports types and helper functions ONLY.
- * The actual database queries are in lib/services/verified-vocabulary-server.ts
- * to avoid Prisma bundling issues on the client side.
+ * Verified Vocabulary Service - Pure Functions Only
+ * 
+ * This file contains ONLY pure TypeScript functions with no database dependencies.
+ * All Prisma database operations are in app/api/vocabulary/lookup/route.ts
+ * 
+ * This approach avoids Next.js bundling issues with Prisma.
  */
 
 import type {
@@ -73,14 +76,15 @@ export const CACHE_STRATEGY: CacheStrategy = {
  * Look up word in verified vocabulary cache
  * 
  * NOTE: This is a client-safe stub. For actual database queries,
- * use lookupVerifiedWordServer() from verified-vocabulary-server.ts
+ * see the implementation in app/api/vocabulary/lookup/route.ts
  */
 export async function lookupVerifiedWord(
   sourceWord: string,
   languagePair: LanguagePair = 'es-en',
   strategy?: CacheStrategy
 ): Promise<VerifiedVocabularyData | null> {
-  console.warn('[VerifiedVocab] lookupVerifiedWord called on client side - returning null');
+  // Database access is in API routes only
+  console.warn('[VerifiedVocab] Database access only available in API routes');
   return null;
 }
 
