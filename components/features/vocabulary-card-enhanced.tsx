@@ -192,12 +192,7 @@ export function VocabularyCardEnhanced({
       )}
 
       {/* Actions */}
-      <div className="flex items-center justify-between pt-2 border-t border-gray-100 dark:border-gray-800">
-        <div className="text-xs text-gray-500">
-          🔄 {word.totalReviews || 0} reviews
-        </div>
-        
-        <div className="flex gap-1">
+      <div className="flex items-center justify-end gap-1 pt-2 border-t border-gray-100 dark:border-gray-800">
           <button
             onClick={handleEdit}
             className="
@@ -228,7 +223,6 @@ export function VocabularyCardEnhanced({
             <Trash2 className="w-3.5 h-3.5" />
             Delete
           </button>
-        </div>
       </div>
     </div>
   );
