@@ -388,3 +388,104 @@ textarea:focus-visible {
 .transition-spring {
   transition: all var(--animation-duration-base) var(--animation-easing-spring);
 }
+
+/**
+ * Apple-Inspired Dashboard Animations (Phase 16.3)
+ */
+
+/* Bounce subtle - for floating elements */
+@keyframes bounce-subtle {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+.animate-bounce-subtle {
+  animation: bounce-subtle 3s ease-in-out infinite;
+}
+
+/* Pulse slow - for glowing effects */
+@keyframes pulse-slow {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+.animate-pulse-slow {
+  animation: pulse-slow 4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Float animation - for empty states and icons */
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+/* Float random - for decorative sparkles */
+@keyframes float-random {
+  0%, 100% {
+    transform: translate(0, 0) rotate(0deg);
+    opacity: 0;
+  }
+  25% {
+    opacity: 0.6;
+  }
+  50% {
+    transform: translate(10px, -20px) rotate(180deg);
+    opacity: 1;
+  }
+  75% {
+    opacity: 0.6;
+  }
+}
+
+.animate-float-random {
+  animation: float-random 3s ease-in-out infinite;
+}
+
+/* Glow effect for special elements */
+.drop-shadow-glow {
+  filter: drop-shadow(0 0 30px rgba(255, 200, 0, 0.6));
+}
+
+/* Animation delays */
+.delay-150 {
+  animation-delay: 150ms;
+}
+
+.delay-300 {
+  animation-delay: 300ms;
+}
+
+.delay-450 {
+  animation-delay: 450ms;
+}
+
+/* Gradient background animations */
+@keyframes gradient-shift {
+  0%, 100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+.animate-gradient {
+  background-size: 200% 200%;
+  animation: gradient-shift 6s ease infinite;
+}

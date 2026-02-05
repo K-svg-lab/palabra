@@ -1,6 +1,6 @@
 /**
  * Progress page
- * Displays learning statistics, charts, and achievements
+ * Apple-inspired learning progress visualization with achievements and insights
  */
 
 'use client';
@@ -24,6 +24,13 @@ import {
   calculateMilestones,
   type ProgressStats,
 } from '@/lib/utils/progress';
+import { LearningJourneyCard } from '@/components/features/learning-journey-card';
+import { ActivityTimeline } from '@/components/features/activity-timeline';
+import { MasteryRing } from '@/components/features/mastery-ring';
+import { AchievementGrid, getUserAchievements, AchievementSummary } from '@/components/features/achievement-badge';
+import { TrendChartEnhanced } from '@/components/features/trend-chart-enhanced';
+import { StatCardEnhanced } from '@/components/ui/stat-card-enhanced';
+import { StreakCardHero } from '@/components/features/streak-card-hero';
 import type { DailyStats } from '@/lib/types';
 
 /**
@@ -332,129 +339,160 @@ export default function ProgressPage() {
       </header>
 
       <div className="px-4 py-6 max-w-7xl mx-auto space-y-8">
+        {/* Streak Hero Card */}
+        {stats.currentStreak >= 3 && (
+          <section className="animate-scaleIn">
+            <StreakCardHero 
+              currentStreak={stats.currentStreak} 
+              nextMilestone={stats.currentStreak >= 30 ? 60 : stats.currentStreak >= 14 ? 30 : stats.currentStreak >= 7 ? 14 : 7}
+            />
+          </section>
+        )}
+
         {/* Today's Stats */}
-        <section>
-          <h2 className="text-xl font-semibold mb-4">Today</h2>
+        <section className="animate-fadeIn">
+          <h2 className="text-xl font-semibold mb-4">Today's Progress</h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="bg-white dark:bg-gray-900 rounded-xl p-4 border border-gray-200 dark:border-gray-800 shadow-sm">
-              <div className="text-3xl font-bold mb-1">{stats.cardsReviewedToday}</div>
-              <div className="text-sm text-gray-600 dark:text-gray-400">Cards reviewed</div>
-            </div>
-            <div className="bg-white dark:bg-gray-900 rounded-xl p-4 border border-gray-200 dark:border-gray-800 shadow-sm">
-              <div className="text-3xl font-bold mb-1">{stats.newWordsAddedToday}</div>
-              <div className="text-sm text-gray-600 dark:text-gray-400">Words added</div>
-            </div>
-            <div className="bg-white dark:bg-gray-900 rounded-xl p-4 border border-gray-200 dark:border-gray-800 shadow-sm">
-              <div className="text-3xl font-bold mb-1">{stats.todayAccuracy}%</div>
-              <div className="text-sm text-gray-600 dark:text-gray-400">Accuracy</div>
-            </div>
-            <div className="bg-white dark:bg-gray-900 rounded-xl p-4 border border-gray-200 dark:border-gray-800 shadow-sm">
-              <div className="text-3xl font-bold mb-1">
-                {formatStudyTime(stats.todayStudyTime)}
-              </div>
-              <div className="text-sm text-gray-600 dark:text-gray-400">Study time</div>
-            </div>
-          </div>
-        </section>
-
-        {/* Overall Stats */}
-        <section>
-          <h2 className="text-xl font-semibold mb-4">Overall Statistics</h2>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="bg-white dark:bg-gray-900 rounded-xl p-4 border border-gray-200 dark:border-gray-800 shadow-sm">
-              <div className="text-3xl font-bold mb-1">{stats.totalWords}</div>
-              <div className="text-sm text-gray-600 dark:text-gray-400">Total words</div>
-            </div>
-            <div className="bg-white dark:bg-gray-900 rounded-xl p-4 border border-gray-200 dark:border-gray-800 shadow-sm">
-              <div className="text-3xl font-bold mb-1">{stats.totalReviews}</div>
-              <div className="text-sm text-gray-600 dark:text-gray-400">Total reviews</div>
-            </div>
-            <div className="bg-white dark:bg-gray-900 rounded-xl p-4 border border-gray-200 dark:border-gray-800 shadow-sm">
-              <div className="text-3xl font-bold mb-1">{stats.overallAccuracy}%</div>
-              <div className="text-sm text-gray-600 dark:text-gray-400">Overall accuracy</div>
-            </div>
-            <div className="bg-white dark:bg-gray-900 rounded-xl p-4 border border-gray-200 dark:border-gray-800 shadow-sm">
-              <div className="text-3xl font-bold mb-1">
-                {formatStudyTime(stats.totalStudyTime)}
-              </div>
-              <div className="text-sm text-gray-600 dark:text-gray-400">Total study time</div>
-            </div>
-          </div>
-        </section>
-
-        {/* Vocabulary Status */}
-        <section>
-          <h2 className="text-xl font-semibold mb-4">Vocabulary Status</h2>
-          <div className="bg-white dark:bg-gray-900 rounded-xl p-6 border border-gray-200 dark:border-gray-800 shadow-sm">
-            <BarChart
-              data={[
-                { label: 'New', value: stats.newWords },
-                { label: 'Learning', value: stats.learningWords },
-                { label: 'Mastered', value: stats.masteredWords },
-              ]}
-              color="bg-gray-900 dark:bg-gray-300"
+            <StatCardEnhanced
+              icon="🎴"
+              value={stats.cardsReviewedToday}
+              label="Cards Reviewed"
+              subtitle="Keep it up!"
+              progress={stats.cardsDueToday > 0 ? Math.min((stats.cardsReviewedToday / stats.cardsDueToday) * 100, 100) : 0}
+              gradient={{ from: '#007AFF', to: '#00C7FF' }}
+            />
+            <StatCardEnhanced
+              icon="➕"
+              value={stats.newWordsAddedToday}
+              label="Words Added"
+              subtitle="Building vocabulary"
+            />
+            <StatCardEnhanced
+              icon="🎯"
+              value={`${stats.todayAccuracy}%`}
+              label="Accuracy"
+              trend={stats.todayAccuracy >= 80 ? 'up' : stats.todayAccuracy < 60 ? 'down' : 'neutral'}
+            />
+            <StatCardEnhanced
+              icon="⏱️"
+              value={formatStudyTime(stats.todayStudyTime)}
+              label="Study Time"
+              subtitle="Focus time today"
             />
           </div>
         </section>
 
+        {/* Learning Journey Card */}
+        <section className="animate-fadeIn">
+          <LearningJourneyCard
+            newWords={stats.newWords}
+            learningWords={stats.learningWords}
+            masteredWords={stats.masteredWords}
+            totalWords={stats.totalWords}
+            accuracy={stats.overallAccuracy}
+          />
+        </section>
+
+        {/* Mastery Ring */}
+        <section className="animate-fadeIn">
+          <div className="bg-white dark:bg-gray-900 rounded-2xl p-8 border border-gray-200 dark:border-gray-800 shadow-sm">
+            <h2 className="text-xl font-semibold mb-6 text-center">Vocabulary Mastery</h2>
+            <MasteryRing
+              newWords={stats.newWords}
+              learningWords={stats.learningWords}
+              masteredWords={stats.masteredWords}
+              totalWords={stats.totalWords}
+              size="lg"
+            />
+          </div>
+        </section>
+
+        {/* Overall Stats */}
+        <section className="animate-fadeIn">
+          <h2 className="text-xl font-semibold mb-4">Overall Statistics</h2>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <StatCardEnhanced
+              icon="📚"
+              value={stats.totalWords}
+              label="Total Words"
+              message="Your vocabulary size"
+            />
+            <StatCardEnhanced
+              icon="🔄"
+              value={stats.totalReviews}
+              label="Total Reviews"
+              message="Practice makes perfect"
+            />
+            <StatCardEnhanced
+              icon="🎯"
+              value={`${stats.overallAccuracy}%`}
+              label="Overall Accuracy"
+              trend={stats.overallAccuracy >= 85 ? 'up' : stats.overallAccuracy < 65 ? 'down' : 'neutral'}
+            />
+            <StatCardEnhanced
+              icon="⏱️"
+              value={formatStudyTime(stats.totalStudyTime)}
+              label="Total Study Time"
+              message="Time invested"
+            />
+          </div>
+        </section>
+
+        {/* Activity Timeline */}
+        <section className="animate-slideIn">
+          <ActivityTimeline days={7} />
+        </section>
+
         {/* Charts */}
-        <div className="grid md:grid-cols-2 gap-6">
+        <div className="grid md:grid-cols-2 gap-6 animate-fadeIn">
           {/* Reviews Chart */}
-          <section>
-            <h2 className="text-xl font-semibold mb-4">{getDateRangeLabel(7)}</h2>
-            <div className="bg-white dark:bg-gray-900 rounded-xl p-6 border border-gray-200 dark:border-gray-800 shadow-sm">
-              <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-4">Cards Reviewed</h3>
-              <BarChart
-                data={reviewsChartData.map(d => ({ label: d.label || '', value: d.value }))}
-                color="bg-accent"
-              />
-            </div>
-          </section>
+          <TrendChartEnhanced
+            data={reviewsChartData}
+            dataKey="value"
+            xAxisKey="label"
+            title="Cards Reviewed"
+            subtitle={getDateRangeLabel(7)}
+            color="#007AFF"
+            chartType="area"
+            showTrend={true}
+          />
 
           {/* Accuracy Chart */}
-          <section>
-            <h2 className="text-xl font-semibold mb-4">{getDateRangeLabel(7)}</h2>
-            <div className="bg-white dark:bg-gray-900 rounded-xl p-6 border border-gray-200 dark:border-gray-800 shadow-sm">
-              <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-4">Accuracy Rate</h3>
-              <BarChart
-                data={accuracyChartData.map(d => ({ label: d.label || '', value: d.value }))}
-                color="bg-gray-900 dark:bg-gray-300"
-              />
-            </div>
-          </section>
+          <TrendChartEnhanced
+            data={accuracyChartData}
+            dataKey="value"
+            xAxisKey="label"
+            title="Accuracy Rate"
+            subtitle={getDateRangeLabel(7)}
+            color="#10B981"
+            gradient={{ from: '#10B981', to: '#34D399' }}
+            chartType="line"
+            showTrend={true}
+          />
         </div>
 
-        {/* Streaks */}
-        <section>
-          <h2 className="text-xl font-semibold mb-4">Study Streaks</h2>
-          <div className="grid md:grid-cols-2 gap-4">
-            <div className="bg-white dark:bg-gray-900 rounded-xl p-6 border border-gray-200 dark:border-gray-800 shadow-sm">
-              <div className="text-5xl font-bold mb-2">{stats.currentStreak}</div>
-              <div className="text-lg font-medium text-gray-900 dark:text-white">Current Streak</div>
-              <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                {stats.currentStreak === 0 ? 'Start reviewing to begin your streak' : 'Keep it up! 🔥'}
-              </div>
-            </div>
-            <div className="bg-white dark:bg-gray-900 rounded-xl p-6 border border-gray-200 dark:border-gray-800 shadow-sm">
-              <div className="text-5xl font-bold mb-2">{stats.longestStreak}</div>
-              <div className="text-lg font-medium text-gray-900 dark:text-white">Longest Streak</div>
-              <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                {stats.longestStreak === 0 ? 'No streak yet' : 'Personal best! 🏆'}
-              </div>
-            </div>
+        {/* Achievements */}
+        <section className="animate-scaleIn">
+          <h2 className="text-xl font-semibold mb-4">🏆 Achievements</h2>
+          <div className="space-y-6">
+            <AchievementSummary achievements={getUserAchievements(stats)} />
+            <AchievementGrid 
+              achievements={getUserAchievements(stats)} 
+              columns={3}
+            />
           </div>
         </section>
 
         {/* Milestones */}
         {milestones.length > 0 && (
-          <section>
-            <h2 className="text-xl font-semibold mb-4">Milestones</h2>
-            <div className="bg-white dark:bg-gray-900 rounded-xl p-6 border border-gray-200 dark:border-gray-800 shadow-sm">
+          <section className="animate-fadeIn">
+            <h2 className="text-xl font-semibold mb-4">🎉 Milestones Reached</h2>
+            <div className="bg-gradient-to-br from-blue-50 to-purple-50 dark:from-gray-900 dark:to-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700">
               <div className="flex flex-wrap gap-2">
                 {milestones.map((milestone, index) => (
                   <div
                     key={index}
-                    className="px-4 py-2 bg-accent/10 text-accent rounded-full text-sm font-medium"
+                    className="px-4 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-full text-sm font-medium shadow-sm"
                   >
                     {milestone}
                   </div>

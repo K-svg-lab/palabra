@@ -1,6 +1,6 @@
 /**
  * Home page - Dashboard overview
- * Displays vocabulary statistics, due cards, and quick actions
+ * Apple-inspired design with activity rings, insights, and delightful interactions
  * 
  * @module app/(dashboard)/page
  */
@@ -15,6 +15,14 @@ import { useVocabularyStats, useTodayStats } from '@/lib/hooks/use-vocabulary';
 import { OnboardingWelcome } from '@/components/features/onboarding-welcome';
 import { hasCompletedOnboarding, completeOnboarding } from '@/lib/utils/onboarding';
 import { usePullToRefresh } from '@/lib/hooks/use-pull-to-refresh';
+import { ActivityRing, StatPill } from '@/components/features/activity-ring';
+import { StatCardEnhanced } from '@/components/ui/stat-card-enhanced';
+import { ActionCard } from '@/components/ui/action-card';
+import { InsightsGrid } from '@/components/features/insight-card';
+import { StreakCardHero } from '@/components/features/streak-card-hero';
+import { generateInsights, type LearningStats } from '@/lib/utils/insights';
+import { calculateCurrentStreak, formatStudyTime } from '@/lib/utils/progress';
+import { getRecentStats } from '@/lib/db/stats';
 import type { DailyStats } from '@/lib/types';
 
 /**
@@ -28,6 +36,8 @@ export default function HomePage() {
   const { data: todayData, refetch: refetchTodayStats } = useTodayStats();
   const router = useRouter();
   const [showOnboarding, setShowOnboarding] = useState(false);
+  const [insights, setInsights] = useState<any[]>([]);
+  const [currentStreak, setCurrentStreak] = useState(0);
   
   // User state
   const [user, setUser] = useState<any>(null);
@@ -84,6 +94,55 @@ export default function HomePage() {
       console.log(`📊 Today's stats updated: reviewed=${todayStats.cardsReviewed}, added=${todayStats.newWordsAdded}, accuracy=${(todayStats.accuracyRate * 100).toFixed(1)}%`);
     }
   }, [todayStats, dueCount]);
+
+  // Load insights and streak data
+  useEffect(() => {
+    async function loadInsightsAndStreak() {
+      if (!stats || !todayStats) return;
+
+      try {
+        // Get recent stats for streak calculation
+        const recentStats = await getRecentStats(30);
+        const streak = calculateCurrentStreak(recentStats);
+        setCurrentStreak(streak);
+
+        // Calculate longest streak
+        const longestStreak = Math.max(...recentStats.map((_, idx) => {
+          let count = 0;
+          for (let i = idx; i < recentStats.length; i++) {
+            if (recentStats[i].cardsReviewed > 0) count++;
+            else break;
+          }
+          return count;
+        }));
+
+        // Generate insights
+        const learningStats: LearningStats = {
+          cardsReviewedToday: todayStats.cardsReviewed,
+          newWordsAddedToday: todayStats.newWordsAdded,
+          todayAccuracy: Math.round(todayStats.accuracyRate * 100),
+          todayStudyTime: todayStats.timeSpent,
+          currentStreak: streak,
+          longestStreak,
+          totalWords: stats.total,
+          totalReviews: 0, // Would need to calculate
+          overallAccuracy: 0, // Would need to calculate
+          totalStudyTime: 0, // Would need to calculate
+          newWords: stats.new || 0,
+          learningWords: stats.learning || 0,
+          masteredWords: stats.mastered || 0,
+          newWordsThisWeek: recentStats.slice(0, 7).reduce((sum, s) => sum + s.newWordsAdded, 0),
+        };
+
+        const generatedInsights = generateInsights(learningStats);
+        setInsights(generatedInsights);
+      } catch (error) {
+        console.error('Failed to load insights:', error);
+      }
+    }
+
+    loadInsightsAndStreak();
+  }, [stats, todayStats]);
 
   // Keyboard shortcut: Shift+A to add new word (navigate to vocabulary page)
   useEffect(() => {
@@ -173,116 +232,156 @@ export default function HomePage() {
 
       {/* Main content */}
       <div className="px-4 py-6 max-w-7xl mx-auto space-y-8">
-        {/* Quick Stats */}
+        {/* Hero Activity Ring */}
+        {hasVocabulary && dueCount > 0 && (
+          <section className="animate-fadeIn">
+            <ActivityRing
+              current={todayStats?.cardsReviewed || 0}
+              target={dueCount}
+              label="Cards Reviewed"
+              gradient={{ start: '#007AFF', end: '#00C7FF' }}
+              size="lg"
+            />
+            
+            {/* Secondary stats in pills below */}
+            <div className="flex flex-wrap gap-3 mt-6 justify-center">
+              <StatPill
+                icon="➕"
+                value={todayStats?.newWordsAdded || 0}
+                label="Added"
+              />
+              <StatPill
+                icon="✓"
+                value={`${todayStats?.accuracyRate ? Math.round(todayStats.accuracyRate * 100) : 0}%`}
+                label="Accuracy"
+              />
+              <StatPill
+                icon="⏱"
+                value={formatStudyTime(todayStats?.timeSpent || 0)}
+                label="Time"
+              />
+            </div>
+          </section>
+        )}
+
+        {/* Quick Stats for users with vocabulary */}
         {hasVocabulary && (
-          <>
-            {/* Today's Activity */}
-            <section>
-              <h2 className="text-xl font-semibold mb-4">Today</h2>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                {/* Cards Reviewed Today */}
-                <div className="bg-white dark:bg-gray-900 rounded-xl p-4 border border-gray-200 dark:border-gray-800 shadow-sm">
-                  <div className="text-3xl font-bold mb-1">{todayStats?.cardsReviewed || 0}</div>
-                  <div className="text-sm text-gray-600 dark:text-gray-400">Cards reviewed</div>
-                </div>
+          <section className="animate-fadeIn">
+            <h2 className="text-xl font-semibold mb-4">Today's Progress</h2>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <StatCardEnhanced
+                icon="🎴"
+                value={todayStats?.cardsReviewed || 0}
+                label="Cards Reviewed"
+                progress={dueCount > 0 ? Math.min(((todayStats?.cardsReviewed || 0) / dueCount) * 100, 100) : 0}
+                gradient={{ from: '#007AFF', to: '#00C7FF' }}
+              />
+              <StatCardEnhanced
+                icon="📚"
+                value={todayStats?.newWordsAdded || 0}
+                label="Words Added"
+                message="Building vocabulary"
+              />
+              <StatCardEnhanced
+                icon="🎯"
+                value={`${todayStats?.accuracyRate ? Math.round(todayStats.accuracyRate * 100) : 0}%`}
+                label="Accuracy"
+                trend={todayStats?.accuracyRate && todayStats.accuracyRate >= 0.8 ? 'up' : todayStats?.accuracyRate && todayStats.accuracyRate < 0.6 ? 'down' : 'neutral'}
+              />
+              <StatCardEnhanced
+                icon="⏱️"
+                value={formatStudyTime(todayStats?.timeSpent || 0)}
+                label="Study Time"
+                subtitle="Focus time today"
+              />
+            </div>
+          </section>
+        )}
 
-                {/* New Words Added Today */}
-                <div className="bg-white dark:bg-gray-900 rounded-xl p-4 border border-gray-200 dark:border-gray-800 shadow-sm">
-                  <div className="text-3xl font-bold mb-1">{todayStats?.newWordsAdded || 0}</div>
-                  <div className="text-sm text-gray-600 dark:text-gray-400">Words added</div>
-                </div>
+        {/* Streak Card */}
+        {hasVocabulary && currentStreak >= 3 && (
+          <section className="animate-scaleIn">
+            <StreakCardHero currentStreak={currentStreak} nextMilestone={currentStreak >= 30 ? 60 : currentStreak >= 14 ? 30 : currentStreak >= 7 ? 14 : 7} />
+          </section>
+        )}
 
-                {/* Cards Due Today */}
-                <div className="bg-white dark:bg-gray-900 rounded-xl p-4 border border-gray-200 dark:border-gray-800 shadow-sm">
-                  <div className="text-3xl font-bold mb-1">{dueCount}</div>
-                  <div className="text-sm text-gray-600 dark:text-gray-400">Cards due</div>
-                </div>
-
-                {/* Today's Accuracy */}
-                <div className="bg-white dark:bg-gray-900 rounded-xl p-4 border border-gray-200 dark:border-gray-800 shadow-sm">
-                  <div className="text-3xl font-bold mb-1">
-                    {todayStats?.accuracyRate ? Math.round(todayStats.accuracyRate * 100) : 0}%
-                  </div>
-                  <div className="text-sm text-gray-600 dark:text-gray-400">Accuracy</div>
-                </div>
-              </div>
-            </section>
-          </>
+        {/* Insights */}
+        {hasVocabulary && insights.length > 0 && (
+          <section className="animate-fadeIn">
+            <h2 className="text-xl font-semibold mb-4">💡 Insights</h2>
+            <InsightsGrid insights={insights} columns={insights.length >= 3 ? 3 : insights.length === 2 ? 2 : 1} />
+          </section>
         )}
 
         {/* Quick Actions */}
-        <section>
+        <section className="animate-slideIn">
           <h2 className="text-xl font-semibold mb-4">Quick Actions</h2>
           
-          <div className="space-y-3">
+          <div className="grid gap-4">
             {/* Start Review - Only show if there are words */}
             {hasVocabulary && (
-              <Link
+              <ActionCard
+                icon="🎴"
+                title={dueCount > 0 ? 'Start Review' : 'Practice Mode'}
+                description={dueCount > 0 
+                  ? `${dueCount} ${dueCount === 1 ? 'card' : 'cards'} ready` 
+                  : 'Review cards anytime'}
+                badge={dueCount > 0 ? `${dueCount} cards` : undefined}
                 href="/review"
-                className="flex items-center justify-between p-4 bg-white dark:bg-gray-900 border-2 border-gray-200 dark:border-gray-800 rounded-xl hover:border-accent transition-colors shadow-sm"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center">
-                    <span className="text-2xl">🎴</span>
-                  </div>
-                  <div>
-                    <div className="font-semibold">
-                      {dueCount > 0 ? 'Start Review' : 'Practice Mode'}
-                    </div>
-                    <div className="text-sm text-gray-600 dark:text-gray-400">
-                      {dueCount > 0 
-                        ? `${dueCount} ${dueCount === 1 ? 'card' : 'cards'} ready` 
-                        : 'Review cards anytime'}
-                    </div>
-                  </div>
-                </div>
-                {dueCount > 0 && (
-                  <div className="w-8 h-8 bg-accent/10 rounded-full flex items-center justify-center">
-                    <span className="text-sm font-bold text-accent">{dueCount}</span>
-                  </div>
-                )}
-              </Link>
+                gradient={{ from: '#667EEA', to: '#764BA2' }}
+              />
             )}
 
             {/* Add Vocabulary */}
-            <Link
+            <ActionCard
+              icon={<Plus className="w-12 h-12" />}
+              title="Add New Word"
+              description="Expand your vocabulary"
               href="/vocabulary?focus=search"
-              className="flex items-center justify-between p-4 bg-accent text-white rounded-xl hover:bg-accent/90 transition-all shadow-md hover:shadow-lg"
-            >
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
-                  <Plus className="w-5 h-5" />
-                </div>
-                <div>
-                  <div className="font-semibold">Add New Word</div>
-                  <div className="text-sm opacity-90">
-                    Expand your vocabulary
-                  </div>
-                </div>
-              </div>
-            </Link>
+              solid="#007AFF"
+            />
           </div>
         </section>
 
-        {/* Empty State */}
+        {/* Empty State - More delightful and inviting */}
         {!hasVocabulary && (
-          <section className="text-center py-12">
-            <div className="max-w-md mx-auto">
-              <div className="text-6xl mb-4">📚</div>
-              <h3 className="text-xl font-semibold mb-2">
-                Start Building Your Vocabulary
-              </h3>
-              <p className="text-gray-600 dark:text-gray-400 mb-6">
-                Add your first Spanish word to begin your learning journey with
-                intelligent spaced repetition.
+          <section className="text-center py-16 animate-fadeIn">
+            <div className="max-w-lg mx-auto">
+              <div className="text-8xl mb-6 animate-float">📚</div>
+              <h2 className="text-3xl font-bold mb-4">
+                Welcome to Your Learning Journey
+              </h2>
+              <p className="text-lg text-gray-600 dark:text-gray-400 mb-8 leading-relaxed">
+                Build your Spanish vocabulary with intelligent spaced repetition
+                that adapts to how you learn.
               </p>
-              <Link
+              <ActionCard
+                icon={<Plus className="w-12 h-12" />}
+                title="Add Your First Word"
+                description="Start building your vocabulary today"
                 href="/vocabulary?focus=search"
-                className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-accent text-white rounded-full font-medium hover:bg-accent/90 transition-colors shadow-lg"
-              >
-                <Plus className="w-5 h-5" />
-                Add Your First Word
-              </Link>
+                gradient={{ from: '#007AFF', to: '#00C7FF' }}
+                className="max-w-md mx-auto"
+              />
+              
+              {/* Features preview */}
+              <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                <div className="flex flex-col items-center gap-2 p-4">
+                  <span className="text-3xl">🧠</span>
+                  <span className="font-medium">Smart Spaced Repetition</span>
+                  <span className="text-gray-500 dark:text-gray-400">Review at the perfect time</span>
+                </div>
+                <div className="flex flex-col items-center gap-2 p-4">
+                  <span className="text-3xl">📊</span>
+                  <span className="font-medium">Track Progress</span>
+                  <span className="text-gray-500 dark:text-gray-400">See your improvement</span>
+                </div>
+                <div className="flex flex-col items-center gap-2 p-4">
+                  <span className="text-3xl">🔥</span>
+                  <span className="font-medium">Build Streaks</span>
+                  <span className="text-gray-500 dark:text-gray-400">Stay motivated daily</span>
+                </div>
+              </div>
             </div>
           </section>
         )}
