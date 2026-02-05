@@ -37,12 +37,28 @@ export type DifficultyRating = 'forgot' | 'hard' | 'good' | 'easy';
 export type ExampleContext = 'formal' | 'informal' | 'neutral';
 
 /**
+ * POS validation result for example sentences (Phase 16.1 Task 1)
+ */
+export interface POSValidationResult {
+  /** Whether the word is used with the expected POS */
+  isValid: boolean;
+  /** Confidence score (0-1) of the validation */
+  confidence: number;
+  /** Detected POS usage in the sentence */
+  detectedPOS?: PartOfSpeech;
+  /** Reason for validation result (for debugging) */
+  reason?: string;
+}
+
+/**
  * Example sentence pair (Spanish + English)
  */
 export interface ExampleSentence {
   spanish: string;
   english: string;
   context?: ExampleContext;
+  /** POS validation result (Phase 16.1 Task 1) */
+  posValidation?: POSValidationResult;
 }
 
 /**
