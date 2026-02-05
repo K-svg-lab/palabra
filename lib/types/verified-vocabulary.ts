@@ -338,11 +338,15 @@ export function isLanguagePair(value: string): value is LanguagePair {
 
 /**
  * Parse a language pair string into source and target languages
+ * Returns null if the pair is invalid
  */
-export function parseLanguagePair(pair: LanguagePair): {
+export function parseLanguagePair(pair: string): {
   source: LanguageCode;
   target: LanguageCode;
-} {
+} | null {
+  if (!isLanguagePair(pair)) {
+    return null;
+  }
   const [source, target] = pair.split('-') as [LanguageCode, LanguageCode];
   return { source, target };
 }
