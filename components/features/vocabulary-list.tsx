@@ -318,6 +318,10 @@ export function VocabularyList({ onAddNew, onEdit, clearSearchAndFocusRef }: Pro
           >
             Mastered
           </button>
+          </div>
+          
+          {/* View Toggle */}
+          <ViewToggle value={viewMode} onChange={setViewMode} />
         </div>
 
         {/* Sort */}
