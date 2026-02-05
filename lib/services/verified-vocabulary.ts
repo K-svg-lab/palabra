@@ -19,9 +19,18 @@ import type {
   CorrectionPattern,
   DEFAULT_CACHE_STRATEGY,
 } from '@/lib/types/verified-vocabulary';
+import { PrismaClient } from '@prisma/client';
 
-// Note: Prisma imports will be added when database is configured
-// For now, this provides the service interface
+// Prisma client singleton
+const globalForPrisma = globalThis as unknown as {
+  prisma: PrismaClient | undefined;
+};
+
+const prisma = globalForPrisma.prisma ?? new PrismaClient();
+
+if (process.env.NODE_ENV !== 'production') {
+  globalForPrisma.prisma = prisma;
+}
 
 // ============================================================================
 // CONFIGURATION
@@ -74,43 +83,42 @@ export async function lookupVerifiedWord(
   try {
     const normalizedWord = sourceWord.toLowerCase().trim();
     
-    // TODO: Implement Prisma query when database is configured
-    // const word = await prisma.verifiedVocabulary.findUnique({
-    //   where: { 
-    //     sourceWord_languagePair: {
-    //       sourceWord: normalizedWord,
-    //       languagePair,
-    //     }
-    //   },
-    //   include: {
-    //     verifications: {
-    //       take: 5,
-    //       orderBy: { createdAt: 'desc' },
-    //     },
-    //   },
-    // });
-    
-    // Placeholder: Return null until database is configured
     console.log(`[VerifiedVocab] Cache lookup for "${normalizedWord}" (${languagePair})`);
-    return null;
     
-    // TODO: Uncomment when database is ready
-    // if (!word) {
-    //   return null;
-    // }
+    const word = await prisma.verifiedVocabulary.findUnique({
+      where: { 
+        unique_word_lang_pair: {
+          sourceWord: normalizedWord,
+          languagePair,
+        }
+      },
+      include: {
+        verifications: {
+          take: 5,
+          orderBy: { createdAt: 'desc' },
+        },
+      },
+    });
     
-    // // Check if word meets cache criteria
-    // if (!meetsCacheCriteria(word, strategy)) {
-    //   console.log(`[VerifiedVocab] Word exists but doesn't meet cache criteria`);
-    //   return null;
-    // }
+    if (!word) {
+      console.log(`[VerifiedVocab] ✗ Cache miss for "${normalizedWord}"`);
+      return null;
+    }
     
-    // // Increment lookup counter (async, don't block)
-    // incrementLookupCount(word.id).catch(err => 
-    //   console.error('Failed to increment lookup count:', err)
-    // );
+    // Check if word meets cache criteria
+    if (!meetsCacheCriteria(word, strategy)) {
+      console.log(`[VerifiedVocab] Word exists but doesn't meet cache criteria (confidence: ${word.confidenceScore}, verifications: ${word.verificationCount})`);
+      return null;
+    }
     
-    // return transformToVerifiedData(word);
+    console.log(`[VerifiedVocab] ✓ Cache hit for "${normalizedWord}" (confidence: ${word.confidenceScore}, verifications: ${word.verificationCount})`);
+    
+    // Increment lookup counter (async, don't block)
+    incrementLookupCount(word.id).catch(err => 
+      console.error('Failed to increment lookup count:', err)
+    );
+    
+    return transformToVerifiedData(word);
     
   } catch (error) {
     console.error('[VerifiedVocab] Lookup error:', error);
@@ -394,11 +402,10 @@ function calculateDaysAgo(date: Date): number {
  * @internal
  */
 async function incrementLookupCount(wordId: string): Promise<void> {
-  // TODO: Implement when database is configured
-  // await prisma.verifiedVocabulary.update({
-  //   where: { id: wordId },
-  //   data: { lookupCount: { increment: 1 } },
-  // });
+  await prisma.verifiedVocabulary.update({
+    where: { id: wordId },
+    data: { lookupCount: { increment: 1 } },
+  });
 }
 
 /**
