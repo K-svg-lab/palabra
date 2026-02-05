@@ -26,6 +26,10 @@ export interface WordLookupAnalytics {
   userId?: string;
   sessionId?: string;
   deviceType?: string;
+  // Cross-validation metadata (Phase 16.1 Task 2)
+  hasDisagreement?: boolean;
+  agreementLevel?: number;
+  disagreementSources?: string; // JSON string of sources
 }
 
 export interface ApiCallAnalytics {
@@ -95,6 +99,10 @@ export async function trackWordLookup(
         translationFound: data.translationFound,
         examplesFound: data.examplesFound,
         confidenceScore: data.confidenceScore,
+        // Cross-validation metadata (Phase 16.1 Task 2)
+        hasDisagreement: data.hasDisagreement || false,
+        agreementLevel: data.agreementLevel,
+        disagreementSources: data.disagreementSources,
         userId: data.userId,
         sessionId: data.sessionId,
         deviceType: data.deviceType,

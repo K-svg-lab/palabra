@@ -13,6 +13,8 @@ import { getCompleteWordData } from '@/lib/services/dictionary';
 import { getWordRelationships, getVerbConjugation } from '@/lib/services/word-relationships';
 import { getWordImages } from '@/lib/services/images';
 import { trackWordLookup, detectDeviceType } from '@/lib/services/analytics';
+import { crossValidateTranslations, getCrossValidationExplanation, getConfidencePenalty } from '@/lib/services/cross-validation';
+import type { TranslationSource } from '@/lib/services/cross-validation';
 import { PrismaClient } from '@prisma/client';
 import type { PartOfSpeech } from '@/lib/types/vocabulary';
 import type { LanguagePair, VerifiedVocabularyData, CacheStrategy } from '@/lib/types/verified-vocabulary';
@@ -308,6 +310,29 @@ function meetsCacheCriteria(word: any, strategy: CacheStrategy): boolean {
 }
 
 /**
+ * Extract a simple translation from a Wiktionary definition
+ * Example: "a dog; a canine" -> "dog"
+ */
+function extractTranslationFromDefinition(definition: string): string | null {
+  if (!definition) return null;
+  
+  // Remove leading articles and get first phrase before semicolon or comma
+  let cleaned = definition.trim().toLowerCase();
+  cleaned = cleaned.replace(/^(a|an|the)\s+/, '');
+  
+  // Get first part before punctuation
+  const firstPart = cleaned.split(/[;,]/)[0].trim();
+  
+  // Only return if it's a simple word or short phrase (< 3 words)
+  const words = firstPart.split(' ');
+  if (words.length <= 3 && firstPart.length > 2) {
+    return firstPart;
+  }
+  
+  return null;
+}
+
+/**
  * Transform database word to verified data structure
  * Only includes fields defined in VerifiedVocabularyData type
  */
@@ -511,12 +536,61 @@ export async function POST(request: NextRequest) {
       translation?.primary || ''
     );
 
+    // ═══════════════════════════════════════════════════════════════════
+    // CROSS-VALIDATION: Compare translations from multiple sources
+    // Phase 16.1 Task 2 - Flag discrepancies for user review
+    // ═══════════════════════════════════════════════════════════════════
+    const translationSources: TranslationSource[] = [];
+    
+    // Add translation API source (DeepL or MyMemory)
+    if (translation?.primary) {
+      translationSources.push({
+        source: translation.source === 'deepl' ? 'deepl' : 'mymemory',
+        translation: translation.primary,
+        confidence: translation.confidence,
+        alternatives: rawAlternatives,
+      });
+    }
+    
+    // Add dictionary/Wiktionary source (if different from translation)
+    if (dictionary?.definition && dictionary.definition !== translation?.primary) {
+      // Wiktionary sometimes provides a definition that includes translation
+      const wiktionaryTranslation = extractTranslationFromDefinition(dictionary.definition);
+      if (wiktionaryTranslation) {
+        translationSources.push({
+          source: 'wiktionary',
+          translation: wiktionaryTranslation,
+          confidence: 0.70, // Moderate confidence for extracted translations
+        });
+      }
+    }
+    
+    // Run cross-validation if we have multiple sources
+    let crossValidation = null;
+    let adjustedConfidence = translation?.confidence;
+    
+    if (translationSources.length >= 2) {
+      crossValidation = crossValidateTranslations(translationSources);
+      
+      // Adjust confidence based on agreement level
+      if (adjustedConfidence) {
+        const penalty = getConfidencePenalty(crossValidation.agreementLevel);
+        adjustedConfidence = adjustedConfidence * penalty;
+      }
+      
+      console.log(`🔍 [Cross-Validation] "${cleanWord}": ${crossValidation.hasDisagreement ? 'DISAGREEMENT' : 'AGREEMENT'} (${Math.round(crossValidation.agreementLevel * 100)}% agreement)`);
+      
+      if (crossValidation.hasDisagreement) {
+        console.log(`   └─ ${getCrossValidationExplanation(crossValidation)}`);
+      }
+    }
+
     // Combine results with enhanced translations
     const response = {
       word: cleanWord,
       translation: translation?.primary || '',
       alternativeTranslations: filteredAlternatives,
-      translationConfidence: translation?.confidence,
+      translationConfidence: adjustedConfidence, // Adjusted based on cross-validation
       translationSource: translation?.source || 'fallback',
       gender: dictionary?.gender,
       partOfSpeech: dictionary?.partOfSpeech,
@@ -531,6 +605,19 @@ export async function POST(request: NextRequest) {
       // 🍎 Cache metadata (false for API lookups)
       fromCache: false,
       cacheMetadata: undefined,
+      
+      // 🔍 Cross-validation metadata (Phase 16.1 Task 2)
+      crossValidation: crossValidation ? {
+        hasDisagreement: crossValidation.hasDisagreement,
+        agreementLevel: crossValidation.agreementLevel,
+        recommendation: crossValidation.recommendation,
+        explanation: getCrossValidationExplanation(crossValidation),
+        sources: crossValidation.sources.map(s => ({
+          source: s.source,
+          translation: s.translation,
+        })),
+        disagreements: crossValidation.disagreements,
+      } : undefined,
       
       errors: {
         translation: translationResult.status === 'rejected',
@@ -562,9 +649,13 @@ export async function POST(request: NextRequest) {
       responseTime: apiTime,
       translationFound: !!translation?.primary,
       examplesFound: dictionary?.examples?.length || 0,
-      confidenceScore: translation?.confidence,
+      confidenceScore: adjustedConfidence,
       apiSource: translation?.source,
       apiCallsCount,
+      // Cross-validation metadata (Phase 16.1 Task 2)
+      hasDisagreement: crossValidation?.hasDisagreement,
+      agreementLevel: crossValidation?.agreementLevel,
+      disagreementSources: crossValidation ? JSON.stringify(crossValidation.sources) : undefined,
       deviceType: detectDeviceType(request.headers.get('user-agent') || undefined),
     }).catch(err => console.error('[Analytics] Failed to track API lookup:', err));
 

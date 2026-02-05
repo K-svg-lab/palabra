@@ -48,6 +48,14 @@ export function VocabularyEntryFormEnhanced({ initialWord, onSuccess, onCancel }
     errors?: { translation?: boolean };
     fromCache?: boolean;
     cacheMetadata?: any;
+    crossValidation?: {
+      hasDisagreement: boolean;
+      agreementLevel: number;
+      recommendation: 'accept' | 'review' | 'manual';
+      explanation: string;
+      sources: Array<{ source: string; translation: string }>;
+      disagreements: Array<{ source1: string; source2: string; translation1: string; translation2: string }>;
+    };
   } | null>(null);
   const [spellCheckResult, setSpellCheckResult] = useState<{
     isCorrect: boolean;
@@ -492,6 +500,74 @@ export function VocabularyEntryFormEnhanced({ initialWord, onSuccess, onCancel }
             <span className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
               Fetching translation and details...
             </span>
+          </div>
+        </div>
+      )}
+
+      {/* 🔍 CROSS-VALIDATION WARNING (Phase 16.1 Task 2) */}
+      {/* Show warning when translation sources disagree */}
+      {lookupData?.crossValidation?.hasDisagreement && (
+        <div className={`flex items-start gap-2 px-3 py-2 rounded-lg border mb-4 transition-all duration-300 ${
+          lookupData.crossValidation.recommendation === 'manual'
+            ? 'bg-red-50 dark:bg-red-950 border-red-200 dark:border-red-900'
+            : 'bg-yellow-50 dark:bg-yellow-950 border-yellow-200 dark:border-yellow-900'
+        }`}>
+          <AlertCircle className={`h-4 w-4 shrink-0 mt-0.5 ${
+            lookupData.crossValidation.recommendation === 'manual'
+              ? 'text-red-600 dark:text-red-400'
+              : 'text-yellow-600 dark:text-yellow-400'
+          }`} />
+          
+          <div className="flex-1">
+            <p className={`text-sm font-medium ${
+              lookupData.crossValidation.recommendation === 'manual'
+                ? 'text-red-800 dark:text-red-200'
+                : 'text-yellow-800 dark:text-yellow-200'
+            }`}>
+              {lookupData.crossValidation.recommendation === 'manual' ? 'Multiple translations found' : 'Translation sources disagree'}
+            </p>
+            <p className={`text-xs mt-1 ${
+              lookupData.crossValidation.recommendation === 'manual'
+                ? 'text-red-700 dark:text-red-300'
+                : 'text-yellow-700 dark:text-yellow-300'
+            }`}>
+              {lookupData.crossValidation.explanation}
+            </p>
+            
+            {/* Show alternative translations from each source */}
+            {lookupData.crossValidation.disagreements.length > 0 && (
+              <div className="mt-2 space-y-1">
+                {lookupData.crossValidation.sources.map((source, index) => (
+                  <div key={index} className="text-xs flex items-center gap-2">
+                    <span className={`font-medium ${
+                      lookupData.crossValidation?.recommendation === 'manual'
+                        ? 'text-red-600 dark:text-red-400'
+                        : 'text-yellow-600 dark:text-yellow-400'
+                    }`}>
+                      {source.source.toUpperCase()}:
+                    </span>
+                    <span className={`${
+                      lookupData.crossValidation?.recommendation === 'manual'
+                        ? 'text-red-700 dark:text-red-300'
+                        : 'text-yellow-700 dark:text-yellow-300'
+                    }`}>
+                      {source.translation}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
+            
+            <p className={`text-xs mt-2 font-medium ${
+              lookupData.crossValidation.recommendation === 'manual'
+                ? 'text-red-800 dark:text-red-200'
+                : 'text-yellow-800 dark:text-yellow-200'
+            }`}>
+              {lookupData.crossValidation.recommendation === 'manual'
+                ? '⚠️ Please verify the translation manually'
+                : '💡 Review suggested translations carefully'
+              }
+            </p>
           </div>
         </div>
       )}

@@ -20,24 +20,24 @@
 
 ### **Phase 16.1: Translation Quality & Cross-Validation** (Weeks 1-2)
 **Priority**: 🔴 HIGH - Improves quality for all users immediately  
-**Status**: 📝 PLANNED
+**Status**: 🔄 IN PROGRESS (Tasks 1-2 Complete)
 
 #### **Objective**: Implement cross-checks between existing APIs to ensure consistency and quality
 
 | # | Task | Description | Status | Est. Time |
 |---|------|-------------|--------|-----------|
-| 1 | **POS Verification for Examples** | Parse example sentences to verify word is used as detected POS | ⏳ TODO | 4-6h |
-| 2 | **Cross-Validation System** | Flag discrepancies when DeepL/Wiktionary/Tatoeba disagree | ⏳ TODO | 3-4h |
+| 1 | **POS Verification for Examples** | Parse example sentences to verify word is used as detected POS | ✅ COMPLETE | 3h |
+| 2 | **Cross-Validation System** | Flag discrepancies when DeepL/Wiktionary/Tatoeba disagree | ✅ COMPLETE | 3h |
 | 3 | **RAE API Integration** | Add Real Academia Española as authoritative Spanish source | ⏳ TODO | 6-8h |
 
 **Total Estimated Time**: 13-18 hours (2 weeks)
 
 **Deliverables**:
 - [x] POS validation service ✅ (71.7% accuracy - see PHASE16.1_TASK1_COMPLETE.md)
-- [ ] Cross-validation API endpoint
+- [x] Cross-validation API endpoint ✅ (100% test accuracy - see PHASE16.1_TASK2_COMPLETE.md)
 - [ ] RAE dictionary integration
-- [x] Quality warning indicators in UI ✅ (examples carousel with confidence badges)
-- [ ] Documentation of validation logic
+- [x] Quality warning indicators in UI ✅ (examples carousel + disagreement warnings)
+- [x] Documentation of validation logic ✅
 
 **Success Metrics**:
 - ~~Detect POS mismatches in >90% of cases~~ → **71.7% achieved** (functional for production)
@@ -161,13 +161,13 @@
 ## 📊 **Overall Timeline**
 
 ```
-Week 1-2:  Phase 16.1 - Translation Quality ████░░░░░░░░░░░░░░░░ (Task 1 ✅, Task 2 ⏳)
+Week 1-2:  Phase 16.1 - Translation Quality ████████░░░░░░░░░░░░ (Tasks 1-2 ✅, Task 3 ⏳)
 Week 3-4:  Phase 16.2 - Infrastructure     ███░░░░░░░░░░░░░░░░░ (Tasks 1-2 ✅, Tasks 3-4 ⏳)
 Week 5-8:  Phase 16.3 - Verification       ░░░░░░░░░░░░░░██████░
 Week 9-12: Phase 16.4 - Quality Controls   ░░░░░░░░░░░░░░░░░░██
 
 Total Estimated: 51-70 hours over 12 weeks
-Time Spent: ~5.5 hours (Phase 16.1 Task 1 + Phase 16.2 Tasks 1-2)
+Time Spent: ~8.5 hours (Phase 16.1 Tasks 1-2 + Phase 16.2 Tasks 1-2)
 ```
 
 ---
