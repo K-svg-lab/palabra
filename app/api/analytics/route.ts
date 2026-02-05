@@ -110,13 +110,13 @@ export async function POST(request: NextRequest) {
       },
       _count: {
         id: true,
-      },
-      _sum: {
         cacheHit: true,
         cacheMiss: true,
+        wasSaved: true,
+      },
+      _sum: {
         responseTime: true,
         apiCallsCount: true,
-        wasSaved: true,
       },
       _avg: {
         responseTime: true,
@@ -124,24 +124,75 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    const result = metrics.map((metric) => ({
-      languagePair: metric.languagePair,
-      totalLookups: metric._count.id,
-      cacheHits: metric._sum.cacheHit || 0,
-      cacheMisses: metric._sum.cacheMiss || 0,
-      cacheHitRate: metric._count.id > 0 
-        ? Math.round(((metric._sum.cacheHit || 0) / metric._count.id) * 100) 
-        : 0,
-      avgResponseTime: Math.round(metric._avg.responseTime || 0),
-      totalApiCalls: metric._sum.apiCallsCount || 0,
-      totalSaves: metric._sum.wasSaved || 0,
-      saveRate: metric._count.id > 0 
-        ? Math.round(((metric._sum.wasSaved || 0) / metric._count.id) * 100) 
-        : 0,
-      avgConfidence: metric._avg.confidenceScore 
-        ? Math.round(metric._avg.confidenceScore * 100) 
-        : null,
-    }));
+    // Get counts for boolean fields (cannot use _sum on booleans)
+    const cacheHitCounts = await prisma.wordLookupEvent.groupBy({
+      by: ['languagePair'],
+      where: {
+        createdAt: {
+          gte: new Date(startDate),
+          lte: new Date(endDate),
+        },
+        cacheHit: true,
+        ...(languagePair && { languagePair }),
+      },
+      _count: { id: true },
+    });
+
+    const cacheMissCounts = await prisma.wordLookupEvent.groupBy({
+      by: ['languagePair'],
+      where: {
+        createdAt: {
+          gte: new Date(startDate),
+          lte: new Date(endDate),
+        },
+        cacheMiss: true,
+        ...(languagePair && { languagePair }),
+      },
+      _count: { id: true },
+    });
+
+    const savedCounts = await prisma.wordLookupEvent.groupBy({
+      by: ['languagePair'],
+      where: {
+        createdAt: {
+          gte: new Date(startDate),
+          lte: new Date(endDate),
+        },
+        wasSaved: true,
+        ...(languagePair && { languagePair }),
+      },
+      _count: { id: true },
+    });
+
+    // Create lookup maps for counts
+    const cacheHitMap = new Map(cacheHitCounts.map(c => [c.languagePair, c._count.id]));
+    const cacheMissMap = new Map(cacheMissCounts.map(c => [c.languagePair, c._count.id]));
+    const savedMap = new Map(savedCounts.map(c => [c.languagePair, c._count.id]));
+
+    const result = metrics.map((metric) => {
+      const cacheHits = cacheHitMap.get(metric.languagePair) || 0;
+      const cacheMisses = cacheMissMap.get(metric.languagePair) || 0;
+      const totalSaves = savedMap.get(metric.languagePair) || 0;
+
+      return {
+        languagePair: metric.languagePair,
+        totalLookups: metric._count.id,
+        cacheHits,
+        cacheMisses,
+        cacheHitRate: metric._count.id > 0 
+          ? Math.round((cacheHits / metric._count.id) * 100) 
+          : 0,
+        avgResponseTime: Math.round(metric._avg.responseTime || 0),
+        totalApiCalls: metric._sum.apiCallsCount || 0,
+        totalSaves,
+        saveRate: metric._count.id > 0 
+          ? Math.round((totalSaves / metric._count.id) * 100) 
+          : 0,
+        avgConfidence: metric._avg.confidenceScore 
+          ? Math.round(metric._avg.confidenceScore * 100) 
+          : null,
+      };
+    });
 
     return NextResponse.json({
       success: true,
