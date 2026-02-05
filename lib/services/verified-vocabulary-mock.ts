@@ -7,8 +7,8 @@ import type {
   VerifiedVocabularyData,
   LanguagePair,
   CacheStrategy,
-  PartOfSpeech,
 } from '../types/verified-vocabulary';
+import type { PartOfSpeech } from '../types/vocabulary';
 
 /**
  * Mock cached vocabulary data for testing the cache indicators UI
