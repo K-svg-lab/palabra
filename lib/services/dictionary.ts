@@ -4,10 +4,13 @@
  * Provides word metadata, example sentences, and linguistic information
  * for Spanish vocabulary using Wiktionary API and fallback sources.
  * 
+ * Now includes POS validation for example sentences (Phase 16.1)
+ * 
  * @module lib/services/dictionary
  */
 
 import type { Gender, PartOfSpeech } from '@/lib/types/vocabulary';
+import { validateExamplePOS, type POSValidationResult } from './pos-validation';
 
 export interface DictionaryResult {
   word: string;
@@ -24,6 +27,8 @@ export interface ExampleSentence {
   english: string;
   source?: string;
   context?: 'formal' | 'informal' | 'neutral';
+  /** POS validation result (Phase 16.1) */
+  posValidation?: POSValidationResult;
 }
 
 export interface DictionaryError {
@@ -220,13 +225,18 @@ function containsExactWord(sentence: string, word: string): boolean {
  * Uses multiple sources to find natural example sentences with translations
  * Prioritizes longer, more contextual examples
  * Ensures examples contain the EXACT word being searched
- * Now returns more examples (up to 5) for enhanced learning
+ * Now includes POS validation (Phase 16.1) to ensure examples use the word correctly
  * 
  * @param word - Spanish word to find examples for
+ * @param partOfSpeech - Optional part of speech for validation
  * @param limit - Maximum number of examples to return (default: 5)
- * @returns Array of example sentences with translations
+ * @returns Array of example sentences with translations and POS validation
  */
-export async function getExamples(word: string, limit: number = 5): Promise<ExampleSentence[]> {
+export async function getExamples(
+  word: string,
+  partOfSpeech?: PartOfSpeech,
+  limit: number = 5
+): Promise<ExampleSentence[]> {
   try {
     // Fetch more results from Tatoeba to have better selection
     const response = await fetch(
@@ -248,7 +258,7 @@ export async function getExamples(word: string, limit: number = 5): Promise<Exam
       return generateFallbackExample(word);
     }
 
-    // Process examples with quality scoring and context detection
+    // Process examples with quality scoring, context detection, and POS validation
     const examples: Array<ExampleSentence & { score: number }> = data.results
       .map((result: any) => ({
         spanish: result.text,
@@ -256,6 +266,7 @@ export async function getExamples(word: string, limit: number = 5): Promise<Exam
         source: 'tatoeba',
         context: detectSentenceContext(result.text),
         score: 0,
+        posValidation: undefined,
       }))
       .filter((ex: any) => {
         // Only include if:
@@ -263,20 +274,52 @@ export async function getExamples(word: string, limit: number = 5): Promise<Exam
         // 2. Spanish sentence contains the EXACT word (with word boundaries)
         return ex.english && containsExactWord(ex.spanish, word);
       })
-      .map((ex: any) => ({
-        ...ex,
-        score: scoreExampleQuality(ex.spanish, ex.english),
-      }));
+      .map((ex: any) => {
+        // Calculate quality score
+        const qualityScore = scoreExampleQuality(ex.spanish, ex.english);
+        
+        // Validate POS if provided
+        let posValidation: POSValidationResult | undefined;
+        if (partOfSpeech) {
+          posValidation = validateExamplePOS(ex.spanish, word, partOfSpeech);
+          
+          // Log validation failures for monitoring
+          if (!posValidation.isValid) {
+            console.log(
+              `[POS Validation] Filtered example for "${word}" (${partOfSpeech}):`,
+              `"${ex.spanish}"`,
+              `- Reason: ${posValidation.reason}`
+            );
+          }
+        }
+        
+        return {
+          ...ex,
+          score: qualityScore,
+          posValidation,
+        };
+      })
+      .filter((ex: any) => {
+        // NEW: Filter out examples that fail POS validation
+        // Only apply filter if POS is provided and confidence threshold is met
+        if (partOfSpeech && ex.posValidation) {
+          // Use a moderate confidence threshold (0.30) to avoid being too strict
+          // This allows examples that might be valid but lack strong indicators
+          return ex.posValidation.isValid && ex.posValidation.confidence >= 0.30;
+        }
+        return true; // Keep example if no POS validation needed
+      });
 
     // Sort by quality score (highest first)
     examples.sort((a, b) => b.score - a.score);
 
     // Take top examples up to the limit
-    const topExamples = examples.slice(0, limit).map(({ spanish, english, source, context }) => ({
+    const topExamples = examples.slice(0, limit).map(({ spanish, english, source, context, posValidation }) => ({
       spanish,
       english,
       source,
       context,
+      posValidation,
     }));
 
     return topExamples.length > 0 ? topExamples : generateFallbackExample(word);
@@ -467,19 +510,19 @@ function extractGender(text: string, word: string, partOfSpeech?: PartOfSpeech):
 }
 
 /**
- * Performs complete dictionary lookup including examples
+ * Performs complete dictionary lookup including examples with POS validation
  * 
  * @param word - Spanish word to look up
- * @returns Complete dictionary result with examples
+ * @returns Complete dictionary result with POS-validated examples
  */
 export async function getCompleteWordData(
   word: string
 ): Promise<DictionaryResult> {
-  // Fetch word data and examples in parallel
-  const [wordData, examples] = await Promise.all([
-    lookupWord(word),
-    getExamples(word),
-  ]);
+  // First get word data to determine part of speech
+  const wordData = await lookupWord(word);
+  
+  // Then fetch examples with POS validation
+  const examples = await getExamples(word, wordData.partOfSpeech);
 
   return {
     ...wordData,

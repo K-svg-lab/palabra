@@ -12,6 +12,7 @@ import { getEnhancedTranslation } from '@/lib/services/translation';
 import { getCompleteWordData } from '@/lib/services/dictionary';
 import { getWordRelationships, getVerbConjugation } from '@/lib/services/word-relationships';
 import { getWordImages } from '@/lib/services/images';
+import { trackWordLookup, detectDeviceType } from '@/lib/services/analytics';
 import { PrismaClient } from '@prisma/client';
 import type { PartOfSpeech } from '@/lib/types/vocabulary';
 import type { LanguagePair, VerifiedVocabularyData, CacheStrategy } from '@/lib/types/verified-vocabulary';
@@ -409,6 +410,23 @@ export async function POST(request: NextRequest) {
       const cacheTime = Date.now() - startTime;
       console.log(`✅ [Lookup] CACHE HIT for "${cleanWord}" (${cacheTime}ms, confidence: ${cachedWord.confidenceScore.toFixed(2)})`);
       
+      // Track analytics (async, non-blocking)
+      const [sourceLang, targetLang] = (languagePair as string).split('-');
+      trackWordLookup(prisma, {
+        sourceWord: cleanWord,
+        sourceLanguage: sourceLang || 'es',
+        targetLanguage: targetLang || 'en',
+        languagePair: languagePair as string,
+        fromCache: true,
+        responseTime: cacheTime,
+        translationFound: true,
+        examplesFound: cachedWord.examples?.length || 0,
+        confidenceScore: cachedWord.confidenceScore,
+        apiSource: undefined,
+        apiCallsCount: 0,
+        deviceType: detectDeviceType(request.headers.get('user-agent') || undefined),
+      }).catch(err => console.error('[Analytics] Failed to track cache hit:', err));
+      
       // Return cached data (instant, high-quality, verified by multiple users)
       return NextResponse.json({
         word: cleanWord,
@@ -528,6 +546,27 @@ export async function POST(request: NextRequest) {
       partOfSpeech: dictionary?.partOfSpeech,
       alternativesCount: filteredAlternatives.length
     });
+
+    // Track analytics (async, non-blocking)
+    const apiTime = Date.now() - startTime;
+    const [sourceLang, targetLang] = (languagePair as string).split('-');
+    const apiCallsCount = (translationResult.status === 'fulfilled' ? 1 : 0) +
+                          (dictionaryResult.status === 'fulfilled' ? 1 : 0);
+    
+    trackWordLookup(prisma, {
+      sourceWord: cleanWord,
+      sourceLanguage: sourceLang || 'es',
+      targetLanguage: targetLang || 'en',
+      languagePair: languagePair as string,
+      fromCache: false,
+      responseTime: apiTime,
+      translationFound: !!translation?.primary,
+      examplesFound: dictionary?.examples?.length || 0,
+      confidenceScore: translation?.confidence,
+      apiSource: translation?.source,
+      apiCallsCount,
+      deviceType: detectDeviceType(request.headers.get('user-agent') || undefined),
+    }).catch(err => console.error('[Analytics] Failed to track API lookup:', err));
 
     return NextResponse.json(response);
   } catch (error) {

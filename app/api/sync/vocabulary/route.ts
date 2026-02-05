@@ -7,6 +7,7 @@
 import { NextRequest } from 'next/server';
 import { prisma } from '@/lib/backend/db';
 import { requireAuth, apiResponse, apiError, parseBody, withApiHandler } from '@/lib/backend/api-utils';
+import { trackWordSave } from '@/lib/services/analytics';
 import type { SyncOperation, SyncConflict } from '@/lib/types/sync';
 
 async function handler(request: NextRequest) {
@@ -217,6 +218,14 @@ async function handleCreate(
       lastSyncedAt: new Date(),
     },
   });
+  
+  // Track analytics (async, non-blocking)
+  trackWordSave(prisma, {
+    sourceWord: data.spanishWord || data.spanish,
+    languagePair: 'es-en',
+    wasEdited: !!data.originalApiData, // If originalApiData exists, user edited the suggestion
+    userId,
+  }).catch(err => console.error('[Analytics] Failed to track word save:', err));
 }
 
 async function handleUpdate(

@@ -485,3 +485,172 @@ model VocabularyVerification {
   @@index([sourceLanguage, targetLanguage], name: "idx_verification_lang")
 }
 
+// ============================================================================
+// ANALYTICS & OBSERVABILITY (Phase 16.2)
+// Track word lookups, API usage, cache performance, and user behavior
+// ============================================================================
+
+model WordLookupEvent {
+  id                String   @id @default(cuid())
+  
+  // Word context
+  sourceWord        String
+  sourceLanguage    String   // "es", "de", "fr", etc.
+  targetLanguage    String   // "en", "es", etc.
+  languagePair      String   // "es-en", "de-en", etc.
+  
+  // Lookup result
+  fromCache         Boolean  @default(false)
+  cacheHit          Boolean  @default(false) // Whether word was in cache
+  cacheMiss         Boolean  @default(false) // Whether had to fetch from API
+  apiSource         String?  // "deepl" | "mymemory" | "wiktionary" | null (if cache)
+  
+  // Performance metrics
+  responseTime      Int      // milliseconds
+  apiCallsCount     Int      @default(0) // Number of API calls made
+  
+  // Result quality
+  translationFound  Boolean  @default(true)
+  examplesFound     Int      @default(0)
+  confidenceScore   Float?   // Confidence of translation
+  
+  // User context (optional)
+  userId            String?
+  sessionId         String?
+  deviceType        String?  // "mobile" | "desktop" | "tablet"
+  
+  // Outcome
+  wasSaved          Boolean  @default(false)
+  wasEdited         Boolean  @default(false)
+  
+  // Timestamp
+  createdAt         DateTime @default(now())
+  
+  @@index([sourceWord, languagePair], name: "idx_lookup_word_lang")
+  @@index([fromCache], name: "idx_lookup_cache")
+  @@index([createdAt], name: "idx_lookup_created")
+  @@index([userId], name: "idx_lookup_user")
+  @@index([apiSource], name: "idx_lookup_api_source")
+}
+
+model ApiCallEvent {
+  id                String   @id @default(cuid())
+  
+  // API details
+  apiName           String   // "deepl" | "mymemory" | "wiktionary" | "tatoeba" | etc.
+  endpoint          String?  // Specific endpoint called
+  method            String   @default("GET") // HTTP method
+  
+  // Request context
+  sourceWord        String
+  languagePair      String
+  
+  // Performance
+  responseTime      Int      // milliseconds
+  success           Boolean
+  statusCode        Int?
+  errorMessage      String?  @db.Text
+  
+  // Rate limiting
+  rateLimited       Boolean  @default(false)
+  retryCount        Int      @default(0)
+  
+  // Usage tracking
+  requestSize       Int?     // bytes
+  responseSize      Int?     // bytes
+  
+  // Result quality
+  translationReturned Boolean @default(false)
+  examplesReturned    Int     @default(0)
+  
+  // Metadata
+  createdAt         DateTime @default(now())
+  userId            String?
+  sessionId         String?
+  
+  @@index([apiName], name: "idx_api_name")
+  @@index([success], name: "idx_api_success")
+  @@index([createdAt], name: "idx_api_created")
+  @@index([responseTime], name: "idx_api_response_time")
+  @@index([rateLimited], name: "idx_api_rate_limited")
+}
+
+model CachePerformanceMetrics {
+  id                String   @id @default(cuid())
+  date              DateTime @db.Date
+  languagePair      String
+  
+  // Cache metrics
+  totalLookups      Int      @default(0)
+  cacheHits         Int      @default(0)
+  cacheMisses       Int      @default(0)
+  cacheHitRate      Float    @default(0.0) // cacheHits / totalLookups
+  
+  // Performance
+  avgCacheResponseTime Int   @default(0)   // milliseconds
+  avgApiResponseTime   Int   @default(0)   // milliseconds
+  speedImprovement     Float @default(0.0) // How much faster cache is
+  
+  // API usage
+  totalApiCalls     Int      @default(0)
+  apiCallsSaved     Int      @default(0) // API calls avoided due to cache
+  
+  // Quality
+  avgConfidence     Float    @default(0.0)
+  verifiedWords     Int      @default(0)
+  
+  // User behavior
+  saveRate          Float    @default(0.0) // % of lookups that were saved
+  editRate          Float    @default(0.0) // % of saves that were edited
+  
+  // Metadata
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  
+  @@unique([date, languagePair], name: "unique_date_lang_pair")
+  @@index([date], name: "idx_cache_metrics_date")
+  @@index([languagePair], name: "idx_cache_metrics_lang")
+  @@index([cacheHitRate], name: "idx_cache_hit_rate")
+}
+
+model PopularWord {
+  id                String   @id @default(cuid())
+  
+  // Word details
+  sourceWord        String
+  sourceLanguage    String
+  targetLanguage    String
+  languagePair      String
+  translation       String
+  
+  // Popularity metrics
+  lookupCount       Int      @default(0)
+  saveCount         Int      @default(0)
+  saveRate          Float    @default(0.0) // saveCount / lookupCount
+  
+  // Time range
+  period            String   // "daily" | "weekly" | "monthly" | "all_time"
+  periodStart       DateTime
+  periodEnd         DateTime
+  
+  // Quality signals
+  avgConfidence     Float    @default(0.0)
+  editFrequency     Float    @default(0.0)
+  
+  // Cache status
+  isInCache         Boolean  @default(false)
+  shouldCache       Boolean  @default(false) // Based on popularity
+  
+  // Rankings
+  rank              Int?
+  
+  // Metadata
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  
+  @@unique([sourceWord, languagePair, period, periodStart], name: "unique_popular_word")
+  @@index([languagePair, period], name: "idx_popular_word_period")
+  @@index([lookupCount], name: "idx_popular_lookup_count")
+  @@index([periodStart], name: "idx_popular_period_start")
+}
+

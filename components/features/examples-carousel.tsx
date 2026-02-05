@@ -4,25 +4,36 @@
  * Displays multiple example sentences with context filtering
  * and carousel navigation.
  * 
+ * Now includes POS validation indicators (Phase 16.1)
+ * 
  * @module components/features/examples-carousel
  */
 
 'use client';
 
 import { useState } from 'react';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, CheckCircle2, AlertCircle, HelpCircle } from 'lucide-react';
 import type { ExampleSentence } from '@/lib/types/vocabulary';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 
 interface ExamplesCarouselProps {
   /** Array of example sentences */
   examples: ExampleSentence[];
   /** Show context badges */
   showContext?: boolean;
+  /** Show POS validation indicators (Phase 16.1) */
+  showValidation?: boolean;
 }
 
 export function ExamplesCarousel({
   examples,
   showContext = true,
+  showValidation = true,
 }: ExamplesCarouselProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
 
@@ -52,6 +63,47 @@ export function ExamplesCarousel({
     }
   };
 
+  // Get POS validation icon and tooltip
+  const getPOSValidationIndicator = () => {
+    const validation = currentExample.posValidation;
+    
+    if (!validation) {
+      return null; // No validation performed
+    }
+
+    if (validation.isValid && validation.confidence >= 0.70) {
+      // High confidence valid
+      return {
+        icon: CheckCircle2,
+        color: 'text-green-600 dark:text-green-400',
+        tooltip: `POS verified (${Math.round(validation.confidence * 100)}% confidence)`,
+      };
+    } else if (validation.isValid && validation.confidence >= 0.30) {
+      // Moderate confidence valid
+      return {
+        icon: CheckCircle2,
+        color: 'text-yellow-600 dark:text-yellow-400',
+        tooltip: `POS likely valid (${Math.round(validation.confidence * 100)}% confidence)`,
+      };
+    } else if (!validation.isValid) {
+      // Invalid
+      return {
+        icon: AlertCircle,
+        color: 'text-red-600 dark:text-red-400',
+        tooltip: `POS mismatch detected: ${validation.reason || 'Unknown'}`,
+      };
+    } else {
+      // Unknown/uncertain
+      return {
+        icon: HelpCircle,
+        color: 'text-gray-600 dark:text-gray-400',
+        tooltip: 'POS verification uncertain',
+      };
+    }
+  };
+
+  const validationIndicator = getPOSValidationIndicator();
+
   return (
     <div className="space-y-3">
       {/* Example display */}
@@ -68,9 +120,31 @@ export function ExamplesCarousel({
         )}
 
         {/* Spanish */}
-        <p className="text-sm text-gray-900 dark:text-gray-100 mb-2 pr-16">
-          &ldquo;{currentExample.spanish}&rdquo;
-        </p>
+        <div className="flex items-start gap-2 mb-2 pr-16">
+          <p className="text-sm text-gray-900 dark:text-gray-100 flex-1">
+            &ldquo;{currentExample.spanish}&rdquo;
+          </p>
+          
+          {/* POS Validation Indicator (Phase 16.1) */}
+          {showValidation && validationIndicator && (
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div className="flex-shrink-0">
+                    {validationIndicator.icon && (
+                      <validationIndicator.icon 
+                        className={`h-4 w-4 ${validationIndicator.color}`}
+                      />
+                    )}
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent side="left">
+                  <p className="text-xs">{validationIndicator.tooltip}</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          )}
+        </div>
 
         {/* English */}
         <p className="text-xs text-gray-600 dark:text-gray-400 italic">
