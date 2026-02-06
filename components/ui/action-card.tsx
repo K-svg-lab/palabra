@@ -53,10 +53,6 @@ export function ActionCard({
       `}
       style={bgStyle}
     >
-      {/* Background decoration */}
-      <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full blur-2xl" />
-      <div className="absolute bottom-0 left-0 w-40 h-40 bg-black/5 rounded-full blur-2xl" />
-
       {/* Content */}
       <div className="relative z-10">
         {/* Icon */}

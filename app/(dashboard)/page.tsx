@@ -314,41 +314,33 @@ export default function HomePage() {
 
         {/* Empty State - More delightful and inviting */}
         {!hasVocabulary && (
-          <section className="text-center py-16 animate-fadeIn">
-            <div className="max-w-lg mx-auto">
-              <div className="text-8xl mb-6 animate-float">📚</div>
-              <h2 className="text-3xl font-bold mb-4">
+          <section className="text-center py-8 animate-fadeIn">
+            <div className="max-w-lg mx-auto px-4">
+              <div className="text-7xl mb-6 animate-float">📚</div>
+              <h2 className="text-2xl sm:text-3xl font-bold mb-4">
                 Welcome to Your Learning Journey
               </h2>
-              <p className="text-lg text-gray-600 dark:text-gray-400 mb-8 leading-relaxed">
+              <p className="text-base sm:text-lg text-gray-600 dark:text-gray-400 mb-8 leading-relaxed">
                 Build your Spanish vocabulary with intelligent spaced repetition
                 that adapts to how you learn.
               </p>
-              <ActionCard
-                icon={<Plus className="w-12 h-12" />}
-                title="Add Your First Word"
-                description="Start building your vocabulary today"
-                href="/vocabulary?focus=search"
-                gradient={{ from: '#007AFF', to: '#00C7FF' }}
-                className="max-w-md mx-auto"
-              />
               
               {/* Features preview */}
-              <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-                <div className="flex flex-col items-center gap-2 p-4">
-                  <span className="text-3xl">🧠</span>
-                  <span className="font-medium">Smart Spaced Repetition</span>
-                  <span className="text-gray-500 dark:text-gray-400">Review at the perfect time</span>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-sm">
+                <div className="flex flex-col items-center gap-2 p-4 rounded-xl bg-gray-50 dark:bg-gray-900/50">
+                  <span className="text-4xl mb-1">🧠</span>
+                  <span className="font-semibold text-gray-900 dark:text-white">Smart Spaced Repetition</span>
+                  <span className="text-gray-600 dark:text-gray-400">Review at the perfect time</span>
                 </div>
-                <div className="flex flex-col items-center gap-2 p-4">
-                  <span className="text-3xl">📊</span>
-                  <span className="font-medium">Track Progress</span>
-                  <span className="text-gray-500 dark:text-gray-400">See your improvement</span>
+                <div className="flex flex-col items-center gap-2 p-4 rounded-xl bg-gray-50 dark:bg-gray-900/50">
+                  <span className="text-4xl mb-1">📊</span>
+                  <span className="font-semibold text-gray-900 dark:text-white">Track Progress</span>
+                  <span className="text-gray-600 dark:text-gray-400">See your improvement</span>
                 </div>
-                <div className="flex flex-col items-center gap-2 p-4">
-                  <span className="text-3xl">🔥</span>
-                  <span className="font-medium">Build Streaks</span>
-                  <span className="text-gray-500 dark:text-gray-400">Stay motivated daily</span>
+                <div className="flex flex-col items-center gap-2 p-4 rounded-xl bg-gray-50 dark:bg-gray-900/50">
+                  <span className="text-4xl mb-1">🔥</span>
+                  <span className="font-semibold text-gray-900 dark:text-white">Build Streaks</span>
+                  <span className="text-gray-600 dark:text-gray-400">Stay motivated daily</span>
                 </div>
               </div>
             </div>
