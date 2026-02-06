@@ -13,6 +13,7 @@ import { useSearchParams } from 'next/navigation';
 import { Search, Filter, Plus } from 'lucide-react';
 import { VocabularyCard } from './vocabulary-card';
 import { VocabularyCardEnhanced } from './vocabulary-card-enhanced';
+import { VocabularyCardSkeleton } from '@/components/ui/vocabulary-card-skeleton';
 import { SearchBarEnhanced } from '@/components/ui/search-bar-enhanced';
 import { ViewToggle, type ViewMode } from '@/components/ui/view-toggle';
 import { useVocabulary, useDeleteVocabulary } from '@/lib/hooks/use-vocabulary';
@@ -186,10 +187,16 @@ export function VocabularyList({ onAddNew, onEdit, clearSearchAndFocusRef }: Pro
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center py-12">
-        <div className="text-center">
-          <div className="w-8 h-8 border-4 border-accent border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
-          <p className="text-sm text-gray-600 dark:text-gray-400">Loading vocabulary...</p>
+      <div className="space-y-4">
+        {/* Show 8 skeleton cards in grid/list view based on current viewMode */}
+        <div className={
+          viewMode === 'grid' 
+            ? 'grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 w-full' 
+            : 'space-y-4 w-full'
+        }>
+          {Array.from({ length: 8 }).map((_, index) => (
+            <VocabularyCardSkeleton key={`skeleton-${index}`} />
+          ))}
         </div>
       </div>
     );
