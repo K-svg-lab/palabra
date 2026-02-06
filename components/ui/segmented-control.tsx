@@ -46,7 +46,7 @@ export function SegmentedControl({
     <div
       className={`
         relative
-        inline-flex
+        flex
         bg-gray-100 dark:bg-gray-800
         rounded-xl
         p-1
@@ -79,10 +79,10 @@ export function SegmentedControl({
             onClick={() => onChange(tab.id)}
             className={`
               relative z-10
-              flex items-center justify-center gap-2
-              px-4 py-2
-              min-w-[80px]
-              text-sm font-medium
+              flex items-center justify-center gap-1
+              px-2 sm:px-4 py-2
+              flex-1
+              text-xs sm:text-sm font-medium
               transition-colors duration-200
               ${isActive
                 ? "text-gray-900 dark:text-white"
@@ -93,8 +93,8 @@ export function SegmentedControl({
             aria-selected={isActive}
             aria-controls={`${tab.id}-panel`}
           >
-            {tab.icon && <span className="text-lg">{tab.icon}</span>}
-            <span>{tab.label}</span>
+            {tab.icon && <span className="text-base sm:text-lg flex-shrink-0">{tab.icon}</span>}
+            <span className="truncate">{tab.label}</span>
           </button>
         );
       })}
