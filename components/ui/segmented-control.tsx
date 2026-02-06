@@ -79,8 +79,8 @@ export function SegmentedControl({
             onClick={() => onChange(tab.id)}
             className={`
               relative z-10
-              flex items-center justify-center gap-1
-              px-2 sm:px-4 py-2
+              flex items-center justify-center gap-1.5
+              px-3 sm:px-4 py-2.5
               flex-1
               text-xs sm:text-sm font-medium
               transition-colors duration-200
@@ -94,7 +94,7 @@ export function SegmentedControl({
             aria-controls={`${tab.id}-panel`}
           >
             {tab.icon && <span className="text-base sm:text-lg flex-shrink-0">{tab.icon}</span>}
-            <span className="truncate">{tab.label}</span>
+            <span className="whitespace-nowrap">{tab.label}</span>
           </button>
         );
       })}

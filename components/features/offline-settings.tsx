@@ -301,12 +301,12 @@ export function OfflineSettings() {
         <div className="flex items-start gap-2">
           <AlertCircle className="h-5 w-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
           <div className="text-sm text-blue-900 dark:text-blue-100">
-            <p className="font-medium mb-1">About Offline Mode</p>
-            <ul className="list-disc list-inside space-y-1 text-blue-800 dark:text-blue-200">
-              <li>Continue learning even without internet</li>
-              <li>Review vocabulary and record progress</li>
-              <li>Add new words (manual entry only)</li>
-              <li>Changes sync automatically when online</li>
+            <p className="font-medium mb-2">About Offline Mode</p>
+            <ul className="list-disc pl-5 space-y-1.5 text-blue-800 dark:text-blue-200">
+              <li className="pl-1">Continue learning even without internet</li>
+              <li className="pl-1">Review vocabulary and record progress</li>
+              <li className="pl-1">Add new words (manual entry only)</li>
+              <li className="pl-1">Changes sync automatically when online</li>
             </ul>
           </div>
         </div>
