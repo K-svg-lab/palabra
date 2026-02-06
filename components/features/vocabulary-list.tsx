@@ -11,6 +11,7 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { Search, Filter, Plus } from 'lucide-react';
+import { Virtuoso } from 'react-virtuoso';
 import { VocabularyCard } from './vocabulary-card';
 import { VocabularyCardEnhanced } from './vocabulary-card-enhanced';
 import { VocabularyCardSkeleton } from '@/components/ui/vocabulary-card-skeleton';
@@ -188,16 +189,29 @@ export function VocabularyList({ onAddNew, onEdit, clearSearchAndFocusRef }: Pro
   if (isLoading) {
     return (
       <div className="space-y-4">
-        {/* Show 8 skeleton cards in grid/list view based on current viewMode */}
-        <div className={
-          viewMode === 'grid' 
-            ? 'grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 w-full' 
-            : 'space-y-4 w-full'
-        }>
-          {Array.from({ length: 8 }).map((_, index) => (
-            <VocabularyCardSkeleton key={`skeleton-${index}`} />
-          ))}
-        </div>
+        {/* Show skeleton cards in grid/list view based on current viewMode */}
+        
+        {/* List View: Virtual Scrolling Skeletons */}
+        {viewMode === 'list' && (
+          <Virtuoso
+            style={{ height: 'calc(100vh - 400px)', minHeight: '400px' }}
+            totalCount={8}
+            itemContent={(index) => (
+              <div className="mb-4">
+                <VocabularyCardSkeleton key={`skeleton-${index}`} />
+              </div>
+            )}
+          />
+        )}
+
+        {/* Grid View: Standard Grid Skeletons */}
+        {viewMode === 'grid' && (
+          <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 w-full">
+            {Array.from({ length: 8 }).map((_, index) => (
+              <VocabularyCardSkeleton key={`skeleton-${index}`} />
+            ))}
+          </div>
+        )}
       </div>
     );
   }
@@ -361,22 +375,45 @@ export function VocabularyList({ onAddNew, onEdit, clearSearchAndFocusRef }: Pro
         </div>
       )}
 
-      {/* Vocabulary Grid - Phase 16.4 Enhanced - Mobile Optimized */}
+      {/* Vocabulary List - Phase 16.4 Enhanced - Virtual Scrolling */}
       {filteredVocabulary.length > 0 && (
-        <div className={
-          viewMode === 'grid' 
-            ? 'grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 w-full' 
-            : 'space-y-4 w-full'
-        }>
-          {filteredVocabulary.map(word => (
-            <VocabularyCardEnhanced
-              key={word.id}
-              word={word}
-              onEdit={onEdit}
-              onDelete={(word) => setShowDeleteConfirm(word.id)}
+        <>
+          {/* List View: Virtual Scrolling with Virtuoso */}
+          {viewMode === 'list' && (
+            <Virtuoso
+              style={{ height: 'calc(100vh - 400px)', minHeight: '400px' }}
+              totalCount={filteredVocabulary.length}
+              overscan={5}
+              itemContent={(index) => {
+                const word = filteredVocabulary[index];
+                return (
+                  <div className="mb-4">
+                    <VocabularyCardEnhanced
+                      key={word.id}
+                      word={word}
+                      onEdit={onEdit}
+                      onDelete={(word) => setShowDeleteConfirm(word.id)}
+                    />
+                  </div>
+                );
+              }}
             />
-          ))}
-        </div>
+          )}
+
+          {/* Grid View: Standard Grid (optimized with CSS Grid) */}
+          {viewMode === 'grid' && (
+            <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 w-full">
+              {filteredVocabulary.map(word => (
+                <VocabularyCardEnhanced
+                  key={word.id}
+                  word={word}
+                  onEdit={onEdit}
+                  onDelete={(word) => setShowDeleteConfirm(word.id)}
+                />
+              ))}
+            </div>
+          )}
+        </>
       )}
 
       {/* Delete Confirmation Modal */}
