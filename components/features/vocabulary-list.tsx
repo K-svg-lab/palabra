@@ -11,7 +11,6 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { Search, Filter, Plus } from 'lucide-react';
-import { Virtuoso } from 'react-virtuoso';
 import { VocabularyCard } from './vocabulary-card';
 import { VocabularyCardEnhanced } from './vocabulary-card-enhanced';
 import { VocabularyCardSkeleton } from '@/components/ui/vocabulary-card-skeleton';
@@ -188,30 +187,11 @@ export function VocabularyList({ onAddNew, onEdit, clearSearchAndFocusRef }: Pro
 
   if (isLoading) {
     return (
-      <div className="space-y-4">
-        {/* Show skeleton cards in grid/list view based on current viewMode */}
-        
-        {/* List View: Virtual Scrolling Skeletons */}
-        {viewMode === 'list' && (
-          <Virtuoso
-            style={{ height: 'calc(100vh - 400px)', minHeight: '400px' }}
-            data={Array.from({ length: 8 })}
-            itemContent={(index) => (
-              <div className="mb-4">
-                <VocabularyCardSkeleton />
-              </div>
-            )}
-          />
-        )}
-
-        {/* Grid View: Standard Grid Skeletons */}
-        {viewMode === 'grid' && (
-          <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 w-full">
-            {Array.from({ length: 8 }).map((_, index) => (
-              <VocabularyCardSkeleton key={`skeleton-${index}`} />
-            ))}
-          </div>
-        )}
+      <div className="flex items-center justify-center py-12">
+        <div className="text-center">
+          <div className="w-8 h-8 border-4 border-accent border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
+          <p className="text-sm text-gray-600 dark:text-gray-400">Loading vocabulary...</p>
+        </div>
       </div>
     );
   }
@@ -375,46 +355,22 @@ export function VocabularyList({ onAddNew, onEdit, clearSearchAndFocusRef }: Pro
         </div>
       )}
 
-      {/* Vocabulary List - Phase 16.4 Enhanced - Virtual Scrolling */}
+      {/* Vocabulary Grid - Phase 16.4 Enhanced - Mobile Optimized */}
       {filteredVocabulary.length > 0 && (
-        <>
-          {/* List View: Virtual Scrolling with Virtuoso */}
-          {viewMode === 'list' && (
-            <Virtuoso
-              style={{ height: 'calc(100vh - 400px)', minHeight: '400px' }}
-              data={filteredVocabulary}
-              overscan={5}
-              itemContent={(index, word) => {
-                // Guard against undefined word during cache invalidation
-                if (!word) return null;
-                
-                return (
-                  <div className="mb-4">
-                    <VocabularyCardEnhanced
-                      word={word}
-                      onEdit={onEdit}
-                      onDelete={(word) => setShowDeleteConfirm(word.id)}
-                    />
-                  </div>
-                );
-              }}
+        <div className={
+          viewMode === 'grid' 
+            ? 'grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 w-full' 
+            : 'space-y-4 w-full'
+        }>
+          {filteredVocabulary.map(word => (
+            <VocabularyCardEnhanced
+              key={word.id}
+              word={word}
+              onEdit={onEdit}
+              onDelete={(word) => setShowDeleteConfirm(word.id)}
             />
-          )}
-
-          {/* Grid View: Standard Grid (optimized with CSS Grid) */}
-          {viewMode === 'grid' && (
-            <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 w-full">
-              {filteredVocabulary.map(word => (
-                <VocabularyCardEnhanced
-                  key={word.id}
-                  word={word}
-                  onEdit={onEdit}
-                  onDelete={(word) => setShowDeleteConfirm(word.id)}
-                />
-              ))}
-            </div>
-          )}
-        </>
+          ))}
+        </div>
       )}
 
       {/* Delete Confirmation Modal */}
