@@ -1,7 +1,7 @@
 # Phase 16.4: Vocabulary Performance Optimization
 
 **Date:** February 5, 2026  
-**Status:** ✅ COMPLETE  
+**Status:** ⚠️ TIER 2 REVERTED - TIER 1 PENDING  
 **Objective:** Eliminate long loading times on Vocabulary tab (800+ words)
 
 ---
@@ -232,7 +232,25 @@ Implement windowed rendering to only display visible cards (10-15 instead of 800
 
 ## 🔄 **STATUS UPDATES**
 
-### 2026-02-05 21:15 - 🐛 CRITICAL BUG FIX
+### 2026-02-05 21:30 - ⏪ TIER 2 REVERTED
+- **Decision:** Reverted virtual scrolling implementation
+- **Reason:** Persistent React error #185 blocking vocabulary tab access
+- **Status:** ✅ Vocabulary tab now working again
+- **Performance:** Back to rendering all 800+ words (slower but functional)
+- **Commit:** `58be65b`
+- **What We Kept:**
+  - ✅ Enhanced vocabulary cards
+  - ✅ Mobile-optimized layouts
+  - ✅ All Phase 16.4 UX improvements
+- **What We Removed:**
+  - ❌ Virtual scrolling (react-virtuoso)
+  - ❌ Skeleton loaders (temporarily)
+- **Next Steps:**
+  - Consider simpler alternatives (pagination, infinite scroll)
+  - OR keep as-is (800 words renders in ~1-2s which is acceptable)
+  - Priority: Stability > Performance
+
+### 2026-02-05 21:15 - 🐛 CRITICAL BUG FIX (DIDN'T WORK)
 - **Issue:** React error #185 when accessing vocabulary tab
 - **Cause:** Virtuoso not handling cache invalidation correctly
 - **Fix Applied:**
@@ -290,4 +308,63 @@ Implement windowed rendering to only display visible cards (10-15 instead of 800
 
 ---
 
-**Next Step:** Begin Step 1 - Review Existing Skeleton Component
+---
+
+## 📖 **LESSONS LEARNED**
+
+### **What Went Wrong with Virtual Scrolling:**
+
+1. **React Query + Virtuoso Incompatibility:**
+   - Cache invalidation after sync caused Virtuoso to crash
+   - Virtuoso's internal state management conflicted with rapid data updates
+   - Tried multiple fixes (data prop, null guards) but errors persisted
+
+2. **Production Build vs Development:**
+   - Minified React errors (#185) are hard to debug
+   - Would need non-minified build to see actual error details
+   - Time constraint didn't allow for deep debugging
+
+3. **Complexity:**
+   - Virtual scrolling adds significant complexity
+   - Interaction with React Query, IndexedDB sync, and SSR was problematic
+   - Simple solution (pagination) would have been safer
+
+### **Better Alternatives for Future:**
+
+1. **Pagination (Recommended):**
+   - 50-100 words per page
+   - Simple, reliable, well-understood
+   - Easy to implement with React Query
+   - Good UX with page numbers or infinite scroll
+
+2. **Infinite Scroll:**
+   - Load 50 words initially
+   - Load more on scroll with Intersection Observer
+   - Simpler than virtual scrolling
+   - Works well with React Query
+
+3. **Hybrid Approach:**
+   - Show first 100 words immediately
+   - "Load more" button for the rest
+   - Simplest implementation
+   - User controls when to load more
+
+### **When Virtual Scrolling IS Worth It:**
+
+- Lists with 10,000+ items
+- Items with complex rendering (images, charts)
+- Desktop-first applications
+- When you have time to properly test and debug
+- When using simpler state management (no React Query invalidation issues)
+
+### **Recommendation:**
+
+For 800 words, **pagination or infinite scroll is better than virtual scrolling.**
+- Simpler to implement
+- More reliable
+- Better UX (users expect pagination)
+- Easier to debug
+
+---
+
+**Status:** Reverted to working state. Performance optimization postponed.
