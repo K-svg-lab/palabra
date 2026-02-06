@@ -337,8 +337,10 @@ export function VocabularyList({ onAddNew, onEdit, clearSearchAndFocusRef }: Pro
               </select>
             </div>
             
-            {/* View Toggle - Compact on right */}
-            <ViewToggle value={viewMode} onChange={setViewMode} />
+            {/* View Toggle - Hidden on mobile, visible on tablet+ */}
+            <div className="hidden sm:flex">
+              <ViewToggle value={viewMode} onChange={setViewMode} />
+            </div>
           </div>
         </div>
       </div>

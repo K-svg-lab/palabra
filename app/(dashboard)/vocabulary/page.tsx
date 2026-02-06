@@ -8,7 +8,7 @@
 'use client';
 
 import { useState, useEffect, useRef, Suspense } from 'react';
-import { Plus, X, Filter as FilterIcon } from 'lucide-react';
+import { Plus, X } from 'lucide-react';
 import Link from 'next/link';
 import { VocabularyList } from '@/components/features/vocabulary-list';
 import { VocabularyEntryFormEnhanced } from '@/components/features/vocabulary-entry-form-enhanced';
@@ -164,22 +164,13 @@ export default function VocabularyPage() {
         subtitle={`${filteredWords.length} of ${vocabulary.length} ${vocabulary.length === 1 ? 'word' : 'words'}`}
         showProfile={true}
         actions={
-          <>
-            <button
-              onClick={() => setShowFilters(!showFilters)}
-              className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-              title="Filter"
-            >
-              <FilterIcon className="w-5 h-5" />
-            </button>
-            <button
-              onClick={() => setShowAddModal(true)}
-              className="p-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition-colors"
-              title="Add word"
-            >
-              <Plus className="w-5 h-5" />
-            </button>
-          </>
+          <button
+            onClick={() => setShowAddModal(true)}
+            className="p-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition-colors"
+            title="Add word"
+          >
+            <Plus className="w-5 h-5" />
+          </button>
         }
       />
 
