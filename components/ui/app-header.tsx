@@ -84,10 +84,10 @@ export function AppHeader({
         transition-all duration-300
         ${isTransparent
           ? "bg-transparent"
-          : "bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl"
+          : "bg-white/70 dark:bg-gray-800/70 backdrop-blur-xl backdrop-saturate-150"
         }
         ${scrolled && !isTransparent
-          ? "shadow-sm border-b border-gray-200 dark:border-gray-800"
+          ? "shadow-md border-b border-gray-200/20 dark:border-gray-700/30"
           : ""
         }
       `}
@@ -116,7 +116,7 @@ export function AppHeader({
               {icon && !showBack && (
                 <div
                   className="
-                    text-3xl sm:text-4xl
+                    text-4xl sm:text-5xl
                     flex-shrink-0
                   "
                 >

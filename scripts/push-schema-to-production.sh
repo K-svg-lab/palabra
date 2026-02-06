@@ -75,6 +75,7 @@ else
     echo ""
     echo "Common issues:"
     echo "  - DATABASE_URL is incorrect"
+    
     echo "  - Database is unreachable"
     echo "  - Insufficient permissions"
     echo ""
