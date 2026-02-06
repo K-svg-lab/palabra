@@ -54,7 +54,7 @@ export function SegmentedControl({
       `}
       role="tablist"
     >
-      {/* Sliding background */}
+      {/* Sliding background - perfectly aligned */}
       <motion.div
         className="absolute top-1 bottom-1 bg-white dark:bg-gray-900 rounded-lg shadow-sm"
         initial={false}
@@ -69,7 +69,7 @@ export function SegmentedControl({
         }}
       />
 
-      {/* Tabs */}
+      {/* Tabs - perfectly centered content */}
       {tabs.map((tab) => {
         const isActive = tab.id === activeTab;
 
@@ -79,7 +79,7 @@ export function SegmentedControl({
             onClick={() => onChange(tab.id)}
             className={`
               relative z-10
-              flex items-center justify-center gap-1.5
+              flex items-center justify-center
               px-3 sm:px-4 py-2.5
               flex-1
               text-xs sm:text-sm font-medium
@@ -93,8 +93,11 @@ export function SegmentedControl({
             aria-selected={isActive}
             aria-controls={`${tab.id}-panel`}
           >
-            {tab.icon && <span className="text-base sm:text-lg flex-shrink-0">{tab.icon}</span>}
-            <span className="whitespace-nowrap">{tab.label}</span>
+            {/* Content wrapper for perfect centering */}
+            <span className="flex items-center justify-center gap-1.5">
+              {tab.icon && <span className="text-base sm:text-lg flex-shrink-0">{tab.icon}</span>}
+              <span className="whitespace-nowrap">{tab.label}</span>
+            </span>
           </button>
         );
       })}
