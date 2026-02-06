@@ -206,7 +206,7 @@ export default function HomePage() {
           <section className="animate-fadeIn">
             <ActivityRing
               current={todayStats?.cardsReviewed || 0}
-              target={dueCount}
+              target={(todayStats?.cardsReviewed || 0) + dueCount}
               label="Cards Reviewed"
               gradient={{ start: '#007AFF', end: '#00C7FF' }}
               size="lg"
