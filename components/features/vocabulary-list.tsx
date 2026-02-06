@@ -14,6 +14,7 @@ import { Search, Filter, Plus } from 'lucide-react';
 import { VocabularyCard } from './vocabulary-card';
 import { VocabularyCardEnhanced } from './vocabulary-card-enhanced';
 import { VocabularyCardSkeleton } from '@/components/ui/vocabulary-card-skeleton';
+import { ScrollTrigger } from '@/components/ui/scroll-trigger';
 import { SearchBarEnhanced } from '@/components/ui/search-bar-enhanced';
 import { ViewToggle, type ViewMode } from '@/components/ui/view-toggle';
 import { useVocabulary, useDeleteVocabulary } from '@/lib/hooks/use-vocabulary';
@@ -33,6 +34,10 @@ export function VocabularyList({ onAddNew, onEdit, clearSearchAndFocusRef }: Pro
   const [sortBy, setSortBy] = useState<'newest' | 'oldest' | 'alphabetical'>('newest');
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<ViewMode>('list');
+  
+  // Infinite scroll state
+  const [displayCount, setDisplayCount] = useState(50);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
   
   const searchInputRef = useRef<HTMLInputElement>(null);
   const searchParams = useSearchParams();
@@ -160,6 +165,35 @@ export function VocabularyList({ onAddNew, onEdit, clearSearchAndFocusRef }: Pro
 
     return filtered;
   }, [vocabulary, searchTerm, filterStatus, sortBy]);
+
+  // Visible vocabulary for infinite scroll (slice first N items)
+  const visibleVocabulary = useMemo(() => {
+    return filteredVocabulary.slice(0, displayCount);
+  }, [filteredVocabulary, displayCount]);
+
+  // Check if more words available
+  const hasMore = displayCount < filteredVocabulary.length;
+
+  // Load more words
+  const loadMore = () => {
+    if (isLoadingMore || !hasMore) return;
+
+    setIsLoadingMore(true);
+
+    // Small delay for smooth UX
+    setTimeout(() => {
+      setDisplayCount(prev => {
+        const next = prev + 50;
+        return Math.min(next, filteredVocabulary.length);
+      });
+      setIsLoadingMore(false);
+    }, 300);
+  };
+
+  // Reset display count when filter/search/sort changes
+  useEffect(() => {
+    setDisplayCount(50);
+  }, [searchTerm, filterStatus, sortBy]);
 
   const handleDelete = async (id: string) => {
     try {
@@ -320,8 +354,17 @@ export function VocabularyList({ onAddNew, onEdit, clearSearchAndFocusRef }: Pro
 
       {/* Results Count */}
       <div className="text-sm text-gray-600 dark:text-gray-400">
-        {filteredVocabulary.length} {filteredVocabulary.length === 1 ? 'word' : 'words'}
-        {searchTerm && ` matching "${searchTerm}"`}
+        {visibleVocabulary.length === filteredVocabulary.length ? (
+          <>
+            {filteredVocabulary.length} {filteredVocabulary.length === 1 ? 'word' : 'words'}
+            {searchTerm && ` matching "${searchTerm}"`}
+          </>
+        ) : (
+          <>
+            Showing {visibleVocabulary.length} of {filteredVocabulary.length} words
+            {searchTerm && ` matching "${searchTerm}"`}
+          </>
+        )}
       </div>
 
       {/* Empty State */}
@@ -355,22 +398,32 @@ export function VocabularyList({ onAddNew, onEdit, clearSearchAndFocusRef }: Pro
         </div>
       )}
 
-      {/* Vocabulary Grid - Phase 16.4 Enhanced - Mobile Optimized */}
+      {/* Vocabulary Grid - Phase 16.4 Enhanced - Infinite Scroll */}
       {filteredVocabulary.length > 0 && (
-        <div className={
-          viewMode === 'grid' 
-            ? 'grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 w-full' 
-            : 'space-y-4 w-full'
-        }>
-          {filteredVocabulary.map(word => (
-            <VocabularyCardEnhanced
-              key={word.id}
-              word={word}
-              onEdit={onEdit}
-              onDelete={(word) => setShowDeleteConfirm(word.id)}
-            />
-          ))}
-        </div>
+        <>
+          <div className={
+            viewMode === 'grid' 
+              ? 'grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 w-full' 
+              : 'space-y-4 w-full'
+          }>
+            {visibleVocabulary.map(word => (
+              <VocabularyCardEnhanced
+                key={word.id}
+                word={word}
+                onEdit={onEdit}
+                onDelete={(word) => setShowDeleteConfirm(word.id)}
+              />
+            ))}
+          </div>
+
+          {/* Infinite Scroll Trigger */}
+          <ScrollTrigger
+            onLoadMore={loadMore}
+            isLoading={isLoadingMore}
+            hasMore={hasMore}
+            skeletonCount={3}
+          />
+        </>
       )}
 
       {/* Delete Confirmation Modal */}
