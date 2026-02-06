@@ -195,10 +195,10 @@ export function VocabularyList({ onAddNew, onEdit, clearSearchAndFocusRef }: Pro
         {viewMode === 'list' && (
           <Virtuoso
             style={{ height: 'calc(100vh - 400px)', minHeight: '400px' }}
-            totalCount={8}
+            data={Array.from({ length: 8 })}
             itemContent={(index) => (
               <div className="mb-4">
-                <VocabularyCardSkeleton key={`skeleton-${index}`} />
+                <VocabularyCardSkeleton />
               </div>
             )}
           />
@@ -382,14 +382,15 @@ export function VocabularyList({ onAddNew, onEdit, clearSearchAndFocusRef }: Pro
           {viewMode === 'list' && (
             <Virtuoso
               style={{ height: 'calc(100vh - 400px)', minHeight: '400px' }}
-              totalCount={filteredVocabulary.length}
+              data={filteredVocabulary}
               overscan={5}
-              itemContent={(index) => {
-                const word = filteredVocabulary[index];
+              itemContent={(index, word) => {
+                // Guard against undefined word during cache invalidation
+                if (!word) return null;
+                
                 return (
                   <div className="mb-4">
                     <VocabularyCardEnhanced
-                      key={word.id}
                       word={word}
                       onEdit={onEdit}
                       onDelete={(word) => setShowDeleteConfirm(word.id)}
