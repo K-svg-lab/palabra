@@ -232,6 +232,17 @@ Implement windowed rendering to only display visible cards (10-15 instead of 800
 
 ## 🔄 **STATUS UPDATES**
 
+### 2026-02-05 21:15 - 🐛 CRITICAL BUG FIX
+- **Issue:** React error #185 when accessing vocabulary tab
+- **Cause:** Virtuoso not handling cache invalidation correctly
+- **Fix Applied:**
+  - Changed from `totalCount` + manual indexing to `data` prop
+  - Removed `key` prop from itemContent (Virtuoso manages internally)
+  - Added null guard for undefined words during cache updates
+  - Applied same fix to skeleton loaders
+- **Commit:** `30c4d9f`
+- **Status:** ✅ Fixed and deployed
+
 ### 2026-02-05 20:30 - ✅ TIER 1 + TIER 2 COMPLETE
 - **Tier 1 (Skeleton Loaders):** ✅ Complete
   - Created VocabularyCardSkeleton component
