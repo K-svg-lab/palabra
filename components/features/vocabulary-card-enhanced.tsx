@@ -75,7 +75,10 @@ export function VocabularyCardEnhanced({
     e.stopPropagation();
     setIsPlayingAudio(true);
     try {
-      await playAudio(word.spanishWord, 'es-ES');
+      // Pass empty string for audioUrl (use browser TTS) and Spanish word as text
+      playAudio('', word.spanishWord);
+      // Wait a moment for audio to finish
+      await new Promise(resolve => setTimeout(resolve, 1000));
     } catch (error) {
       console.error('Failed to play audio:', error);
     } finally {
