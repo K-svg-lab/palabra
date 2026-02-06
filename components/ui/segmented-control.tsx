@@ -64,11 +64,12 @@ export function SegmentedControl({
             onClick={() => onChange(tab.id)}
             className={`
               relative
-              flex items-center justify-center gap-1.5
-              px-4 py-3
+              flex items-center justify-center gap-1
+              px-2 py-3
               flex-1
-              text-xs sm:text-sm font-medium
+              text-[10px] sm:text-xs md:text-sm font-medium
               transition-colors duration-200
+              min-w-0
               ${isActive
                 ? "text-blue-600 dark:text-blue-400"
                 : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
@@ -79,11 +80,11 @@ export function SegmentedControl({
             aria-controls={`${tab.id}-panel`}
           >
             {tab.icon && (
-              <span className="text-base sm:text-lg flex-shrink-0">
+              <span className="text-sm sm:text-base flex-shrink-0">
                 {tab.icon}
               </span>
             )}
-            <span className="whitespace-nowrap">{tab.label}</span>
+            <span className="truncate max-w-full">{tab.label}</span>
           </button>
         );
       })}

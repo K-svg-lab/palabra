@@ -44,39 +44,21 @@ export default function SettingsPage() {
         showProfile={true}
       />
 
-      {/* Tabs - Phase 16.4 Enhanced - Responsive */}
+      {/* Tabs - Phase 16.4 Enhanced - Responsive with proper text fitting */}
       <div className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800">
-        <div className="px-4 py-3 max-w-7xl mx-auto">
-          {/* Mobile: Compact labels */}
-          <div className="block md:hidden">
-            <SegmentedControl
-              tabs={[
-                { id: 'account', label: 'Account', icon: <User className="h-4 w-4" /> },
-                { id: 'notifications', label: 'Notif', icon: <Bell className="h-4 w-4" /> },
-                { id: 'tags', label: 'Tags', icon: <Tag className="h-4 w-4" /> },
-                { id: 'data', label: 'Data', icon: <Database className="h-4 w-4" /> },
-                { id: 'offline', label: 'Sync', icon: <CloudOff className="h-4 w-4" /> },
-              ]}
-              activeTab={activeTab}
-              onChange={(tabId) => setActiveTab(tabId as typeof activeTab)}
-              className="w-full"
-            />
-          </div>
-
-          {/* Desktop: Full labels */}
-          <div className="hidden md:flex justify-center">
-            <SegmentedControl
-              tabs={[
-                { id: 'account', label: 'Account', icon: <User className="h-4 w-4" /> },
-                { id: 'notifications', label: 'Notifications', icon: <Bell className="h-4 w-4" /> },
-                { id: 'tags', label: 'Tags', icon: <Tag className="h-4 w-4" /> },
-                { id: 'data', label: 'Data', icon: <Database className="h-4 w-4" /> },
-                { id: 'offline', label: 'Offline', icon: <CloudOff className="h-4 w-4" /> },
-              ]}
-              activeTab={activeTab}
-              onChange={(tabId) => setActiveTab(tabId as typeof activeTab)}
-            />
-          </div>
+        <div className="px-2 sm:px-4 py-3 max-w-7xl mx-auto overflow-x-hidden">
+          <SegmentedControl
+            tabs={[
+              { id: 'account', label: 'Account', icon: <User className="h-4 w-4" /> },
+              { id: 'notifications', label: 'Notif', icon: <Bell className="h-4 w-4" /> },
+              { id: 'tags', label: 'Tags', icon: <Tag className="h-4 w-4" /> },
+              { id: 'data', label: 'Data', icon: <Database className="h-4 w-4" /> },
+              { id: 'offline', label: 'Sync', icon: <CloudOff className="h-4 w-4" /> },
+            ]}
+            activeTab={activeTab}
+            onChange={(tabId) => setActiveTab(tabId as typeof activeTab)}
+            className="w-full"
+          />
         </div>
       </div>
 
