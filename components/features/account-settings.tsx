@@ -89,17 +89,18 @@ export function AccountSettings({ onAuthChanged }: AccountSettingsProps) {
         </h2>
         
         {user ? (
-          <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4">
-            <div className="flex items-start justify-between">
+          <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl overflow-hidden">
+            {/* User Info Section */}
+            <div className="p-4 bg-green-50 dark:bg-green-900/20">
               <div className="flex items-center gap-3">
                 <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white text-xl font-semibold">
                   {(user.name || user.email).charAt(0).toUpperCase()}
                 </div>
-                <div>
-                  <p className="font-medium text-gray-900 dark:text-gray-100">
+                <div className="flex-1 min-w-0">
+                  <p className="font-semibold text-gray-900 dark:text-gray-100">
                     {user.name || 'User'}
                   </p>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                  <p className="text-sm text-gray-600 dark:text-gray-400 truncate">
                     {user.email}
                   </p>
                   <div className="flex items-center gap-1 mt-1">
@@ -110,15 +111,41 @@ export function AccountSettings({ onAuthChanged }: AccountSettingsProps) {
                   </div>
                 </div>
               </div>
-              <button
-                onClick={handleSignOut}
-                disabled={signingOut}
-                className="px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors text-sm font-medium flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <LogOut className="w-4 h-4" />
-                {signingOut ? 'Signing out...' : 'Sign Out'}
-              </button>
             </div>
+
+            {/* Sign Out Row - iOS Style */}
+            <button
+              onClick={handleSignOut}
+              disabled={signingOut}
+              className="
+                w-full px-4 py-3.5
+                flex items-center justify-between
+                hover:bg-gray-50 dark:hover:bg-gray-800
+                transition-colors
+                disabled:opacity-50 disabled:cursor-not-allowed
+                border-t border-gray-200 dark:border-gray-700
+              "
+            >
+              <div className="flex items-center gap-3">
+                <LogOut className="w-5 h-5 text-red-600 dark:text-red-400" />
+                <span className="text-sm font-medium text-red-600 dark:text-red-400">
+                  {signingOut ? 'Signing out...' : 'Sign Out'}
+                </span>
+              </div>
+              <svg
+                className="w-5 h-5 text-gray-400"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M9 5l7 7-7 7"
+                />
+              </svg>
+            </button>
           </div>
         ) : (
           <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
