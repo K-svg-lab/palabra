@@ -271,71 +271,75 @@ export function VocabularyList({ onAddNew, onEdit, clearSearchAndFocusRef }: Pro
           </div>
         )}
 
-        {/* Filters and View Toggle - Phase 16.4 Enhanced */}
-        <div className="flex items-center justify-between gap-4">
-          <div className="flex gap-2 overflow-x-auto pb-2 flex-1">
+        {/* Filters and View Toggle - Phase 16.4 Enhanced - Mobile Optimized */}
+        <div className="space-y-3">
+          {/* Row 1: Filter Pills (full width on mobile) */}
+          <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
             <button
-            type="button"
-            onClick={() => setFilterStatus('all')}
-            className={`px-3 py-1.5 text-sm rounded-full whitespace-nowrap ${
-              filterStatus === 'all'
-                ? 'bg-accent text-white'
-                : 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300'
-            }`}
-          >
-            All
-          </button>
-          <button
-            type="button"
-            onClick={() => setFilterStatus('new')}
-            className={`px-3 py-1.5 text-sm rounded-full whitespace-nowrap ${
-              filterStatus === 'new'
-                ? 'bg-accent text-white'
-                : 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300'
-            }`}
-          >
-            New
-          </button>
-          <button
-            type="button"
-            onClick={() => setFilterStatus('learning')}
-            className={`px-3 py-1.5 text-sm rounded-full whitespace-nowrap ${
-              filterStatus === 'learning'
-                ? 'bg-accent text-white'
-                : 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300'
-            }`}
-          >
-            Learning
-          </button>
-          <button
-            type="button"
-            onClick={() => setFilterStatus('mastered')}
-            className={`px-3 py-1.5 text-sm rounded-full whitespace-nowrap ${
-              filterStatus === 'mastered'
-                ? 'bg-accent text-white'
-                : 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300'
-            }`}
-          >
-            Mastered
-          </button>
+              type="button"
+              onClick={() => setFilterStatus('all')}
+              className={`px-3 py-1.5 text-sm rounded-full whitespace-nowrap ${
+                filterStatus === 'all'
+                  ? 'bg-accent text-white'
+                  : 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300'
+              }`}
+            >
+              All
+            </button>
+            <button
+              type="button"
+              onClick={() => setFilterStatus('new')}
+              className={`px-3 py-1.5 text-sm rounded-full whitespace-nowrap ${
+                filterStatus === 'new'
+                  ? 'bg-accent text-white'
+                  : 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300'
+              }`}
+            >
+              New
+            </button>
+            <button
+              type="button"
+              onClick={() => setFilterStatus('learning')}
+              className={`px-3 py-1.5 text-sm rounded-full whitespace-nowrap ${
+                filterStatus === 'learning'
+                  ? 'bg-accent text-white'
+                  : 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300'
+              }`}
+            >
+              Learning
+            </button>
+            <button
+              type="button"
+              onClick={() => setFilterStatus('mastered')}
+              className={`px-3 py-1.5 text-sm rounded-full whitespace-nowrap ${
+                filterStatus === 'mastered'
+                  ? 'bg-accent text-white'
+                  : 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300'
+              }`}
+            >
+              Mastered
+            </button>
           </div>
-          
-          {/* View Toggle */}
-          <ViewToggle value={viewMode} onChange={setViewMode} />
-        </div>
 
-        {/* Sort */}
-        <div className="flex items-center gap-2">
-          <Filter className="w-4 h-4 text-gray-400" />
-          <select
-            value={sortBy}
-            onChange={(e) => setSortBy(e.target.value as any)}
-            className="text-sm px-3 py-1.5 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-black"
-          >
-            <option value="newest">Newest First</option>
-            <option value="oldest">Oldest First</option>
-            <option value="alphabetical">A-Z</option>
-          </select>
+          {/* Row 2: Sort and View Controls */}
+          <div className="flex items-center gap-2">
+            {/* Sort Dropdown */}
+            <div className="flex items-center gap-2 flex-1">
+              <Filter className="w-4 h-4 text-gray-400" />
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value as any)}
+                className="text-sm px-3 py-1.5 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-black flex-1 min-w-0"
+              >
+                <option value="newest">Newest First</option>
+                <option value="oldest">Oldest First</option>
+                <option value="alphabetical">A-Z</option>
+              </select>
+            </div>
+            
+            {/* View Toggle - Compact on right */}
+            <ViewToggle value={viewMode} onChange={setViewMode} />
+          </div>
         </div>
       </div>
 
@@ -376,9 +380,13 @@ export function VocabularyList({ onAddNew, onEdit, clearSearchAndFocusRef }: Pro
         </div>
       )}
 
-      {/* Vocabulary Grid - Phase 16.4 Enhanced */}
+      {/* Vocabulary Grid - Phase 16.4 Enhanced - Mobile Optimized */}
       {filteredVocabulary.length > 0 && (
-        <div className={viewMode === 'grid' ? 'grid gap-4 sm:grid-cols-2 lg:grid-cols-3' : 'space-y-4'}>
+        <div className={
+          viewMode === 'grid' 
+            ? 'grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 w-full' 
+            : 'space-y-4 w-full'
+        }>
           {filteredVocabulary.map(word => (
             <VocabularyCardEnhanced
               key={word.id}

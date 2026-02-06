@@ -111,49 +111,55 @@ export function VocabularyCardEnhanced({
         transition-all duration-300
         cursor-pointer
         group
+        w-full max-w-full min-w-0 overflow-hidden
       `}
     >
       {/* Main content */}
-      <div className="flex items-start justify-between mb-3">
-        <div className="flex-1 min-w-0">
-          {/* Spanish → English */}
-          <div className="flex items-baseline gap-2 mb-2">
-            <span className="text-2xl font-bold text-gray-900 dark:text-white truncate">
-              {word.spanishWord}
-            </span>
-            <span className="text-gray-400 flex-shrink-0">→</span>
-            <span className="text-lg text-gray-600 dark:text-gray-400 truncate">
-              {word.englishTranslation}
-            </span>
-          </div>
-          
-          {/* Part of speech & gender */}
-          <div className="flex items-center gap-2 text-sm text-gray-500 mb-2">
-            <span>📖 {word.partOfSpeech || 'Word'}</span>
-            {word.gender && <span>· {word.gender}</span>}
-            <span className={`ml-auto px-2 py-0.5 rounded-full text-xs font-medium ${config.badge}`}>
-              {config.label}
-            </span>
-          </div>
+      <div className="space-y-3 mb-3">
+        {/* Header: Audio button and Status badge */}
+        <div className="flex items-start justify-between">
+          {/* Audio button */}
+          <button
+            onClick={handlePlayAudio}
+            disabled={isPlayingAudio}
+            className="
+              p-2 rounded-lg
+              hover:bg-gray-100 dark:hover:bg-gray-800
+              transition-colors
+              flex-shrink-0
+            "
+            title="Play pronunciation"
+          >
+            <Volume2
+              className={`w-5 h-5 ${isPlayingAudio ? 'animate-pulse text-blue-600' : 'text-gray-600 dark:text-gray-400'}`}
+            />
+          </button>
+
+          {/* Status badge */}
+          <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${config.badge}`}>
+            {config.label}
+          </span>
         </div>
 
-        {/* Audio button */}
-        <button
-          onClick={handlePlayAudio}
-          disabled={isPlayingAudio}
-          className="
-            p-2 rounded-lg
-            hover:bg-gray-100 dark:hover:bg-gray-800
-            transition-colors
-            flex-shrink-0
-            ml-2
-          "
-          title="Play pronunciation"
-        >
-          <Volume2
-            className={`w-5 h-5 ${isPlayingAudio ? 'animate-pulse text-blue-600' : 'text-gray-600 dark:text-gray-400'}`}
-          />
-        </button>
+        {/* Spanish word - Full, no truncation */}
+        <div>
+          <h3 className="text-2xl font-bold text-gray-900 dark:text-white break-words">
+            {word.spanishWord}
+          </h3>
+        </div>
+
+        {/* English translation - Full, no truncation, indented */}
+        <div className="pl-4">
+          <p className="text-lg text-gray-600 dark:text-gray-400 break-words">
+            → {word.englishTranslation}
+          </p>
+        </div>
+        
+        {/* Part of speech & gender */}
+        <div className="flex items-center gap-2 text-sm text-gray-500">
+          <span>📖 {word.partOfSpeech || 'Word'}</span>
+          {word.gender && <span>· {word.gender}</span>}
+        </div>
       </div>
 
       {/* Example sentence */}
