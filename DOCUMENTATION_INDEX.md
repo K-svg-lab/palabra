@@ -2,8 +2,8 @@
 
 **Complete Documentation Navigator**
 
-**Last Updated:** January 13, 2026  
-**Project Status:** Phase 12 Complete (Production Ready)
+**Last Updated:** February 5, 2026  
+**Project Status:** Phase 17 Complete, Phase 16.1-16.2 Deployed (Production Ready)
 
 ---
 
@@ -16,9 +16,10 @@
 4. **[README_PRD.txt](./README_PRD.txt)** - Product requirements and roadmap
 
 ### For Deploying to Production
-1. **[palabra/DEPLOYMENT.md](./palabra/DEPLOYMENT.md)** - Deployment guide
-2. **[PHASE12_DEPLOYMENT.md](./PHASE12_DEPLOYMENT.md)** - Backend deployment specifics
-3. **[PHASE12_QUICK_START.md](./PHASE12_QUICK_START.md)** - 10-minute setup
+1. **[DEPLOYMENT.md](./DEPLOYMENT.md)** - General deployment guide
+2. **[PRODUCTION_DEPLOYMENT_COMPLETE.md](./PRODUCTION_DEPLOYMENT_COMPLETE.md)** - Current production status
+3. **[docs/deployments/2026-02/](./docs/deployments/2026-02/)** - Recent deployments (Feb 2026)
+4. **[docs/guides/setup/VERCEL_SETUP_GUIDE.md](./docs/guides/setup/VERCEL_SETUP_GUIDE.md)** - Vercel setup
 
 ### For Understanding Architecture Evolution
 1. **[BACKEND_EVOLUTION.md](./BACKEND_EVOLUTION.md)** - How we got here (Phase 1→12)
@@ -68,13 +69,26 @@ Spanish_Vocab/
 ├── PHASE12_HANDOFF.md                  # Handoff documentation
 ├── PHASE12_SUMMARY.md                  # Executive summary
 ├── PHASE12_QUICK_START.md              # Quick start guide
+├── PHASE13-15_*.md                     # UI improvements, voice input, translations
+├── PHASE16_COMPLETE.md                 # Verified cache & translation quality
+├── PHASE16_PLAN.md                     # Phase 16 specification
+├── PHASE16_IMPLEMENTATION.md           # Technical details
+├── PHASE16_TESTING.md                  # Test results
+├── PHASE16_HANDOFF.md                  # Quick start guide
+├── PHASE16_ROADMAP.md                  # Progress tracker (active)
+├── PHASE16.1_TASK*_COMPLETE.md         # Task completion docs
+├── PHASE16.2_TASK*_*.md                # Task status/completion docs
+├── PHASE17_COMPLETE.md                 # Dashboard redesign
+├── PHASE17_PLAN.md                     # Frontend redesign spec
 │
-└── palabra/                            # Application code
-    ├── README.md                       # App-specific README
-    ├── DEPLOYMENT.md                   # General deployment guide
-    ├── ICON_GUIDE.md                   # Icon usage guide
-    ├── NOTIFICATIONS_TESTING.md        # Notification testing
-    └── PHASE10_QUICK_START.md          # Phase 10 quick start
+├── 📁 docs/                            # Organized documentation
+│   ├── guides/                         # Setup, testing, troubleshooting
+│   ├── deployments/                    # Deployment history
+│   └── bug-fixes/                      # Bug fix records
+│
+└── 📁 archive/                         # Historical records
+    ├── debug-sessions/                 # Resolved debug sessions
+    └── ux-fixes/                       # Historical UX fixes
 ```
 
 ---
@@ -94,9 +108,11 @@ Spanish_Vocab/
 
 | Document | Purpose | When to Use |
 |----------|---------|-------------|
-| **[palabra/DEPLOYMENT.md](./palabra/DEPLOYMENT.md)** | General deployment guide for all platforms | First-time deployment |
+| **[PRODUCTION_DEPLOYMENT_COMPLETE.md](./PRODUCTION_DEPLOYMENT_COMPLETE.md)** | Current production status and info | Check what's live now |
+| **[DEPLOYMENT.md](./DEPLOYMENT.md)** | General deployment guide for all platforms | First-time deployment |
+| **[docs/deployments/2026-02/](./docs/deployments/2026-02/)** | Recent deployment history (Feb 2026) | Reference recent changes |
+| **[docs/guides/setup/VERCEL_SETUP_GUIDE.md](./docs/guides/setup/VERCEL_SETUP_GUIDE.md)** | Vercel-specific setup | Deploying to Vercel |
 | **[PHASE12_DEPLOYMENT.md](./PHASE12_DEPLOYMENT.md)** | Backend-specific deployment (database, auth) | Deploying with backend features |
-| **[PHASE12_QUICK_START.md](./PHASE12_QUICK_START.md)** | 10-minute local setup with backend | Quick testing, demos |
 
 ### 📋 Product & Planning
 

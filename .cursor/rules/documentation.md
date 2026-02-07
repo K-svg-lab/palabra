@@ -1,0 +1,244 @@
+# Documentation Standards
+
+## Purpose
+Maintain organized, discoverable, and up-to-date documentation to prevent proliferation of incremental documents and ensure consistency across the project.
+
+## Core Principles
+
+### 1. **Documentation Organization**
+
+All documentation MUST follow this structure:
+
+```
+project-root/
+├── README.md                           # Project overview (always updated)
+├── DOCUMENTATION_INDEX.md              # Master navigation (keep current)
+├── DOCUMENTATION_MAP.md                # Visual structure (keep current)
+├── PRODUCTION_DEPLOYMENT_COMPLETE.md   # Current production status
+├── PHASE{N}_ROADMAP.md                 # Active phase progress tracker
+├── PHASE{N}_COMPLETE.md                # Phase completion summary
+├── PHASE{N}_PLAN.md                    # Phase specification
+├── PHASE{N}_IMPLEMENTATION.md          # Technical details
+├── PHASE{N}_TESTING.md                 # Test results
+│
+├── docs/                               # Organized reference docs
+│   ├── guides/
+│   │   ├── setup/                      # Setup and configuration
+│   │   ├── testing/                    # Testing guides
+│   │   └── troubleshooting/            # Debug guides
+│   ├── deployments/
+│   │   ├── YYYY-MM/                    # Monthly deployment folders
+│   │   └── DEPLOYMENT_SUMMARY.md       # Overall deployment info
+│   └── bug-fixes/
+│       └── YYYY-MM/                    # Monthly bug fix folders
+│
+└── archive/                            # Historical documents
+    ├── debug-sessions/                 # Resolved debug sessions
+    └── ux-fixes/                       # Historical UX improvements
+```
+
+### 2. **Naming Conventions**
+
+#### Phase Documentation
+- **Progress Tracker**: `PHASE{N}_ROADMAP.md` (one per active phase, continuously updated)
+- **Completion Summary**: `PHASE{N}_COMPLETE.md` (created when phase done)
+- **Specification**: `PHASE{N}_PLAN.md` (created at phase start)
+- **Implementation**: `PHASE{N}_IMPLEMENTATION.md` (technical architecture)
+- **Testing**: `PHASE{N}_TESTING.md` (test results and validation)
+
+#### Sub-Phase/Task Documentation
+- **Task Completion**: `PHASE{N}.{SUB}_TASK{M}_COMPLETE.md`
+- **Task Status**: `PHASE{N}.{SUB}_TASK{M}_STATUS.md` (if ongoing)
+
+Example: `PHASE16.1_TASK3_COMPLETE.md` for Phase 16.1, Task 3 completion
+
+#### Incremental Documentation (in docs/ folders)
+- **Deployments**: `DEPLOYMENT_YYYY_MM_DD_DESCRIPTION.md`
+- **Bug Fixes**: `BUG_FIX_YYYY_MM_DD_DESCRIPTION.md`
+- **Debug Sessions**: `DEBUG_SESSION_YYYY_MM_DD.md` (archive after resolution)
+- **UX Fixes**: `UX_FIX_YYYY_MM_DD_DESCRIPTION.md` (archive after deployment)
+
+### 3. **Required Documents for New Phases**
+
+When starting ANY new phase, create these MANDATORY files:
+
+1. **`PHASE{N}_ROADMAP.md`** - Progress tracker (MOST IMPORTANT)
+   - Must include:
+     - Overall phase status
+     - Task breakdown with individual status tracking
+     - Time estimates and actual time spent
+     - Links to related documentation
+     - Next steps and blockers
+   - Update this file frequently (every task/milestone)
+   - This serves as THE guide during development
+
+2. **`PHASE{N}_PLAN.md`** - Specification
+   - Objectives and goals
+   - Technical approach
+   - Task breakdown
+   - Acceptance criteria
+
+3. **`PHASE{N}_IMPLEMENTATION.md`** - Technical details
+   - Architecture decisions
+   - Implementation notes
+   - Code changes summary
+
+4. **`PHASE{N}_TESTING.md`** - Validation
+   - Test plans
+   - Test results
+   - Known issues
+
+5. **`PHASE{N}_COMPLETE.md`** - Summary (created at end)
+   - Achievements
+   - Metrics
+   - Lessons learned
+   - Next phase handoff
+
+### 4. **Update Critical Navigation Documents**
+
+After ANY documentation change, update these files within the same commit:
+
+1. **`DOCUMENTATION_INDEX.md`**
+   - Add new phase sections
+   - Update "Last Updated" date
+   - Update "Project Status"
+   - Add new file references
+
+2. **`DOCUMENTATION_MAP.md`**
+   - Update visual structure
+   - Show new folders/organization
+
+3. **`PRODUCTION_DEPLOYMENT_COMPLETE.md`**
+   - Update after any deployment
+   - Include latest commit hash
+   - Update deployment date
+   - List new features
+
+### 5. **Document Lifecycle**
+
+#### Active Documents (Root Level)
+- Phase roadmaps, plans, completion docs
+- Master navigation (INDEX, MAP)
+- Production deployment status
+- Main README files
+
+#### Reference Documents (docs/ folder)
+- Guides that are referenced repeatedly
+- Setup and configuration docs
+- Testing guides
+- Deployment records (organized by month)
+- Bug fix records (organized by month)
+
+#### Archived Documents (archive/ folder)
+- Debug sessions (after resolution)
+- UX fixes (after deployment)
+- Superseded documents
+- Historical records
+
+**Archive Rule**: Move to `archive/` within 1 week of resolution/deployment
+
+### 6. **Anti-Patterns to AVOID**
+
+❌ **DO NOT**:
+- Create multiple incremental docs without a clear structure
+- Leave debug session docs in root after resolution
+- Create deployment docs without organizing by date
+- Start a phase without creating a roadmap first
+- Update code without updating progress trackers
+- Create duplicate documentation
+- Let navigation docs become outdated
+
+✅ **DO**:
+- Follow the folder structure strictly
+- Update progress trackers after each task
+- Archive resolved issues promptly
+- Keep navigation docs current
+- Use consistent naming conventions
+- Consolidate related information
+
+### 7. **Progress Tracker Template**
+
+Every phase MUST start with a progress tracker following this template:
+
+```markdown
+# PHASE{N}_ROADMAP.md
+
+## Overall Status
+- **Phase**: {N} - {Name}
+- **Status**: 🔄 IN PROGRESS / ✅ COMPLETE / ⏸️ PAUSED
+- **Started**: YYYY-MM-DD
+- **Last Updated**: YYYY-MM-DD
+- **Estimated Completion**: YYYY-MM-DD
+
+## Progress Summary
+{Brief 2-3 sentence summary of current state}
+
+## Task Breakdown
+
+### Task 1: {Name}
+- **Status**: ⏳ PENDING / 🔄 IN PROGRESS / ✅ COMPLETE
+- **Time Estimate**: Xh
+- **Time Spent**: Yh
+- **Key Deliverables**:
+  - [ ] Item 1
+  - [ ] Item 2
+- **Documentation**: `PHASE{N}_TASK1_COMPLETE.md`
+
+### Task 2: {Name}
+...
+
+## Related Documentation
+- Specification: `PHASE{N}_PLAN.md`
+- Implementation: `PHASE{N}_IMPLEMENTATION.md`
+- Testing: `PHASE{N}_TESTING.md`
+
+## Next Steps
+1. {Next action}
+2. {Next action}
+
+## Blockers
+- {Any blockers or dependencies}
+```
+
+### 8. **Commit Message Standards for Documentation**
+
+When updating documentation:
+
+```bash
+# Good commit messages
+docs: update PHASE16_ROADMAP after task 3 completion
+docs: reorganize deployment docs into monthly folders
+docs: archive debug sessions from January
+docs: update navigation after Phase 17 completion
+
+# Bad commit messages
+update docs
+fix
+wip
+```
+
+## Enforcement
+
+AI agents and developers MUST:
+1. Check this rule before creating any documentation
+2. Follow the structure and naming conventions exactly
+3. Update navigation documents with every change
+4. Create progress trackers before starting any phase
+5. Archive resolved issues within 1 week
+6. Never leave incremental docs scattered in root
+
+## Quick Reference
+
+| Action | Location | Naming | Update Navigation |
+|--------|----------|--------|-------------------|
+| Start Phase | Root | `PHASE{N}_ROADMAP.md` | Yes |
+| Complete Task | Root | `PHASE{N}.{SUB}_TASK{M}_COMPLETE.md` | Yes |
+| Deploy | `docs/deployments/YYYY-MM/` | `DEPLOYMENT_YYYY_MM_DD_DESC.md` | Yes |
+| Bug Fix | `docs/bug-fixes/YYYY-MM/` | `BUG_FIX_YYYY_MM_DD_DESC.md` | Yes (if significant) |
+| Debug Session | Root → `archive/` | `DEBUG_SESSION_YYYY_MM_DD.md` | No (after archive) |
+| Setup Guide | `docs/guides/setup/` | `{TOOL}_SETUP_GUIDE.md` | Yes (if new) |
+
+---
+
+**Last Updated**: February 5, 2026  
+**Version**: 1.0

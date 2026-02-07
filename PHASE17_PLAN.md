@@ -1,4 +1,4 @@
-# Phase 16.3: Dashboard Redesign Plan
+# Phase 17: Dashboard & Frontend Redesign Plan
 ## Apple-Inspired Visual Excellence for Home & Progress Dashboards
 
 **Created**: February 6, 2026  
@@ -6,6 +6,8 @@
 **Priority**: 🔴 HIGH - Core User Experience  
 **Estimated Time**: 8-12 hours  
 **Inspiration**: Apple Health, Apple Fitness+, Apple Music
+
+**Note**: This phase was originally planned as Phase 16.3 but has been separated into Phase 17 to distinguish frontend work from backend infrastructure (Phase 16).
 
 ---
 

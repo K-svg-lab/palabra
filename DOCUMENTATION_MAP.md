@@ -73,7 +73,7 @@
 │  └───────────────────────────────────────────────────┘          │
 │                                                                   │
 │  ┌───────────────────────────────────────────────────┐          │
-│  │  PHASE 12: Full Backend (Current)                 │          │
+│  │  PHASE 12: Full Backend                           │          │
 │  ├───────────────────────────────────────────────────┤          │
 │  │  PHASE12_COMPLETE.md      →  Complete details     │          │
 │  │  PHASE12_SUMMARY.md       →  Executive summary    │          │
@@ -81,14 +81,55 @@
 │  │  PHASE12_QUICK_START.md   →  10-min setup         │          │
 │  │  PHASE12_HANDOFF.md       →  Handoff docs         │          │
 │  └───────────────────────────────────────────────────┘          │
+│                                                                   │
+│  ┌───────────────────────────────────────────────────┐          │
+│  │  PHASE 13-15: Features & Improvements             │          │
+│  ├───────────────────────────────────────────────────┤          │
+│  │  PHASE13_SUMMARY.md       →  UI improvements      │          │
+│  │  PHASE14_VOICE_INPUT.md   →  Voice features       │          │
+│  │  PHASE15_ENHANCED_TRANSLATIONS.md                 │          │
+│  └───────────────────────────────────────────────────┘          │
+│                                                                   │
+│  ┌───────────────────────────────────────────────────┐          │
+│  │  PHASE 16: Verified Cache & Quality (Current)     │          │
+│  ├───────────────────────────────────────────────────┤          │
+│  │  PHASE16_ROADMAP.md       → ⭐ Progress tracker   │          │
+│  │  PHASE16_COMPLETE.md      →  16.0-16.1 summary   │          │
+│  │  PHASE16_PLAN.md          →  Full specification   │          │
+│  │  PHASE16_IMPLEMENTATION.md →  Tech details        │          │
+│  │  PHASE16_TESTING.md       →  Test results         │          │
+│  │  PHASE16_HANDOFF.md       →  Quick start          │          │
+│  │  PHASE16.1_TASK1-3_COMPLETE.md →  Task docs       │          │
+│  │  PHASE16.2_TASK1-2_*.md   →  Partial tasks        │          │
+│  └───────────────────────────────────────────────────┘          │
+│                                                                   │
+│  ┌───────────────────────────────────────────────────┐          │
+│  │  PHASE 17: Dashboard & Frontend Redesign          │          │
+│  ├───────────────────────────────────────────────────┤          │
+│  │  PHASE17_COMPLETE.md      →  Redesign summary     │          │
+│  │  PHASE17_PLAN.md          →  Redesign spec        │          │
+│  └───────────────────────────────────────────────────┘          │
 └─────────────────────────────────────────────────────────────────┘
                               ↓
 ┌─────────────────────────────────────────────────────────────────┐
-│                   DEPLOYMENT & OPERATIONS                        │
+│                   ORGANIZED DOCUMENTATION                         │
 │                                                                   │
-│  palabra/DEPLOYMENT.md    →  General deployment guide           │
-│  PHASE12_DEPLOYMENT.md    →  Backend deployment specifics       │
-│  PHASE12_QUICK_START.md   →  Local setup with backend           │
+│  docs/                                                           │
+│  ├── guides/                                                     │
+│  │   ├── setup/        →  Setup guides (Vercel, APIs, etc)     │
+│  │   ├── testing/      →  Testing guides (SM2, notifications)   │
+│  │   ├── logo/         →  Logo integration docs                 │
+│  │   └── troubleshooting/ →  Debug & troubleshooting           │
+│  ├── deployments/                                               │
+│  │   ├── 2026-01/      →  January deployments                   │
+│  │   └── 2026-02/      →  February deployments                  │
+│  └── bug-fixes/                                                 │
+│      ├── 2026-01/      →  January bug fixes                     │
+│      └── 2026-02/      →  February bug fixes                    │
+│                                                                   │
+│  archive/                                                        │
+│  ├── debug-sessions/   →  Resolved debug sessions               │
+│  └── ux-fixes/         →  Historical UX improvements            │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
