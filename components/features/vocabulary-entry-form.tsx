@@ -86,7 +86,7 @@ export function VocabularyEntryForm({ onSuccess, onCancel }: Props) {
 
   // Update examples when they become available
   useEffect(() => {
-    if (examplesData?.ready && examplesData.examples?.length > 0) {
+    if (examplesData?.ready && examplesData.examples && examplesData.examples.length > 0) {
       const newExamples = examplesData.examples;
       setLookupData(prev => ({
         ...prev!,
