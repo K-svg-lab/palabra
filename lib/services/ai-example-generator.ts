@@ -350,7 +350,7 @@ async function cacheExamples(
     await prisma.verifiedVocabulary.update({
       where: { id: existing.id },
       data: {
-        aiExamplesByLevel: examplesByLevel,
+        aiExamplesByLevel: examplesByLevel as any,
         aiExamplesGenerated: true,
         aiExamplesGeneratedAt: new Date(),
       },
@@ -365,7 +365,7 @@ async function cacheExamples(
         languagePair: 'es-en',
         targetWord: '', // Will be filled by vocabulary lookup
         primarySource: 'ai-generated',
-        aiExamplesByLevel: { [level]: examples },
+        aiExamplesByLevel: { [level]: examples } as any,
         aiExamplesGenerated: true,
         aiExamplesGeneratedAt: new Date(),
       },
