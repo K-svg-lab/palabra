@@ -443,7 +443,7 @@ export async function POST(request: NextRequest) {
       // Phase 18.1.3: Get AI examples for user's proficiency level
       let levelExamples: any[] = cachedWord.examples || [];
       try {
-        const session = await getSession(request);
+        const session = await getSession();
         const user = session?.userId ? await prisma.user.findUnique({
           where: { id: session.userId },
           select: { languageLevel: true },
@@ -672,7 +672,7 @@ export async function POST(request: NextRequest) {
     let aiExamples: any[] = [];
     try {
       // Get user's proficiency level (from session or default to B1)
-      const session = await getSession(request);
+      const session = await getSession();
       const user = session?.userId ? await prisma.user.findUnique({
         where: { id: session.userId },
         select: { languageLevel: true },

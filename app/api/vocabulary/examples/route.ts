@@ -25,7 +25,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Get user's proficiency level
-    const session = await getSession(request);
+    const session = await getSession();
     const user = session?.userId ? await prisma.user.findUnique({
       where: { id: session.userId },
       select: { languageLevel: true },
