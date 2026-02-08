@@ -41,6 +41,19 @@ export interface LearningStats {
   newWordsThisWeek?: number;
   reviewsThisWeek?: number;
   averageAccuracyThisWeek?: number;
+  
+  // Phase 18.1: Proficiency tracking (optional)
+  userId?: string;
+  languageLevel?: string;
+  levelAssessedAt?: Date;
+  
+  // Optional: Pre-computed proficiency assessment (from server)
+  proficiencyInsight?: {
+    suggestedLevel: string;
+    currentLevel: string;
+    reason: string;
+    confidence: number;
+  };
 }
 
 /**
@@ -48,6 +61,40 @@ export interface LearningStats {
  */
 export function generateInsights(stats: LearningStats): Insight[] {
   const insights: Insight[] = [];
+  
+  // Phase 18.1: Proficiency assessment insights (if pre-computed on server)
+  if (stats.proficiencyInsight) {
+    const { suggestedLevel, currentLevel, reason, confidence } = stats.proficiencyInsight;
+    
+    if (confidence > 0.7) {
+      const levelIndex = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'].indexOf(currentLevel);
+      const suggestedIndex = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'].indexOf(suggestedLevel);
+      
+      if (suggestedIndex > levelIndex) {
+        // Level up suggestion
+        insights.push({
+          id: 'proficiency-level-up',
+          type: 'milestone',
+          icon: '🎓',
+          title: `Ready for ${suggestedLevel}?`,
+          description: reason,
+          gradient: { from: '#667EEA', to: '#764BA2' },
+          priority: 95,
+        });
+      } else if (suggestedIndex < levelIndex) {
+        // Level down suggestion (be gentle)
+        insights.push({
+          id: 'proficiency-adjust',
+          type: 'tip',
+          icon: '💡',
+          title: 'Consider adjusting your level',
+          description: reason,
+          gradient: { from: '#4A90E2', to: '#50E3C2' },
+          priority: 85,
+        });
+      }
+    }
+  }
   
   // Streak achievements
   if (stats.currentStreak >= 30) {

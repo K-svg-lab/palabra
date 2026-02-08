@@ -33,6 +33,16 @@ async function handler(request: NextRequest) {
         emailVerified: true,
         createdAt: true,
         updatedAt: true,
+        // Phase 18.1: Proficiency tracking
+        languageLevel: true,
+        nativeLanguage: true,
+        targetLanguage: true,
+        assessedLevel: true,
+        levelAssessedAt: true,
+        levelConfidence: true,
+        dailyGoal: true,
+        sessionLength: true,
+        preferredTime: true,
       },
     });
     

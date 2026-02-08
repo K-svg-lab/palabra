@@ -9,13 +9,15 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { Volume2, Loader2, Check, X, AlertCircle } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
 import { useLookupVocabulary, useAddVocabulary } from '@/lib/hooks/use-vocabulary';
 import { playAudio, isTTSAvailable } from '@/lib/services/audio';
 import { checkSpanishSpelling } from '@/lib/services/spellcheck';
 import type { VocabularyWord, Gender, PartOfSpeech } from '@/lib/types/vocabulary';
+import { ExamplesCarousel } from '@/components/features/examples-carousel';
 
 interface VocabularyFormData {
   spanishWord: string;
@@ -48,12 +50,47 @@ export function VocabularyEntryForm({ onSuccess, onCancel }: Props) {
   } | null>(null);
   const [isCheckingSpelling, setIsCheckingSpelling] = useState(false);
   const [lastLookedUpWord, setLastLookedUpWord] = useState<string>('');
+  const [pollForExamples, setPollForExamples] = useState(false);
   
   const { register, handleSubmit, watch, setValue, formState: { errors } } = useForm<VocabularyFormData>();
   const lookupMutation = useLookupVocabulary();
   const addMutation = useAddVocabulary();
 
   const spanishWord = watch('spanishWord');
+
+  // Poll for AI examples after initial lookup
+  const { data: examplesData } = useQuery({
+    queryKey: ['ai-examples', lastLookedUpWord],
+    queryFn: async () => {
+      if (!lastLookedUpWord) return null;
+      const response = await fetch(`/api/vocabulary/examples?word=${encodeURIComponent(lastLookedUpWord)}`);
+      return response.json();
+    },
+    enabled: pollForExamples && !!lastLookedUpWord,
+    refetchInterval: (data) => {
+      // Stop polling when examples are ready
+      if (data?.ready) {
+        return false;
+      }
+      // Poll every 1 second while waiting
+      return 1000;
+    },
+    refetchOnWindowFocus: false,
+  });
+
+  // Update examples when they become available
+  useEffect(() => {
+    if (examplesData?.ready && examplesData.examples?.length > 0) {
+      const newExamples = examplesData.examples;
+      setLookupData(prev => ({
+        ...prev!,
+        examples: newExamples,
+      }));
+      setValue('exampleSpanish', newExamples[0].spanish);
+      setValue('exampleEnglish', newExamples[0].english);
+      setPollForExamples(false); // Stop polling
+    }
+  }, [examplesData, setValue]);
 
   const handleLookup = async () => {
     if (!spanishWord || spanishWord.trim().length === 0) return;
@@ -83,8 +120,14 @@ export function VocabularyEntryForm({ onSuccess, onCancel }: Props) {
       setValue('partOfSpeech', data.partOfSpeech);
       
       if (data.examples && data.examples.length > 0) {
+        // Examples available immediately (cached)
         setValue('exampleSpanish', data.examples[0].spanish);
         setValue('exampleEnglish', data.examples[0].english);
+        setPollForExamples(false);
+      } else {
+        // No examples yet, start polling for AI generation
+        console.log('[Form] Starting to poll for AI examples...');
+        setPollForExamples(true);
       }
     } catch (error) {
       console.error('Lookup error:', error);
@@ -336,26 +379,57 @@ export function VocabularyEntryForm({ onSuccess, onCancel }: Props) {
             </div>
           </div>
 
-          {/* Example Sentence */}
-          {lookupData.examples && lookupData.examples.length > 0 && (
-            <div className="space-y-2">
+          {/* Example Sentence - Progressive loading */}
+          {(lookupData.examples && lookupData.examples.length > 0) || pollForExamples ? (
+            <div className="space-y-3">
               <label className="block text-xs font-medium text-gray-600 dark:text-gray-400">
                 Example Sentence
               </label>
-              <input
-                type="text"
-                {...register('exampleSpanish')}
-                placeholder="Spanish example"
-                className="w-full px-3 py-2 rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-black focus:ring-2 focus:ring-accent focus:border-transparent"
-              />
-              <input
-                type="text"
-                {...register('exampleEnglish')}
-                placeholder="English translation"
-                className="w-full px-3 py-2 rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-black focus:ring-2 focus:ring-accent focus:border-transparent"
-              />
+              
+              {/* Show loading state while generating */}
+              {pollForExamples && (!lookupData.examples || lookupData.examples.length === 0) ? (
+                <div className="p-4 bg-gray-50 dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700">
+                  <div className="flex items-center gap-3">
+                    <Loader2 className="w-4 h-4 animate-spin text-accent" />
+                    <span className="text-sm text-gray-600 dark:text-gray-400">
+                      Generating contextual example...
+                    </span>
+                  </div>
+                </div>
+              ) : lookupData.examples && lookupData.examples.length > 0 ? (
+                /* Display example once ready */
+                <div className="p-4 bg-gray-50 dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700">
+                  <p className="text-sm text-gray-900 dark:text-gray-100 mb-2 italic">
+                    &ldquo;{lookupData.examples[0].spanish}&rdquo;
+                  </p>
+                  <p className="text-xs text-gray-600 dark:text-gray-400">
+                    &ldquo;{lookupData.examples[0].english}&rdquo;
+                  </p>
+                </div>
+              ) : null}
+
+              {/* Editable example fields (prepopulated with example when ready) */}
+              {lookupData.examples && lookupData.examples.length > 0 && (
+                <div className="space-y-2 pt-2 border-t border-gray-200 dark:border-gray-700">
+                  <label className="block text-xs font-medium text-gray-600 dark:text-gray-400">
+                    Edit Example (Optional)
+                  </label>
+                  <input
+                    type="text"
+                    {...register('exampleSpanish')}
+                    placeholder="Spanish example"
+                    className="w-full px-3 py-2 text-sm rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-black focus:ring-2 focus:ring-accent focus:border-transparent"
+                  />
+                  <input
+                    type="text"
+                    {...register('exampleEnglish')}
+                    placeholder="English translation"
+                    className="w-full px-3 py-2 text-sm rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-black focus:ring-2 focus:ring-accent focus:border-transparent"
+                  />
+                </div>
+              )}
             </div>
-          )}
+          ) : null}
 
           {/* Pronunciation */}
           <div className="space-y-1">

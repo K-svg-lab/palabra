@@ -13,7 +13,8 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useVocabularyStats, useTodayStats } from '@/lib/hooks/use-vocabulary';
 import { OnboardingWelcome } from '@/components/features/onboarding-welcome';
-import { hasCompletedOnboarding, completeOnboarding } from '@/lib/utils/onboarding';
+import { OnboardingProficiency } from '@/components/features/onboarding-proficiency';
+import { hasCompletedOnboarding, completeOnboarding, hasCompletedProficiencyOnboarding, completeProficiencyOnboarding } from '@/lib/utils/onboarding';
 import { usePullToRefresh } from '@/lib/hooks/use-pull-to-refresh';
 import { ActivityRing, StatPill } from '@/components/features/activity-ring';
 import { StatCardEnhanced } from '@/components/ui/stat-card-enhanced';
@@ -21,6 +22,7 @@ import { ActionCard } from '@/components/ui/action-card';
 import { InsightsGrid } from '@/components/features/insight-card';
 import { StreakCardHero } from '@/components/features/streak-card-hero';
 import { AppHeader } from '@/components/ui/app-header';
+import { GuestModeBanner } from '@/components/ui/guest-mode-banner';
 import { generateInsights, type LearningStats } from '@/lib/utils/insights';
 import { calculateCurrentStreak, formatStudyTime } from '@/lib/utils/progress';
 import { getRecentStats } from '@/lib/db/stats';
@@ -37,12 +39,14 @@ export default function HomePage() {
   const { data: todayData, refetch: refetchTodayStats } = useTodayStats();
   const router = useRouter();
   const [showOnboarding, setShowOnboarding] = useState(false);
+  const [showProficiencyOnboarding, setShowProficiencyOnboarding] = useState(false);
   const [insights, setInsights] = useState<any[]>([]);
   const [currentStreak, setCurrentStreak] = useState(0);
   
   // User state
   const [user, setUser] = useState<any>(null);
   const [userLoading, setUserLoading] = useState(true);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   const hasVocabulary = (stats?.total || 0) > 0;
   
@@ -62,7 +66,8 @@ export default function HomePage() {
     },
   });
 
-  // Check authentication status
+  // Check authentication status and proficiency onboarding
+  // Guest Mode (Feb 8, 2026): Allow unauthenticated users to use app with local data
   useEffect(() => {
     async function checkAuth() {
       try {
@@ -70,15 +75,28 @@ export default function HomePage() {
         if (response.ok) {
           const data = await response.json();
           setUser(data.user);
+          setIsAuthenticated(true);
+          
+          // Phase 18.1: Check if user needs proficiency onboarding
+          if (data.user && !data.user.languageLevel && !hasCompletedProficiencyOnboarding()) {
+            setShowProficiencyOnboarding(true);
+          }
+        } else {
+          // Not authenticated - GUEST MODE (works with local IndexedDB)
+          setIsAuthenticated(false);
+          setUser(null);
         }
       } catch (error) {
-        console.log('Not authenticated');
+        // Network error or not authenticated - GUEST MODE
+        console.log('Not authenticated - using guest mode');
+        setIsAuthenticated(false);
+        setUser(null);
       } finally {
         setUserLoading(false);
       }
     }
     checkAuth();
-  }, []);
+  }, [router]);
 
   // Check if user needs onboarding (only on mount)
   useEffect(() => {
@@ -117,7 +135,28 @@ export default function HomePage() {
           return count;
         }));
 
-        // Generate insights
+        // Phase 18.1: Fetch proficiency assessment from API if user is authenticated
+        let proficiencyInsight = undefined;
+        if (user?.id && stats.total >= 20) {
+          try {
+            const profResponse = await fetch('/api/user/proficiency');
+            if (profResponse.ok) {
+              const profData = await profResponse.json();
+              if (profData.assessment?.shouldNotify) {
+                proficiencyInsight = {
+                  suggestedLevel: profData.assessment.suggestedLevel,
+                  currentLevel: profData.assessment.currentLevel,
+                  reason: profData.assessment.reason,
+                  confidence: profData.assessment.confidence,
+                };
+              }
+            }
+          } catch (error) {
+            console.log('Proficiency assessment not available:', error);
+          }
+        }
+
+        // Generate insights with user proficiency data
         const learningStats: LearningStats = {
           cardsReviewedToday: todayStats.cardsReviewed,
           newWordsAddedToday: todayStats.newWordsAdded,
@@ -133,6 +172,11 @@ export default function HomePage() {
           learningWords: stats.learning || 0,
           masteredWords: stats.mastered || 0,
           newWordsThisWeek: recentStats.slice(0, 7).reduce((sum, s) => sum + s.newWordsAdded, 0),
+          // Phase 18.1: Add user proficiency data
+          userId: user?.id,
+          languageLevel: user?.languageLevel,
+          levelAssessedAt: user?.levelAssessedAt,
+          proficiencyInsight,
         };
 
         const generatedInsights = generateInsights(learningStats);
@@ -143,7 +187,7 @@ export default function HomePage() {
     }
 
     loadInsightsAndStreak();
-  }, [stats, todayStats]);
+  }, [stats, todayStats, user]);
 
   // Keyboard shortcut: Shift+A to add new word (navigate to vocabulary page)
   useEffect(() => {
@@ -173,6 +217,57 @@ export default function HomePage() {
     setShowOnboarding(false);
   };
 
+  // Phase 18.1: Handle proficiency onboarding
+  const handleProficiencyOnboardingComplete = async (data: {
+    nativeLanguage: string;
+    targetLanguage: string;
+    languageLevel: string;
+    dailyGoal: number;
+  }) => {
+    try {
+      // Update user profile via API
+      const response = await fetch('/api/user/proficiency', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+
+      if (response.ok) {
+        completeProficiencyOnboarding();
+        setShowProficiencyOnboarding(false);
+        // Refresh user data
+        const meResponse = await fetch('/api/auth/me');
+        if (meResponse.ok) {
+          const userData = await meResponse.json();
+          setUser(userData.user);
+        }
+      } else {
+        console.error('Failed to update proficiency');
+      }
+    } catch (error) {
+      console.error('Error updating proficiency:', error);
+    }
+  };
+
+  const handleProficiencyOnboardingSkip = () => {
+    completeProficiencyOnboarding();
+    setShowProficiencyOnboarding(false);
+  };
+
+  // Show loading state while checking authentication
+  if (userLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-black">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600 dark:text-gray-400">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Guest Mode: Render dashboard even if not authenticated (uses local IndexedDB)
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-black pb-20">
       {/* Pull-to-refresh indicator */}
@@ -190,6 +285,14 @@ export default function HomePage() {
           onSkip={handleOnboardingSkip}
         />
       )}
+
+      {/* Phase 18.1: Proficiency Onboarding */}
+      {showProficiencyOnboarding && user && (
+        <OnboardingProficiency
+          onComplete={handleProficiencyOnboardingComplete}
+          onSkip={handleProficiencyOnboardingSkip}
+        />
+      )}
       {/* Header */}
       <AppHeader
         icon="🏠"
@@ -201,6 +304,11 @@ export default function HomePage() {
 
       {/* Main content */}
       <div className="px-4 py-6 max-w-7xl mx-auto space-y-8">
+        
+        {/* Guest Mode Banner - Show if not authenticated and has words */}
+        {!isAuthenticated && (
+          <GuestModeBanner wordCount={stats?.total || 0} threshold={5} />
+        )}
         {/* Hero Activity Ring */}
         {hasVocabulary && dueCount > 0 && (
           <section className="animate-fadeIn">

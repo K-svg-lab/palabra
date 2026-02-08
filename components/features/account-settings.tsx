@@ -6,9 +6,10 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { User, LogOut, Cloud, Smartphone } from 'lucide-react';
+import { User, LogOut, Cloud, Smartphone, GraduationCap } from 'lucide-react';
 import Link from 'next/link';
 import { clearAllUserData } from '@/lib/db/schema';
+import { type CEFRLevel, CEFR_LEVELS, getLevelDescription } from '@/lib/types/proficiency';
 
 interface AccountSettingsProps {
   onAuthChanged?: () => void;
@@ -22,6 +23,8 @@ export function AccountSettings({ onAuthChanged }: AccountSettingsProps) {
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [signingOut, setSigningOut] = useState(false);
+  const [proficiencyLevel, setProficiencyLevel] = useState<CEFRLevel>('B1');
+  const [updatingLevel, setUpdatingLevel] = useState(false);
 
   useEffect(() => {
     checkAuth();
@@ -33,11 +36,37 @@ export function AccountSettings({ onAuthChanged }: AccountSettingsProps) {
       if (response.ok) {
         const data = await response.json();
         setUser(data.user);
+        if (data.user?.languageLevel) {
+          setProficiencyLevel(data.user.languageLevel as CEFRLevel);
+        }
       }
     } catch (error) {
       console.log('Not authenticated');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleUpdateProficiency = async (newLevel: CEFRLevel) => {
+    if (!user) return;
+    
+    try {
+      setUpdatingLevel(true);
+      const response = await fetch('/api/user/proficiency', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ languageLevel: newLevel }),
+      });
+      
+      if (response.ok) {
+        setProficiencyLevel(newLevel);
+        setUser({ ...user, languageLevel: newLevel });
+        onAuthChanged?.();
+      }
+    } catch (error) {
+      console.error('Failed to update proficiency:', error);
+    } finally {
+      setUpdatingLevel(false);
     }
   };
 
@@ -179,6 +208,60 @@ export function AccountSettings({ onAuthChanged }: AccountSettingsProps) {
           </div>
         )}
       </div>
+
+      {/* Proficiency Level - Phase 18.1.1 */}
+      {user && (
+        <div>
+          <h2 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4 flex items-center gap-2">
+            <GraduationCap className="w-5 h-5" />
+            Language Proficiency
+          </h2>
+          
+          <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-3 sm:p-4">
+            <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-3 sm:mb-4">
+              Your Spanish level helps us personalize your learning experience. We'll adjust automatically based on your performance.
+            </p>
+            
+            <div className="space-y-2">
+              <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Current Level: <span className="text-blue-600 dark:text-blue-400 font-semibold">{proficiencyLevel}</span>
+              </label>
+              
+              <select
+                value={proficiencyLevel}
+                onChange={(e) => handleUpdateProficiency(e.target.value as CEFRLevel)}
+                disabled={updatingLevel}
+                className="w-full px-3 py-2.5 text-sm sm:text-base bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed min-h-[44px]"
+              >
+                {CEFR_LEVELS.map((level) => (
+                  <option key={level} value={level}>
+                    {level} - {getLevelDescription(level)}
+                  </option>
+                ))}
+              </select>
+              
+              {updatingLevel && (
+                <p className="text-xs text-blue-600 dark:text-blue-400 mt-2 flex items-center gap-2">
+                  <svg className="animate-spin h-3 w-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Updating...
+                </p>
+              )}
+            </div>
+            
+            <div className="mt-3 sm:mt-4 pt-3 sm:pt-4 border-t border-gray-200 dark:border-gray-800">
+              <div className="flex items-start gap-2">
+                <div className="text-blue-600 dark:text-blue-400 text-sm flex-shrink-0">💡</div>
+                <p className="text-xs text-gray-600 dark:text-gray-400">
+                  <strong>Tip:</strong> Don't worry about getting it perfect. We'll suggest adjustments after analyzing your reviews.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Cloud Sync Benefits */}
       <div>

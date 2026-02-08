@@ -2,10 +2,12 @@
 
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { User, Settings, LogOut, ChevronDown } from "lucide-react";
+import { performLogout } from "@/lib/utils/logout";
 
 /**
- * UserProfileChip Component - Phase 16.4
+ * UserProfileChip Component - Phase 16.4 + Security Fix (Feb 8, 2026)
  * 
  * Consistent user profile widget across all pages.
  * 
@@ -15,6 +17,7 @@ import { User, Settings, LogOut, ChevronDown } from "lucide-react";
  * - Quick actions (Profile, Settings, Logout)
  * - Smooth animations
  * - Click outside to close
+ * - **SECURITY FIX**: Real authentication check, proper logout implementation
  */
 
 interface UserProfileChipProps {
@@ -22,17 +25,42 @@ interface UserProfileChipProps {
   transparent?: boolean;
 }
 
+interface UserData {
+  name: string;
+  email: string;
+  avatar?: string | null;
+}
+
 export function UserProfileChip({ transparent = false }: UserProfileChipProps) {
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
+  const [user, setUser] = useState<UserData | null>(null);
+  const [loading, setLoading] = useState(true);
   const menuRef = useRef<HTMLDivElement>(null);
 
-  // Mock user data - replace with actual user context
-  const user = {
-    name: "Kalvin",
-    email: "kbrookes2507@gmail.com",
-    avatar: null, // Set to URL if available
-  };
+  // Fetch real user data from API
+  useEffect(() => {
+    async function fetchUser() {
+      try {
+        const response = await fetch('/api/auth/me');
+        if (response.ok) {
+          const data = await response.json();
+          if (data.user) {
+            setUser({
+              name: data.user.name || 'User',
+              email: data.user.email || '',
+              avatar: null,
+            });
+          }
+        }
+      } catch (error) {
+        console.error('Failed to fetch user:', error);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchUser();
+  }, []);
 
   // Get user initials
   const getInitials = (name: string) => {
@@ -78,15 +106,46 @@ export function UserProfileChip({ transparent = false }: UserProfileChipProps) {
     {
       icon: LogOut,
       label: "Sign Out",
-      onClick: () => {
+      onClick: async () => {
         setIsOpen(false);
-        // Implement logout logic
-        console.log("Logout clicked");
+        // Perform complete logout (clears all data)
+        await performLogout();
       },
       danger: true,
     },
   ];
 
+  // Show loading state
+  if (loading) {
+    return (
+      <div className="w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-800 animate-pulse" />
+    );
+  }
+
+  // Guest Mode: Show "Sign In" button if no user
+  if (!user) {
+    return (
+      <Link
+        href="/signin"
+        className={`
+          flex items-center gap-2
+          px-4 py-2
+          rounded-full
+          transition-all duration-200
+          font-medium text-sm
+          ${transparent
+            ? "bg-white/20 hover:bg-white/30 backdrop-blur-md text-white"
+            : "bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg shadow-blue-500/30"
+          }
+        `}
+      >
+        <User className="w-4 h-4" />
+        <span className="hidden sm:inline">Sign In</span>
+      </Link>
+    );
+  }
+
+  // Authenticated: Show full profile chip
   return (
     <div className="relative" ref={menuRef}>
       {/* Profile button */}

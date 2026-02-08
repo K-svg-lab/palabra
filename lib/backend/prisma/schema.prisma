@@ -20,21 +20,39 @@ model User {
   email         String    @unique
   emailVerified DateTime?
   image         String?
-  password      String?   // For credentials login (hashed)
+  password      String? // For credentials login (hashed)
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
+  // Phase 18.1: Proficiency tracking
+  languageLevel   String? // A1, A2, B1, B2, C1, C2 (CEFR) - null until onboarding
+  nativeLanguage  String? // Set during onboarding
+  targetLanguage  String? // Set during onboarding
+  assessedLevel   String? // AI-assessed based on performance
+  levelAssessedAt DateTime?
+  levelConfidence Float? // 0-1 confidence in assessment
+
+  // Phase 18.1: Learning preferences
+  dailyGoal     Int? // Words per day - set during onboarding
+  sessionLength Int?    @default(15) // Minutes
+  preferredTime String? // "morning", "afternoon", "evening"
+
   // Relations
-  accounts      Account[]
-  sessions      Session[]
-  vocabulary    VocabularyItem[]
-  reviews       Review[]
-  studySessions StudySession[]
-  dailyStats    DailyStats[]
-  settings      UserSettings?
-  tags          Tag[]
-  syncLog       SyncLog[]
+  accounts                Account[]
+  sessions                Session[]
+  vocabulary              VocabularyItem[]
+  reviews                 Review[]
+  studySessions           StudySession[]
+  dailyStats              DailyStats[]
+  settings                UserSettings?
+  tags                    Tag[]
+  syncLog                 SyncLog[]
   vocabularyVerifications VocabularyVerification[]
+
+  // Phase 18.1.2: Retention tracking
+  reviewAttempts ReviewAttempt[]
+  reviewSessions ReviewSession[]
+  userCohort     UserCohort?
 
   @@index([email])
 }
@@ -82,50 +100,55 @@ model VerificationToken {
 // ============================================================================
 
 model VocabularyItem {
-  id                String   @id @default(cuid())
-  userId            String
-  
+  id     String @id @default(cuid())
+  userId String
+
   // Core vocabulary data
-  spanish           String
-  english           String
-  partOfSpeech      String?
-  gender            String?
-  level             String   @default("beginner")
-  
+  spanish      String
+  english      String
+  partOfSpeech String?
+  gender       String?
+  level        String  @default("beginner")
+
   // Additional information
-  examples          Json?    // Array of example objects
-  notes             String?  @db.Text
-  images            Json?    // Array of image URLs
-  audio             Json?    // Audio file references
-  synonyms          Json?    // Array of synonyms
-  antonyms          Json?    // Array of antonyms
-  relatedWords      Json?    // Array of related words
-  conjugations      Json?    // Verb conjugation table
-  
+  examples     Json? // Array of example objects
+  notes        String? @db.Text
+  images       Json? // Array of image URLs
+  audio        Json? // Audio file references
+  synonyms     Json? // Array of synonyms
+  antonyms     Json? // Array of antonyms
+  relatedWords Json? // Array of related words
+  conjugations Json? // Verb conjugation table
+
   // Learning progress
-  status            String   @default("new") // new, learning, mastered
-  difficulty        Float    @default(0)
-  easeFactor        Float    @default(2.5)
-  interval          Int      @default(0)
-  repetitions       Int      @default(0)
-  lastReviewDate    DateTime?
-  nextReviewDate    DateTime?
-  
+  status         String    @default("new") // new, learning, mastered
+  difficulty     Float     @default(0)
+  easeFactor     Float     @default(2.5)
+  interval       Int       @default(0)
+  repetitions    Int       @default(0)
+  lastReviewDate DateTime?
+  nextReviewDate DateTime?
+
+  // Phase 18.1.2: Method performance tracking
+  // Tracks accuracy and count for each review method
+  // Format: { "traditional": { "accuracy": 0.85, "count": 20 }, "fill_blank": { "accuracy": 0.90, "count": 15 }, ... }
+  methodPerformance Json? @db.JsonB
+
   // Metadata
-  source            String?  // Where the word came from
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
-  
+  source    String? // Where the word came from
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   // Sync metadata
-  version           Int      @default(1)
-  lastSyncedAt      DateTime @default(now())
-  isDeleted         Boolean  @default(false)
-  
+  version      Int      @default(1)
+  lastSyncedAt DateTime @default(now())
+  isDeleted    Boolean  @default(false)
+
   // Relations
-  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  reviews           Review[]
-  tags              Tag[]    @relation("VocabularyTags")
-  
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  reviews Review[]
+  tags    Tag[]    @relation("VocabularyTags")
+
   @@index([userId])
   @@index([userId, status])
   @@index([userId, nextReviewDate])
@@ -134,33 +157,33 @@ model VocabularyItem {
 }
 
 model Review {
-  id              String         @id @default(cuid())
-  userId          String
-  vocabularyId    String
-  sessionId       String?
-  
+  id           String  @id @default(cuid())
+  userId       String
+  vocabularyId String
+  sessionId    String?
+
   // Review details
-  reviewType      String         // recognition, recall, listening
-  direction       String         @default("spanish-english")
-  quality         Int            // 0-5 (Forgot to Easy)
-  timeSpent       Int            // milliseconds
-  correct         Boolean
-  
+  reviewType String // recognition, recall, listening
+  direction  String  @default("spanish-english")
+  quality    Int // 0-5 (Forgot to Easy)
+  timeSpent  Int // milliseconds
+  correct    Boolean
+
   // Context
-  reviewDate      DateTime       @default(now())
-  difficulty      Float          // Difficulty at time of review
-  interval        Int            // Interval at time of review
-  
+  reviewDate DateTime @default(now())
+  difficulty Float // Difficulty at time of review
+  interval   Int // Interval at time of review
+
   // Sync metadata
-  version         Int            @default(1)
-  lastSyncedAt    DateTime       @default(now())
-  isDeleted       Boolean        @default(false)
-  
+  version      Int      @default(1)
+  lastSyncedAt DateTime @default(now())
+  isDeleted    Boolean  @default(false)
+
   // Relations
-  user            User           @relation(fields: [userId], references: [id], onDelete: Cascade)
-  vocabulary      VocabularyItem @relation(fields: [vocabularyId], references: [id], onDelete: Cascade)
-  session         StudySession?  @relation(fields: [sessionId], references: [id], onDelete: SetNull)
-  
+  user       User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  vocabulary VocabularyItem @relation(fields: [vocabularyId], references: [id], onDelete: Cascade)
+  session    StudySession?  @relation(fields: [sessionId], references: [id], onDelete: SetNull)
+
   @@index([userId])
   @@index([vocabularyId])
   @@index([sessionId])
@@ -169,65 +192,65 @@ model Review {
 }
 
 model StudySession {
-  id              String   @id @default(cuid())
-  userId          String
-  
+  id     String @id @default(cuid())
+  userId String
+
   // Session details
-  sessionType     String   // review, practice, custom
-  cardsStudied    Int      @default(0)
-  accuracy        Float    @default(0)
-  totalTime       Int      @default(0) // milliseconds
-  
+  sessionType  String // review, practice, custom
+  cardsStudied Int    @default(0)
+  accuracy     Float  @default(0)
+  totalTime    Int    @default(0) // milliseconds
+
   // Configuration
-  config          Json?    // Session configuration
-  
+  config Json? // Session configuration
+
   // Timestamps
-  startedAt       DateTime @default(now())
-  completedAt     DateTime?
-  
+  startedAt   DateTime  @default(now())
+  completedAt DateTime?
+
   // Sync metadata
-  version         Int      @default(1)
-  lastSyncedAt    DateTime @default(now())
-  isDeleted       Boolean  @default(false)
-  
+  version      Int      @default(1)
+  lastSyncedAt DateTime @default(now())
+  isDeleted    Boolean  @default(false)
+
   // Relations
-  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  reviews         Review[]
-  
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  reviews Review[]
+
   @@index([userId])
   @@index([startedAt])
   @@index([lastSyncedAt])
 }
 
 model DailyStats {
-  id                String   @id @default(cuid())
-  userId            String
-  date              DateTime @db.Date
-  
+  id     String   @id @default(cuid())
+  userId String
+  date   DateTime @db.Date
+
   // Activity metrics
-  wordsAdded        Int      @default(0)
-  cardsReviewed     Int      @default(0)
-  correctReviews    Int      @default(0)
-  studyTime         Int      @default(0) // milliseconds
-  sessionsCompleted Int      @default(0)
-  
+  wordsAdded        Int @default(0)
+  cardsReviewed     Int @default(0)
+  correctReviews    Int @default(0)
+  studyTime         Int @default(0) // milliseconds
+  sessionsCompleted Int @default(0)
+
   // Progress metrics
-  newWordsLearned   Int      @default(0)
-  wordsMastered     Int      @default(0)
-  
+  newWordsLearned Int @default(0)
+  wordsMastered   Int @default(0)
+
   // Streak tracking
-  isActive          Boolean  @default(false)
-  streakDay         Int      @default(0)
-  
+  isActive  Boolean @default(false)
+  streakDay Int     @default(0)
+
   // Sync metadata
-  version           Int      @default(1)
-  lastSyncedAt      DateTime @default(now())
-  isDeleted         Boolean  @default(false)
-  updatedAt         DateTime @default(now()) @updatedAt
-  
+  version      Int      @default(1)
+  lastSyncedAt DateTime @default(now())
+  isDeleted    Boolean  @default(false)
+  updatedAt    DateTime @default(now()) @updatedAt
+
   // Relations
-  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   @@unique([userId, date])
   @@index([userId])
   @@index([date])
@@ -235,66 +258,66 @@ model DailyStats {
 }
 
 model Tag {
-  id            String           @id @default(cuid())
-  userId        String
-  name          String
-  color         String?
-  description   String?
-  
+  id          String  @id @default(cuid())
+  userId      String
+  name        String
+  color       String?
+  description String?
+
   // Metadata
-  createdAt     DateTime         @default(now())
-  updatedAt     DateTime         @updatedAt
-  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   // Sync metadata
-  version       Int              @default(1)
-  lastSyncedAt  DateTime         @default(now())
-  isDeleted     Boolean          @default(false)
-  
+  version      Int      @default(1)
+  lastSyncedAt DateTime @default(now())
+  isDeleted    Boolean  @default(false)
+
   // Relations
-  user          User             @relation(fields: [userId], references: [id], onDelete: Cascade)
-  vocabulary    VocabularyItem[] @relation("VocabularyTags")
-  
+  user       User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  vocabulary VocabularyItem[] @relation("VocabularyTags")
+
   @@unique([userId, name])
   @@index([userId])
   @@index([lastSyncedAt])
 }
 
 model UserSettings {
-  id                        String   @id @default(cuid())
-  userId                    String   @unique
-  
+  id     String @id @default(cuid())
+  userId String @unique
+
   // Review settings
-  dailyGoal                 Int      @default(20)
-  reviewMode                String   @default("mixed")
-  autoPlayAudio             Boolean  @default(true)
-  
+  dailyGoal     Int     @default(20)
+  reviewMode    String  @default("mixed")
+  autoPlayAudio Boolean @default(true)
+
   // Notification settings
-  notificationsEnabled      Boolean  @default(false)
-  notificationTime          String?  // HH:MM format
-  quietHoursStart           String?
-  quietHoursEnd             String?
-  
+  notificationsEnabled Boolean @default(false)
+  notificationTime     String? // HH:MM format
+  quietHoursStart      String?
+  quietHoursEnd        String?
+
   // Display settings
-  theme                     String   @default("system")
-  language                  String   @default("en")
-  fontSize                  String   @default("medium")
-  
+  theme    String @default("system")
+  language String @default("en")
+  fontSize String @default("medium")
+
   // Advanced settings
-  spacedRepetitionAlgorithm String   @default("sm2")
-  showGenderColors          Boolean  @default(true)
-  showPartOfSpeech          Boolean  @default(true)
-  
+  spacedRepetitionAlgorithm String  @default("sm2")
+  showGenderColors          Boolean @default(true)
+  showPartOfSpeech          Boolean @default(true)
+
   // Sync settings
-  autoSync                  Boolean  @default(true)
-  syncFrequency             Int      @default(5) // minutes
-  
+  autoSync      Boolean @default(true)
+  syncFrequency Int     @default(5) // minutes
+
   // Metadata
-  createdAt                 DateTime @default(now())
-  updatedAt                 DateTime @updatedAt
-  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   // Relations
-  user                      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   @@index([userId])
 }
 
@@ -303,57 +326,57 @@ model UserSettings {
 // ============================================================================
 
 model SyncLog {
-  id              String   @id @default(cuid())
-  userId          String
-  
+  id     String @id @default(cuid())
+  userId String
+
   // Sync details
-  syncType        String   // full, incremental
-  direction       String   // upload, download, bidirectional
-  status          String   // pending, in_progress, completed, failed
-  
+  syncType  String // full, incremental
+  direction String // upload, download, bidirectional
+  status    String // pending, in_progress, completed, failed
+
   // Statistics
-  itemsSynced     Int      @default(0)
-  conflictsFound  Int      @default(0)
-  conflictsResolved Int    @default(0)
-  errors          Json?
-  
+  itemsSynced       Int   @default(0)
+  conflictsFound    Int   @default(0)
+  conflictsResolved Int   @default(0)
+  errors            Json?
+
   // Timestamps
-  startedAt       DateTime @default(now())
-  completedAt     DateTime?
-  
+  startedAt   DateTime  @default(now())
+  completedAt DateTime?
+
   // Device info
-  deviceId        String?
-  deviceName      String?
-  appVersion      String?
-  
+  deviceId   String?
+  deviceName String?
+  appVersion String?
+
   // Relations
-  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   @@index([userId])
   @@index([startedAt])
   @@index([status])
 }
 
 model DeviceInfo {
-  id            String   @id @default(cuid())
-  userId        String
-  
+  id     String @id @default(cuid())
+  userId String
+
   // Device details
-  deviceId      String   @unique
-  deviceName    String
-  deviceType    String   // mobile, tablet, desktop
-  platform      String   // iOS, Android, Windows, macOS, Linux
-  browser       String?
-  
+  deviceId   String  @unique
+  deviceName String
+  deviceType String // mobile, tablet, desktop
+  platform   String // iOS, Android, Windows, macOS, Linux
+  browser    String?
+
   // Last activity
-  lastActiveAt  DateTime @default(now())
-  lastSyncAt    DateTime?
-  appVersion    String?
-  
+  lastActiveAt DateTime  @default(now())
+  lastSyncAt   DateTime?
+  appVersion   String?
+
   // Metadata
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   @@index([userId])
   @@index([deviceId])
   @@index([lastActiveAt])
@@ -365,119 +388,124 @@ model DeviceInfo {
 // ============================================================================
 
 model VerifiedVocabulary {
-  id                      String   @id @default(cuid())
-  
+  id String @id @default(cuid())
+
   // 🌍 MULTI-LANGUAGE SUPPORT (language-agnostic design)
-  sourceLanguage          String   // ISO 639-1 code: "es", "de", "fr", "ja", etc.
-  targetLanguage          String   // ISO 639-1 code: "en", "es", etc.
-  languagePair            String   // Composite: "es-en", "de-en", etc. (indexed for fast lookup)
-  
+  sourceLanguage String // ISO 639-1 code: "es", "de", "fr", "ja", etc.
+  targetLanguage String // ISO 639-1 code: "en", "es", etc.
+  languagePair   String // Composite: "es-en", "de-en", etc. (indexed for fast lookup)
+
   // Core data (canonical form)
-  sourceWord              String   // Original word (Spanish, German, French, etc.)
-  targetWord              String   // Translation (English, Spanish, etc.)
-  alternativeTranslations Json?    @db.JsonB // string[] - alternative target translations
-  partOfSpeech            String?  // Universal: "noun", "verb", "adjective", etc.
-  
+  sourceWord              String // Original word (Spanish, German, French, etc.)
+  targetWord              String // Translation (English, Spanish, etc.)
+  alternativeTranslations Json?   @db.JsonB // string[] - alternative target translations
+  partOfSpeech            String? // Universal: "noun", "verb", "adjective", etc.
+
   // Language-specific metadata (stored as JSON for flexibility)
   // Spanish: { gender: "masculine", plural: "perros" }
   // German: { article: "der", case: "nominative", plural: "Hunde" }
   // Japanese: { kanji: "犬", hiragana: "いぬ", formality: "casual" }
-  grammarMetadata         Json?    @db.JsonB
-  
+  grammarMetadata Json? @db.JsonB
+
   // Rich metadata
-  examples                Json?    @db.JsonB // ExampleSentence[]
-  conjugations            Json?    @db.JsonB // VerbConjugation
-  synonyms                Json?    @db.JsonB // string[]
-  antonyms                Json?    @db.JsonB // string[]
-  relatedWords            Json?    @db.JsonB // string[]
-  regionalVariants        Json?    @db.JsonB // { region: string, alternatives: string[] }[]
+  examples         Json? @db.JsonB // ExampleSentence[]
+  conjugations     Json? @db.JsonB // VerbConjugation
+  synonyms         Json? @db.JsonB // string[]
+  antonyms         Json? @db.JsonB // string[]
+  relatedWords     Json? @db.JsonB // string[]
+  regionalVariants Json? @db.JsonB // { region: string, alternatives: string[] }[]
   
+  // Phase 18.1.3: AI-generated examples (cached by proficiency level)
+  // Format: { "A1": [...examples], "B1": [...examples], "C1": [...examples] }
+  aiExamplesByLevel    Json? @db.JsonB // CEFR-level specific AI examples
+  aiExamplesGenerated  Boolean @default(false) // Whether AI examples exist
+  aiExamplesGeneratedAt DateTime? // Last generation timestamp
+
   // Verification metadata
-  verificationCount       Int      @default(1)
-  confidenceScore         Float    @default(0.0)
-  lastVerified            DateTime @default(now())
-  
+  verificationCount Int      @default(1)
+  confidenceScore   Float    @default(0.0)
+  lastVerified      DateTime @default(now())
+
   // Source tracking
-  primarySource           String   // "deepl" | "mymemory" | "wiktionary" | "user"
-  apiSources              Json?    @db.JsonB // { source: string, data: any }[]
-  
+  primarySource String // "deepl" | "mymemory" | "wiktionary" | "user"
+  apiSources    Json?  @db.JsonB // { source: string, data: any }[]
+
   // Quality flags
-  hasDisagreement         Boolean  @default(false)
-  disagreementCount       Int      @default(0)
-  requiresReview          Boolean  @default(false)
-  isOffensive             Boolean  @default(false)
-  
+  hasDisagreement   Boolean @default(false)
+  disagreementCount Int     @default(0)
+  requiresReview    Boolean @default(false)
+  isOffensive       Boolean @default(false)
+
   // Usage statistics
-  lookupCount             Int      @default(0)
-  saveCount               Int      @default(0)
-  editFrequency           Float    @default(0.0)
-  avgReviewSuccessRate    Float    @default(0.0)
-  
+  lookupCount          Int   @default(0)
+  saveCount            Int   @default(0)
+  editFrequency        Float @default(0.0)
+  avgReviewSuccessRate Float @default(0.0)
+
   // Metadata
-  createdAt               DateTime @default(now())
-  updatedAt               DateTime @updatedAt
-  lastRefreshedAt         DateTime @default(now())
-  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  lastRefreshedAt DateTime @default(now())
+
   // Legacy fields for backward compatibility (Spanish-specific)
   // These will be deprecated once we migrate to multi-language structure
-  spanish                 String?  
-  english                 String?
-  gender                  String?
-  
+  spanish String?
+  english String?
+  gender  String?
+
   // Relations
-  verifications           VocabularyVerification[]
-  
+  verifications VocabularyVerification[]
+
+  // Unique constraint: one entry per word per language pair
+  @@unique([sourceWord, languagePair], name: "unique_word_lang_pair")
   // Indexes for performance
   @@index([sourceWord, sourceLanguage, targetLanguage], name: "idx_word_lang_lookup") // Fast lookups
-  @@index([languagePair, sourceWord], name: "idx_lang_pair_word")                     // Fast language-pair queries
+  @@index([languagePair, sourceWord], name: "idx_lang_pair_word") // Fast language-pair queries
   @@index([verificationCount], name: "idx_verification_count")
   @@index([confidenceScore], name: "idx_confidence_score")
   @@index([lastVerified], name: "idx_last_verified")
   @@index([requiresReview], name: "idx_requires_review")
-  @@index([spanish], name: "idx_spanish_legacy")                                      // Legacy Spanish index
-  
-  // Unique constraint: one entry per word per language pair
-  @@unique([sourceWord, languagePair], name: "unique_word_lang_pair")
+  @@index([spanish], name: "idx_spanish_legacy") // Legacy Spanish index
 }
 
 model VocabularyVerification {
-  id                String   @id @default(cuid())
-  userId            String
-  verifiedWordId    String
-  
+  id             String @id @default(cuid())
+  userId         String
+  verifiedWordId String
+
   // 🌍 Language context
-  sourceLanguage    String   // "es", "de", "fr", etc.
-  targetLanguage    String   // "en", "es", etc.
-  
+  sourceLanguage String // "es", "de", "fr", etc.
+  targetLanguage String // "en", "es", etc.
+
   // What the API returned vs what user saved (language-agnostic)
-  apiTranslation    String
-  userTranslation   String
-  apiPOS            String?
-  userPOS           String?
-  apiGrammarData    Json?    @db.JsonB // Language-specific metadata from API
-  userGrammarData   Json?    @db.JsonB // Language-specific metadata from user
-  apiExamples       Json?    @db.JsonB
-  userExamples      Json?    @db.JsonB
-  
+  apiTranslation  String
+  userTranslation String
+  apiPOS          String?
+  userPOS         String?
+  apiGrammarData  Json?   @db.JsonB // Language-specific metadata from API
+  userGrammarData Json?   @db.JsonB // Language-specific metadata from user
+  apiExamples     Json?   @db.JsonB
+  userExamples    Json?   @db.JsonB
+
   // Verification signals
   wasEdited         Boolean
-  editedFields      Json?    @db.JsonB // string[] - which fields were changed
-  reviewCount       Int      @default(0)
-  reviewSuccessRate Float    @default(0.0)
+  editedFields      Json?     @db.JsonB // string[] - which fields were changed
+  reviewCount       Int       @default(0)
+  reviewSuccessRate Float     @default(0.0)
   lastReviewed      DateTime?
-  
+
   // Context
-  lookupSource      String?  // "manual" | "import" | "voice"
-  deviceType        String?  // "mobile" | "desktop" | "tablet"
-  
+  lookupSource String? // "manual" | "import" | "voice"
+  deviceType   String? // "mobile" | "desktop" | "tablet"
+
   // Metadata
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
-  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   // Relations
-  user              User               @relation(fields: [userId], references: [id], onDelete: Cascade)
-  verifiedWord      VerifiedVocabulary @relation(fields: [verifiedWordId], references: [id], onDelete: Cascade)
-  
+  user         User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  verifiedWord VerifiedVocabulary @relation(fields: [verifiedWordId], references: [id], onDelete: Cascade)
+
   @@index([verifiedWordId], name: "idx_verified_word")
   @@index([userId], name: "idx_user_verification")
   @@index([wasEdited], name: "idx_was_edited")
@@ -491,46 +519,46 @@ model VocabularyVerification {
 // ============================================================================
 
 model WordLookupEvent {
-  id                String   @id @default(cuid())
-  
+  id String @id @default(cuid())
+
   // Word context
-  sourceWord        String
-  sourceLanguage    String   // "es", "de", "fr", etc.
-  targetLanguage    String   // "en", "es", etc.
-  languagePair      String   // "es-en", "de-en", etc.
-  
+  sourceWord     String
+  sourceLanguage String // "es", "de", "fr", etc.
+  targetLanguage String // "en", "es", etc.
+  languagePair   String // "es-en", "de-en", etc.
+
   // Lookup result
-  fromCache         Boolean  @default(false)
-  cacheHit          Boolean  @default(false) // Whether word was in cache
-  cacheMiss         Boolean  @default(false) // Whether had to fetch from API
-  apiSource         String?  // "deepl" | "mymemory" | "wiktionary" | null (if cache)
-  
+  fromCache Boolean @default(false)
+  cacheHit  Boolean @default(false) // Whether word was in cache
+  cacheMiss Boolean @default(false) // Whether had to fetch from API
+  apiSource String? // "deepl" | "mymemory" | "wiktionary" | null (if cache)
+
   // Performance metrics
-  responseTime      Int      // milliseconds
-  apiCallsCount     Int      @default(0) // Number of API calls made
-  
+  responseTime  Int // milliseconds
+  apiCallsCount Int @default(0) // Number of API calls made
+
   // Result quality
-  translationFound  Boolean  @default(true)
-  examplesFound     Int      @default(0)
-  confidenceScore   Float?   // Confidence of translation
-  
+  translationFound Boolean @default(true)
+  examplesFound    Int     @default(0)
+  confidenceScore  Float? // Confidence of translation
+
   // Cross-validation metadata (Phase 16.1 Task 2)
-  hasDisagreement   Boolean  @default(false) // Whether APIs disagreed
-  agreementLevel    Float?   // 0.0 to 1.0 (1.0 = perfect agreement)
+  hasDisagreement     Boolean @default(false) // Whether APIs disagreed
+  agreementLevel      Float? // 0.0 to 1.0 (1.0 = perfect agreement)
   disagreementSources String? @db.Text // JSON of sources that disagreed
-  
+
   // User context (optional)
-  userId            String?
-  sessionId         String?
-  deviceType        String?  // "mobile" | "desktop" | "tablet"
-  
+  userId     String?
+  sessionId  String?
+  deviceType String? // "mobile" | "desktop" | "tablet"
+
   // Outcome
-  wasSaved          Boolean  @default(false)
-  wasEdited         Boolean  @default(false)
-  
+  wasSaved  Boolean @default(false)
+  wasEdited Boolean @default(false)
+
   // Timestamp
-  createdAt         DateTime @default(now())
-  
+  createdAt DateTime @default(now())
+
   @@index([sourceWord, languagePair], name: "idx_lookup_word_lang")
   @@index([fromCache], name: "idx_lookup_cache")
   @@index([createdAt], name: "idx_lookup_created")
@@ -540,40 +568,40 @@ model WordLookupEvent {
 }
 
 model ApiCallEvent {
-  id                String   @id @default(cuid())
-  
+  id String @id @default(cuid())
+
   // API details
-  apiName           String   // "deepl" | "mymemory" | "wiktionary" | "tatoeba" | etc.
-  endpoint          String?  // Specific endpoint called
-  method            String   @default("GET") // HTTP method
-  
+  apiName  String // "deepl" | "mymemory" | "wiktionary" | "tatoeba" | etc.
+  endpoint String? // Specific endpoint called
+  method   String  @default("GET") // HTTP method
+
   // Request context
-  sourceWord        String
-  languagePair      String
-  
+  sourceWord   String
+  languagePair String
+
   // Performance
-  responseTime      Int      // milliseconds
-  success           Boolean
-  statusCode        Int?
-  errorMessage      String?  @db.Text
-  
+  responseTime Int // milliseconds
+  success      Boolean
+  statusCode   Int?
+  errorMessage String? @db.Text
+
   // Rate limiting
-  rateLimited       Boolean  @default(false)
-  retryCount        Int      @default(0)
-  
+  rateLimited Boolean @default(false)
+  retryCount  Int     @default(0)
+
   // Usage tracking
-  requestSize       Int?     // bytes
-  responseSize      Int?     // bytes
-  
+  requestSize  Int? // bytes
+  responseSize Int? // bytes
+
   // Result quality
   translationReturned Boolean @default(false)
   examplesReturned    Int     @default(0)
-  
+
   // Metadata
-  createdAt         DateTime @default(now())
-  userId            String?
-  sessionId         String?
-  
+  createdAt DateTime @default(now())
+  userId    String?
+  sessionId String?
+
   @@index([apiName], name: "idx_api_name")
   @@index([success], name: "idx_api_success")
   @@index([createdAt], name: "idx_api_created")
@@ -582,37 +610,37 @@ model ApiCallEvent {
 }
 
 model CachePerformanceMetrics {
-  id                String   @id @default(cuid())
-  date              DateTime @db.Date
-  languagePair      String
-  
+  id           String   @id @default(cuid())
+  date         DateTime @db.Date
+  languagePair String
+
   // Cache metrics
-  totalLookups      Int      @default(0)
-  cacheHits         Int      @default(0)
-  cacheMisses       Int      @default(0)
-  cacheHitRate      Float    @default(0.0) // cacheHits / totalLookups
-  
+  totalLookups Int   @default(0)
+  cacheHits    Int   @default(0)
+  cacheMisses  Int   @default(0)
+  cacheHitRate Float @default(0.0) // cacheHits / totalLookups
+
   // Performance
-  avgCacheResponseTime Int   @default(0)   // milliseconds
-  avgApiResponseTime   Int   @default(0)   // milliseconds
+  avgCacheResponseTime Int   @default(0) // milliseconds
+  avgApiResponseTime   Int   @default(0) // milliseconds
   speedImprovement     Float @default(0.0) // How much faster cache is
-  
+
   // API usage
-  totalApiCalls     Int      @default(0)
-  apiCallsSaved     Int      @default(0) // API calls avoided due to cache
-  
+  totalApiCalls Int @default(0)
+  apiCallsSaved Int @default(0) // API calls avoided due to cache
+
   // Quality
-  avgConfidence     Float    @default(0.0)
-  verifiedWords     Int      @default(0)
-  
+  avgConfidence Float @default(0.0)
+  verifiedWords Int   @default(0)
+
   // User behavior
-  saveRate          Float    @default(0.0) // % of lookups that were saved
-  editRate          Float    @default(0.0) // % of saves that were edited
-  
+  saveRate Float @default(0.0) // % of lookups that were saved
+  editRate Float @default(0.0) // % of saves that were edited
+
   // Metadata
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
-  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   @@unique([date, languagePair], name: "unique_date_lang_pair")
   @@index([date], name: "idx_cache_metrics_date")
   @@index([languagePair], name: "idx_cache_metrics_lang")
@@ -620,40 +648,40 @@ model CachePerformanceMetrics {
 }
 
 model PopularWord {
-  id                String   @id @default(cuid())
-  
+  id String @id @default(cuid())
+
   // Word details
-  sourceWord        String
-  sourceLanguage    String
-  targetLanguage    String
-  languagePair      String
-  translation       String
-  
+  sourceWord     String
+  sourceLanguage String
+  targetLanguage String
+  languagePair   String
+  translation    String
+
   // Popularity metrics
-  lookupCount       Int      @default(0)
-  saveCount         Int      @default(0)
-  saveRate          Float    @default(0.0) // saveCount / lookupCount
-  
+  lookupCount Int   @default(0)
+  saveCount   Int   @default(0)
+  saveRate    Float @default(0.0) // saveCount / lookupCount
+
   // Time range
-  period            String   // "daily" | "weekly" | "monthly" | "all_time"
-  periodStart       DateTime
-  periodEnd         DateTime
-  
+  period      String // "daily" | "weekly" | "monthly" | "all_time"
+  periodStart DateTime
+  periodEnd   DateTime
+
   // Quality signals
-  avgConfidence     Float    @default(0.0)
-  editFrequency     Float    @default(0.0)
-  
+  avgConfidence Float @default(0.0)
+  editFrequency Float @default(0.0)
+
   // Cache status
-  isInCache         Boolean  @default(false)
-  shouldCache       Boolean  @default(false) // Based on popularity
-  
+  isInCache   Boolean @default(false)
+  shouldCache Boolean @default(false) // Based on popularity
+
   // Rankings
-  rank              Int?
-  
+  rank Int?
+
   // Metadata
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
-  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   @@unique([sourceWord, languagePair, period, periodStart], name: "unique_popular_word")
   @@index([languagePair, period], name: "idx_popular_word_period")
   @@index([lookupCount], name: "idx_popular_lookup_count")
@@ -665,26 +693,26 @@ model PopularWord {
 // ============================================================================
 
 model ABTestEvent {
-  id                String   @id @default(cuid())
-  
+  id String @id @default(cuid())
+
   // Test identification
-  testName          String   // e.g., "cache-indicator-design-v1"
-  variant           String   // "control" | "variantA" | "variantB" | "variantC"
-  
+  testName String // e.g., "cache-indicator-design-v1"
+  variant  String // "control" | "variantA" | "variantB" | "variantC"
+
   // Event details
-  eventType         String   // "view" | "event"
-  eventName         String?  // For custom events: "click", "hover", "conversion"
-  eventData         String?  @db.Text // JSON data for custom events
-  
+  eventType String // "view" | "event"
+  eventName String? // For custom events: "click", "hover", "conversion"
+  eventData String? @db.Text // JSON data for custom events
+
   // User context
-  userAgent         String?  @db.Text
-  screenSize        String?  // e.g., "1920x1080"
-  deviceType        String   @default("unknown") // "mobile" | "tablet" | "desktop"
-  
+  userAgent  String? @db.Text
+  screenSize String? // e.g., "1920x1080"
+  deviceType String  @default("unknown") // "mobile" | "tablet" | "desktop"
+
   // Metadata
-  timestamp         DateTime @default(now())
-  createdAt         DateTime @default(now())
-  
+  timestamp DateTime @default(now())
+  createdAt DateTime @default(now())
+
   @@index([testName], name: "idx_ab_test_name")
   @@index([variant], name: "idx_ab_variant")
   @@index([eventType], name: "idx_ab_event_type")
@@ -693,3 +721,197 @@ model ABTestEvent {
   @@index([deviceType], name: "idx_ab_device_type")
 }
 
+// ============================================================================
+// AI COST TRACKING (Phase 18.1.3)
+// Track OpenAI API costs and prevent budget overruns
+// ============================================================================
+
+model AICostEvent {
+  id                String   @id @default(cuid())
+  
+  // API details
+  service           String   // "openai"
+  model             String   // "gpt-3.5-turbo", "gpt-4", etc.
+  endpoint          String   // "chat/completions", "embeddings", etc.
+  
+  // Cost tracking
+  tokensUsed        Int      // Total tokens (prompt + completion)
+  cost              Float    // Cost in USD
+  
+  // Result tracking
+  success           Boolean  // Whether the API call succeeded
+  errorMessage      String?  @db.Text // Error if failed
+  
+  // Metadata
+  metadata          Json?    @db.JsonB // Additional context (word, level, etc.)
+  
+  // Timestamp
+  createdAt         DateTime @default(now())
+  
+  @@index([service], name: "idx_ai_cost_service")
+  @@index([model], name: "idx_ai_cost_model")
+  @@index([createdAt], name: "idx_ai_cost_created")
+  @@index([success], name: "idx_ai_cost_success")
+}
+
+// ============================================================================
+// RETENTION METRICS INFRASTRUCTURE (Phase 18.1.2)
+// Track review methods, user cohorts, and retention milestones
+// ============================================================================
+
+model ReviewAttempt {
+  id           String  @id @default(cuid())
+  userId       String
+  vocabularyId String
+  sessionId    String?
+
+  // Review method tracking (Phase 18.1.4)
+  reviewMethod     String // "traditional" | "fill_blank" | "multiple_choice" | "audio" | "context"
+  methodDifficulty Float  @default(1.0) // Multiplier based on method (0.8 to 1.5)
+
+  // Performance tracking
+  correct      Boolean
+  quality      Int // 0-5 (SM-2 quality rating)
+  responseTime Int // milliseconds
+  confidence   Int? // 1-5 user confidence rating
+
+  // Context
+  direction String  @default("spanish-english") // or "english-spanish"
+  hintsUsed Int     @default(0)
+  skipped   Boolean @default(false)
+
+  // User answer tracking
+  userAnswer    String? @db.Text // What the user typed/selected
+  correctAnswer String  @db.Text // The expected answer
+
+  // Spaced repetition context
+  intervalBefore   Int // Interval before this review (days)
+  easeFactorBefore Float // Ease factor before this review
+  intervalAfter    Int // Interval after this review (days)
+  easeFactorAfter  Float // Ease factor after this review
+
+  // Timing
+  reviewedAt DateTime @default(now())
+
+  // Metadata
+  createdAt DateTime @default(now())
+
+  // Relations
+  user    User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  session ReviewSession? @relation(fields: [sessionId], references: [id], onDelete: SetNull)
+
+  @@index([userId], name: "idx_attempt_user")
+  @@index([vocabularyId], name: "idx_attempt_vocab")
+  @@index([sessionId], name: "idx_attempt_session")
+  @@index([reviewedAt], name: "idx_attempt_reviewed")
+  @@index([reviewMethod], name: "idx_attempt_method")
+  @@index([correct], name: "idx_attempt_correct")
+}
+
+model ReviewSession {
+  id     String @id @default(cuid())
+  userId String
+
+  // Session tracking
+  sessionType   String @default("review") // "review" | "practice" | "cram"
+  cardsReviewed Int    @default(0)
+  cardsCorrect  Int    @default(0)
+  accuracy      Float  @default(0.0)
+
+  // Timing
+  startedAt       DateTime  @default(now())
+  completedAt     DateTime?
+  totalDuration   Int? // milliseconds
+  avgResponseTime Int? // milliseconds per card
+
+  // Method breakdown (JSON: { method: count })
+  methodBreakdown   Json? @db.JsonB // { "traditional": 10, "fill_blank": 5, ... }
+  methodPerformance Json? @db.JsonB // { "traditional": 0.85, "fill_blank": 0.90, ... }
+
+  // Interruptions
+  pauseCount     Int     @default(0)
+  totalPauseTime Int? // milliseconds
+  completedEarly Boolean @default(false)
+
+  // Device context
+  deviceType String? // "mobile" | "tablet" | "desktop"
+  platform   String? // "ios" | "android" | "web"
+
+  // Metadata
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  user           User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  reviewAttempts ReviewAttempt[]
+
+  @@index([userId], name: "idx_session_user")
+  @@index([startedAt], name: "idx_session_started")
+  @@index([completedAt], name: "idx_session_completed")
+  @@index([sessionType], name: "idx_session_type")
+}
+
+model UserCohort {
+  id     String @id @default(cuid())
+  userId String @unique
+
+  // Cohort identification
+  cohortDate  DateTime @db.Date // Signup date (used for cohort grouping)
+  cohortWeek  String // "2026-W06" - ISO week format
+  cohortMonth String // "2026-02" - Year-Month format
+
+  // Retention milestones
+  day1Active  Boolean @default(false)
+  day7Active  Boolean @default(false)
+  day30Active Boolean @default(false)
+  day90Active Boolean @default(false)
+
+  // Retention timestamps
+  lastActiveAt    DateTime  @default(now())
+  lastReviewAt    DateTime?
+  lastAddedWordAt DateTime?
+
+  // Engagement metrics
+  totalSessions   Int @default(0)
+  totalReviews    Int @default(0)
+  totalWordsAdded Int @default(0)
+
+  // Learning metrics
+  avgAccuracy      Float? // Overall accuracy
+  avgSessionLength Int? // Average minutes per session
+  longestStreak    Int    @default(0) // Days
+  currentStreak    Int    @default(0) // Days
+
+  // Feature adoption (JSON: { feature: firstUsedAt })
+  featureAdoption Json? @db.JsonB // Track when users first use features
+
+  // A/B testing (Phase 18.2.3)
+  experimentGroup String? // "control" | "treatment_a" | "treatment_b"
+  featureFlags    Json?   @db.JsonB // Feature flags for this user
+
+  // Proficiency progression
+  initialLevel String? // Initial CEFR level
+  currentLevel String? // Current CEFR level
+  levelChanges Int     @default(0) // Number of level changes
+
+  // Subscription status (future)
+  isPremium    Boolean   @default(false)
+  premiumSince DateTime?
+
+  // Metadata
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([cohortDate], name: "idx_cohort_date")
+  @@index([cohortWeek], name: "idx_cohort_week")
+  @@index([cohortMonth], name: "idx_cohort_month")
+  @@index([day1Active], name: "idx_cohort_day1")
+  @@index([day7Active], name: "idx_cohort_day7")
+  @@index([day30Active], name: "idx_cohort_day30")
+  @@index([day90Active], name: "idx_cohort_day90")
+  @@index([lastActiveAt], name: "idx_cohort_last_active")
+  @@index([experimentGroup], name: "idx_cohort_experiment")
+}

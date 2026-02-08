@@ -255,7 +255,8 @@ export async function getExamples(
     const data = await response.json();
     
     if (!data.results || data.results.length === 0) {
-      return generateFallbackExample(word);
+      // Phase 18.1.3: Return empty array - AI generation will provide examples
+      return [];
     }
 
     // Process examples with quality scoring, context detection, and POS validation
@@ -322,10 +323,12 @@ export async function getExamples(
       posValidation,
     }));
 
-    return topExamples.length > 0 ? topExamples : generateFallbackExample(word);
+    // Phase 18.1.3: Return empty array if no valid examples - AI generation will provide examples
+    return topExamples.length > 0 ? topExamples : [];
   } catch (error) {
     console.error('Examples fetch error:', error);
-    return generateFallbackExample(word);
+    // Phase 18.1.3: Return empty array on error - AI generation will provide examples
+    return [];
   }
 }
 

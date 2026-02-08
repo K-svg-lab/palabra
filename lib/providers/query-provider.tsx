@@ -66,6 +66,9 @@ export function QueryProvider({ children }: QueryProviderProps) {
 
   // Register QueryClient with sync service for cache invalidation
   if (typeof window !== 'undefined') {
+    // Expose query client globally for logout utility (Security Fix - Feb 8, 2026)
+    (window as any).__REACT_QUERY_CLIENT__ = queryClient;
+    
     import('@/lib/services/sync').then(({ getSyncService }) => {
       const syncService = getSyncService();
       syncService.setQueryClient(queryClient);

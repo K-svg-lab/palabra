@@ -12,6 +12,7 @@ import { BottomNav } from '@/components/layouts/bottom-nav';
 import { SkipLink } from '@/components/shared/skip-link';
 import { SyncStatusBanner } from '@/components/ui/sync-status-banner';
 import { useOnlineStatus } from '@/lib/hooks/use-online-status';
+import { useRetentionTracking } from '@/lib/hooks/use-retention-tracking';
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -31,6 +32,9 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   
   // Initialize online status tracking (triggers sync when online)
   useOnlineStatus();
+
+  // Phase 18.1.2: Initialize retention tracking (tracks user activity)
+  useRetentionTracking(user?.id);
 
   // Pages that have user icon in their header (don't show floating indicator)
   const pagesWithHeaderUser = ['/', '/vocabulary', '/progress'];

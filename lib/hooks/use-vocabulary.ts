@@ -78,6 +78,16 @@ export function useAddVocabulary() {
       // Invalidate and refetch vocabulary list
       queryClient.invalidateQueries({ queryKey: ['vocabulary'] });
       
+      // Phase 18.1.2: Track word added event for retention analytics
+      try {
+        const { trackActivityEvent } = await import('@/lib/hooks/use-retention-tracking');
+        trackActivityEvent('word_added').catch((error) => {
+          console.debug('Failed to track word_added event:', error);
+        });
+      } catch (error) {
+        console.debug('Failed to import retention tracking:', error);
+      }
+      
       // Trigger immediate sync to prevent data loss in incognito mode
       // IndexedDB can be cleared when browser closes in private browsing
       try {

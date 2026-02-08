@@ -20,6 +20,9 @@ import type { RaeDefinition } from '@/lib/services/rae';
 import { PrismaClient } from '@prisma/client';
 import type { PartOfSpeech } from '@/lib/types/vocabulary';
 import type { LanguagePair, VerifiedVocabularyData, CacheStrategy } from '@/lib/types/verified-vocabulary';
+import { generateExamples } from '@/lib/services/ai-example-generator';
+import type { CEFRLevel } from '@/lib/types/proficiency';
+import { getSession } from '@/lib/backend/auth';
 
 // Prisma client singleton (API route only - proper Next.js pattern)
 const globalForPrisma = globalThis as unknown as {
@@ -437,6 +440,32 @@ export async function POST(request: NextRequest) {
       const cacheTime = Date.now() - startTime;
       console.log(`✅ [Lookup] CACHE HIT for "${cleanWord}" (${cacheTime}ms, confidence: ${cachedWord.confidenceScore.toFixed(2)})`);
       
+      // Phase 18.1.3: Get AI examples for user's proficiency level
+      let levelExamples: any[] = cachedWord.examples || [];
+      try {
+        const session = await getSession(request);
+        const user = session?.userId ? await prisma.user.findUnique({
+          where: { id: session.userId },
+          select: { languageLevel: true },
+        }) : null;
+        
+        const userLevel = (user?.languageLevel as CEFRLevel) || 'B1';
+        const aiResult = await generateExamples({
+          word: cleanWord,
+          translation: cachedWord.targetWord,
+          partOfSpeech: cachedWord.partOfSpeech || undefined,
+          level: userLevel,
+          count: 3,
+        });
+        
+        if (aiResult.examples.length > 0) {
+          levelExamples = aiResult.examples;
+        }
+      } catch (error) {
+        console.debug('[AI Examples] Skipping for cached word:', error);
+        // Use dictionary examples as fallback
+      }
+      
       // Track analytics (async, non-blocking)
       const [sourceLang, targetLang] = (languagePair as string).split('-');
       trackWordLookup(prisma, {
@@ -447,7 +476,7 @@ export async function POST(request: NextRequest) {
         fromCache: true,
         responseTime: cacheTime,
         translationFound: true,
-        examplesFound: cachedWord.examples?.length || 0,
+        examplesFound: levelExamples.length,
         confidenceScore: cachedWord.confidenceScore,
         apiSource: undefined,
         apiCallsCount: 0,
@@ -463,7 +492,7 @@ export async function POST(request: NextRequest) {
         translationSource: 'verified-cache',
         gender: cachedWord.grammarMetadata?.gender || cachedWord.gender,
         partOfSpeech: cachedWord.partOfSpeech,
-        examples: cachedWord.examples,
+        examples: levelExamples,
         definition: undefined,
         synonyms: cachedWord.synonyms,
         relationships: {
@@ -636,6 +665,66 @@ export async function POST(request: NextRequest) {
     ];
     const uniqueAntonyms = mergedAntonyms.length > 0 ? [...new Set(mergedAntonyms)] : undefined;
 
+    // ═══════════════════════════════════════════════════════════════════
+    // PHASE 18.1.3: AI-GENERATED CONTEXTUAL EXAMPLES
+    // Fast cache check, fallback to dictionary, async generation for next time
+    // ═══════════════════════════════════════════════════════════════════
+    let aiExamples: any[] = [];
+    try {
+      // Get user's proficiency level (from session or default to B1)
+      const session = await getSession(request);
+      const user = session?.userId ? await prisma.user.findUnique({
+        where: { id: session.userId },
+        select: { languageLevel: true },
+      }) : null;
+      
+      const userLevel = (user?.languageLevel as CEFRLevel) || 'B1';
+      
+      // ⚡ PERFORMANCE OPTIMIZATION: Check cache first (instant)
+      const cached = await prisma.verifiedVocabulary.findFirst({
+        where: {
+          sourceWord: cleanWord,
+          aiExamplesGenerated: true,
+        },
+        select: { aiExamplesByLevel: true },
+      });
+
+      if (cached?.aiExamplesByLevel) {
+        // Extract examples for user's level from cached data
+        const cachedByLevel = cached.aiExamplesByLevel as any;
+        if (cachedByLevel[userLevel]) {
+          aiExamples = cachedByLevel[userLevel];
+          console.log(`[AI Examples] ⚡ Cache HIT for "${cleanWord}" (${userLevel}) - Instant response`);
+        }
+      }
+
+      // If not cached, start generation in background (don't block response)
+      if (aiExamples.length === 0) {
+        console.log(`[AI Examples] Cache MISS for "${cleanWord}" (${userLevel}) - Will generate async`);
+        
+        // Fire-and-forget: Generate in background for next request
+        // Client will poll /api/vocabulary/examples endpoint for result
+        generateExamples({
+          word: cleanWord,
+          translation: translation?.primary || '',
+          partOfSpeech: finalPartOfSpeech || undefined,
+          level: userLevel,
+          count: 1,
+        }).then((result) => {
+          console.log(
+            `[AI Examples] ✨ Background generation complete for "${cleanWord}" (${userLevel})` +
+            ` - ${result.examples.length} examples cached` +
+            (result.cost ? ` - Cost: $${result.cost.toFixed(4)}` : '')
+          );
+        }).catch((error) => {
+          console.error(`[AI Examples] Background generation failed for "${cleanWord}":`, error);
+        });
+      }
+    } catch (error) {
+      console.error(`[AI Examples] Failed for "${cleanWord}":`, error);
+      // Continue without AI examples - dictionary examples will be used
+    }
+
     // Combine results with enhanced translations
     const response = {
       word: cleanWord,
@@ -645,7 +734,7 @@ export async function POST(request: NextRequest) {
       translationSource: translation?.source || 'fallback',
       gender: finalGender,
       partOfSpeech: finalPartOfSpeech,
-      examples: dictionary?.examples || [],
+      examples: aiExamples.length > 0 ? aiExamples : (dictionary?.examples || []),
       definition: dictionary?.definition, // Wiktionary definition provides additional context/meanings
       synonyms: uniqueSynonyms,
       // Enhanced Phase 7 features

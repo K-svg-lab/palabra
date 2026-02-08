@@ -1,0 +1,173 @@
+---
+globs: ['**/*']
+---
+
+# Architecture & Design Patterns
+
+## Architectural Philosophy
+Build modular, scalable architecture separating concerns while maintaining simplicity. Follow Next.js 15 App Router conventions and React Server Components best practices.
+
+## Application Layers
+
+### Presentation Layer
+**Principle**: Components should be pure, predictable, composable
+
+- **UI Components**: Presentational-only, no business logic
+- **Feature Components**: Smart containers with data fetching
+- **Layout Components**: Structural organization
+- **Page Components**: Route-level orchestration, minimal logic
+
+**Pattern**: Container-Presentation
+- Containers: Data fetching, state, side effects
+- Presentational: Pure rendering from props
+
+### Data Layer
+**Principle**: Single source of truth with predictable state updates
+
+- **Server State**: TanStack Query (caching, refetching, optimistic updates)
+- **Client State**: Zustand for UI state (modals, filters, preferences)
+- **Form State**: React Hook Form + Zod validation
+- **URL State**: Next.js searchParams for shareable state
+
+### Backend Layer
+**Principle**: Secure by default, performant by design
+
+- **Database**: Supabase PostgreSQL with Row Level Security
+- **API**: Server Actions for mutations, Route Handlers for complex queries
+- **Real-time**: Supabase Realtime subscriptions
+- **Authentication**: Supabase Auth
+
+## Core Design Patterns
+
+### Component Patterns
+- **Compound Components**: Multi-part components with shared state (flashcard + controls)
+- **Custom Hooks**: Reusable stateful logic (useVocabularyReview, useSpacedRepetition)
+- **Higher-Order Components**: Auth guards, analytics (use sparingly)
+- **Render Props**: Flexible rendering for complex UI
+
+### Data Patterns
+- **Optimistic Updates**: Instant UI feedback, rollback on error
+- **Stale-While-Revalidate**: Serve cached, fetch fresh in background
+- **Progressive Loading**: Critical data first, lazy load secondary
+- **Error Boundaries**: Graceful failure with recovery options
+
+### State Management
+**Server State (TanStack Query)**: Vocabulary lists, progress, review schedules
+**Client State (Zustand)**: UI preferences, modal states, filters
+**Form State (React Hook Form)**: All form inputs with Zod schemas
+
+## Spaced Repetition Algorithm
+
+### Components
+- **Scheduler**: Calculate next review date (SM-2 algorithm)
+- **Review Engine**: Handle sessions, track responses
+- **Statistics Tracker**: Record performance metrics
+- **Notification Manager**: Trigger review reminders
+
+### Data Model
+```
+Vocabulary: id, word, translation, gender, part_of_speech, audio_url
+Review Record: vocab_id, ease_factor, interval, repetition, next_review_date
+Session: session_id, start_time, cards_reviewed, accuracy_rate
+```
+
+## API Design
+
+### Server Actions (Mutations)
+Type-safe operations: addVocabulary, updateReviewResponse, deleteVocabulary
+
+### Route Handlers (Complex Queries)
+Aggregated stats, complex filtering, third-party integrations
+
+### Database Access
+- Never query from client components
+- Use Supabase RLS policies for security
+- Index frequent queries
+- Database functions for complex operations
+
+## Security Architecture
+
+### Authentication Flow
+1. User signs in via Supabase Auth
+2. JWT in httpOnly cookie
+3. Server validates on each request
+4. RLS enforces data access
+
+### Authorization Layers
+- **Database**: RLS policies (primary security)
+- **API**: Validate user ownership
+- **Client**: Hide UI elements (convenience)
+
+### Data Validation
+- **Client**: Immediate feedback (Zod)
+- **Server**: Enforce rules (never trust client)
+- **Database**: Constraints and triggers
+
+## Offline Architecture (PWA)
+
+### Service Worker Strategy
+- **Cache First**: UI assets (CSS, JS, fonts)
+- **Network First, Cache Fallback**: API calls
+- **Cache Only**: Static assets
+
+### Offline Capabilities
+- View cached vocabulary
+- Complete cached review sessions
+- Queue mutations for sync
+- Show offline indicator
+
+### Sync Strategy
+- Detect online/offline events
+- Replay queued mutations on reconnection
+- Handle conflicts (last-write-wins)
+
+## Performance Architecture
+
+### Code Splitting
+- Route-based: Automatic with Next.js
+- Component-based: Dynamic imports for large components (>50KB)
+- Vendor splitting: Separate stable libraries
+
+### Image Optimization
+- Next.js Image component (automatic WebP/AVIF)
+- Lazy loading below fold
+- Blur placeholders
+
+### Data Fetching
+- Parallel fetching where possible
+- Prefetch on hover for navigation
+- Debounce search inputs (300ms)
+- Paginate long lists
+
+## Testing Architecture
+
+### Unit Tests (Vitest)
+Pure functions, utilities, custom hooks
+
+### Integration Tests (Testing Library)
+Component rendering, interactions, state flows
+
+### E2E Tests (Playwright)
+Critical user flows only:
+- Add vocabulary → Review → Track progress
+- Sign up → Add words → Review session
+
+## Anti-Patterns to Avoid
+
+**Don't**:
+- Mix business logic in presentation components
+- Fetch data in useEffect (use TanStack Query)
+- Create god components (>500 LOC)
+- Use `any` type in TypeScript
+- Mutate state directly
+- Store sensitive data in localStorage
+- Trust client-side validation alone
+
+**Do**:
+- Separate concerns clearly
+- Use declarative patterns
+- Split large files proactively
+- Embrace type safety
+- Update state immutably
+- Use secure storage
+- Always validate on server
