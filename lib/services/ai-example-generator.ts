@@ -317,7 +317,7 @@ async function getCachedExamples(
     return null;
   }
 
-  const examplesByLevel = cached.aiExamplesByLevel as Record<string, ExampleSentence[]>;
+  const examplesByLevel = cached.aiExamplesByLevel as unknown as Record<string, ExampleSentence[]>;
   return examplesByLevel[level] || null;
 }
 
@@ -344,7 +344,7 @@ async function cacheExamples(
 
   if (existing) {
     // Update existing entry
-    const examplesByLevel = (existing.aiExamplesByLevel as Record<string, ExampleSentence[]>) || {};
+    const examplesByLevel = (existing.aiExamplesByLevel as unknown as Record<string, ExampleSentence[]>) || {};
     examplesByLevel[level] = examples;
 
     await prisma.verifiedVocabulary.update({
