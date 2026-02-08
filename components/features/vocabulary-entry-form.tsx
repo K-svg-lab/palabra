@@ -34,6 +34,12 @@ interface Props {
   onCancel?: () => void;
 }
 
+interface AIExamplesResponse {
+  ready: boolean;
+  examples?: Array<{ spanish: string; english: string }>;
+  message?: string;
+}
+
 export function VocabularyEntryForm({ onSuccess, onCancel }: Props) {
   const [lookupData, setLookupData] = useState<{
     translation?: string;
@@ -59,17 +65,17 @@ export function VocabularyEntryForm({ onSuccess, onCancel }: Props) {
   const spanishWord = watch('spanishWord');
 
   // Poll for AI examples after initial lookup
-  const { data: examplesData } = useQuery({
+  const { data: examplesData } = useQuery<AIExamplesResponse | null>({
     queryKey: ['ai-examples', lastLookedUpWord],
-    queryFn: async () => {
+    queryFn: async (): Promise<AIExamplesResponse | null> => {
       if (!lastLookedUpWord) return null;
       const response = await fetch(`/api/vocabulary/examples?word=${encodeURIComponent(lastLookedUpWord)}`);
       return response.json();
     },
     enabled: pollForExamples && !!lastLookedUpWord,
-    refetchInterval: (data) => {
+    refetchInterval: (query) => {
       // Stop polling when examples are ready
-      if (data?.ready) {
+      if (query.state.data?.ready) {
         return false;
       }
       // Poll every 1 second while waiting
