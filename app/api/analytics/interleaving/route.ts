@@ -11,7 +11,7 @@ export async function POST(request: NextRequest) {
   try {
     const session = await getSession();
     
-    if (!session?.user?.id) {
+    if (!session?.userId) {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
@@ -33,7 +33,7 @@ export async function POST(request: NextRequest) {
     // Track interleaving session
     await trackInterleavingSession({
       sessionId,
-      userId: session.user.id,
+      userId: session.userId,
       interleavingEnabled,
       switchRate,
       maxConsecutive,
