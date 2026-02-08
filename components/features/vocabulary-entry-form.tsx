@@ -69,16 +69,21 @@ export function VocabularyEntryForm({ onSuccess, onCancel }: Props) {
     queryKey: ['ai-examples', lastLookedUpWord],
     queryFn: async (): Promise<AIExamplesResponse | null> => {
       if (!lastLookedUpWord) return null;
+      console.log(`[Polling] Fetching examples for "${lastLookedUpWord}"...`);
       const response = await fetch(`/api/vocabulary/examples?word=${encodeURIComponent(lastLookedUpWord)}`);
-      return response.json();
+      const data = await response.json();
+      console.log(`[Polling] Response:`, data);
+      return data;
     },
     enabled: pollForExamples && !!lastLookedUpWord,
     refetchInterval: (query) => {
       // Stop polling when examples are ready
       if (query.state.data?.ready) {
+        console.log('[Polling] Examples ready, stopping poll');
         return false;
       }
       // Poll every 1 second while waiting
+      console.log('[Polling] Not ready yet, will poll again in 1s');
       return 1000;
     },
     refetchOnWindowFocus: false,
@@ -86,8 +91,10 @@ export function VocabularyEntryForm({ onSuccess, onCancel }: Props) {
 
   // Update examples when they become available
   useEffect(() => {
+    console.log('[Form] examplesData changed:', examplesData);
     if (examplesData?.ready && examplesData.examples && examplesData.examples.length > 0) {
       const newExamples = examplesData.examples;
+      console.log('[Form] Examples ready! Updating UI:', newExamples);
       setLookupData(prev => ({
         ...prev!,
         examples: newExamples,
@@ -127,12 +134,14 @@ export function VocabularyEntryForm({ onSuccess, onCancel }: Props) {
       
       if (data.examples && data.examples.length > 0) {
         // Examples available immediately (cached)
+        console.log(`[Form] Examples available immediately for "${cleanWord}":`, data.examples);
         setValue('exampleSpanish', data.examples[0].spanish);
         setValue('exampleEnglish', data.examples[0].english);
         setPollForExamples(false);
       } else {
         // No examples yet, start polling for AI generation
-        console.log('[Form] Starting to poll for AI examples...');
+        console.log(`[Form] No examples yet for "${cleanWord}", starting polling...`);
+        console.log(`[Form] Setting lastLookedUpWord to: "${cleanWord}"`);
         setPollForExamples(true);
       }
     } catch (error) {

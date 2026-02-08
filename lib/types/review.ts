@@ -99,6 +99,12 @@ export interface ExtendedReviewResult {
   /** Time spent on card (milliseconds) */
   timeSpent: number;
   
+  /** Phase 18.1 Task 4: Review method type (traditional, fill-blank, etc.) */
+  reviewMethod?: string;
+  
+  /** Phase 18.1 Task 4: Difficulty multiplier for SM-2 (based on method) */
+  difficultyMultiplier?: number;
+  
   /** Recall attempt data (if mode is recall) */
   recallAttempt?: RecallAttempt;
   

@@ -16,7 +16,7 @@ import { OnboardingWelcome } from '@/components/features/onboarding-welcome';
 import { OnboardingProficiency } from '@/components/features/onboarding-proficiency';
 import { hasCompletedOnboarding, completeOnboarding, hasCompletedProficiencyOnboarding, completeProficiencyOnboarding } from '@/lib/utils/onboarding';
 import { usePullToRefresh } from '@/lib/hooks/use-pull-to-refresh';
-import { ActivityRing, StatPill } from '@/components/features/activity-ring';
+import { ActivityRing, ActivityRingWithCTA, StatPill } from '@/components/features/activity-ring';
 import { StatCardEnhanced } from '@/components/ui/stat-card-enhanced';
 import { ActionCard } from '@/components/ui/action-card';
 import { InsightsGrid } from '@/components/features/insight-card';
@@ -309,15 +309,14 @@ export default function HomePage() {
         {!isAuthenticated && (
           <GuestModeBanner wordCount={stats?.total || 0} threshold={5} />
         )}
-        {/* Hero Activity Ring */}
-        {hasVocabulary && dueCount > 0 && (
+        {/* Hero Activity Ring with Integrated CTA - Phase 18 UX Enhancement */}
+        {hasVocabulary && (
           <section className="animate-fadeIn">
-            <ActivityRing
+            <ActivityRingWithCTA
               current={todayStats?.cardsReviewed || 0}
               target={(todayStats?.cardsReviewed || 0) + dueCount}
-              label="Cards Reviewed"
-              gradient={{ start: '#007AFF', end: '#00C7FF' }}
-              size="lg"
+              dueCount={dueCount}
+              gradient={{ start: '#667EEA', end: '#764BA2' }}
             />
             
             {/* Secondary stats in pills below */}
@@ -390,26 +389,12 @@ export default function HomePage() {
           </section>
         )}
 
-        {/* Quick Actions */}
+        {/* Quick Actions - Simplified (Phase 18 UX Enhancement) */}
         <section className="animate-slideIn">
           <h2 className="text-xl font-semibold mb-4">Quick Actions</h2>
           
           <div className="grid gap-4">
-            {/* Start Review - Only show if there are words */}
-            {hasVocabulary && (
-              <ActionCard
-                icon="🎴"
-                title={dueCount > 0 ? 'Start Review' : 'Practice Mode'}
-                description={dueCount > 0 
-                  ? `${dueCount} ${dueCount === 1 ? 'card' : 'cards'} ready` 
-                  : 'Review cards anytime'}
-                badge={dueCount > 0 ? `${dueCount} cards` : undefined}
-                href="/review"
-                gradient={{ from: '#667EEA', to: '#764BA2' }}
-              />
-            )}
-
-            {/* Add Vocabulary */}
+            {/* Add Vocabulary - Primary secondary action */}
             <ActionCard
               icon={<Plus className="w-12 h-12" />}
               title="Add New Word"

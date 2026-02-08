@@ -37,7 +37,8 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   useRetentionTracking(user?.id);
 
   // Pages that have user icon in their header (don't show floating indicator)
-  const pagesWithHeaderUser = ['/', '/vocabulary', '/progress'];
+  // Also hide during review sessions to avoid distraction
+  const pagesWithHeaderUser = ['/', '/vocabulary', '/progress', '/review'];
   const hideFloatingUser = pagesWithHeaderUser.includes(pathname);
 
   useEffect(() => {
@@ -66,20 +67,21 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
       {/* Sync status banner */}
       <SyncStatusBanner />
       
-      {/* Subtle User Indicator - Bottom Right Corner (above nav) */}
+      {/* User Account Indicator - Bottom Right (Phase 18 UX Enhancement) */}
       {!loading && !hideFloatingUser && (
         <Link
           href={user ? "/settings" : "/signin"}
           className="fixed bottom-20 right-4 z-30 flex items-center gap-2 px-3 py-2 bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm rounded-full shadow-md hover:shadow-lg transition-all border border-gray-200 dark:border-gray-700"
           title={user ? `Signed in as ${user.name || user.email}` : 'Sign in to sync across devices'}
+          aria-label={user ? `Account: ${user.name || user.email}` : 'Sign in to account'}
         >
           {user ? (
             <>
               <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white text-sm font-semibold">
                 {(user.name || user.email).charAt(0).toUpperCase()}
               </div>
-              <div className="hidden sm:block pr-1">
-                <p className="text-xs text-gray-600 dark:text-gray-400 leading-tight">Signed in</p>
+              <div className="pr-1">
+                <p className="text-xs text-gray-600 dark:text-gray-400 leading-tight font-medium">Account</p>
               </div>
             </>
           ) : (
@@ -87,7 +89,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
               <svg className="w-5 h-5 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
               </svg>
-              <span className="text-sm font-medium text-gray-700 dark:text-gray-300 hidden sm:inline pr-1">Sign In</span>
+              <span className="text-sm font-medium text-gray-700 dark:text-gray-300 pr-1">Sign In</span>
             </>
           )}
         </Link>

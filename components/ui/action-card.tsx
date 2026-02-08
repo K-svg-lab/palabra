@@ -45,8 +45,7 @@ export function ActionCard({
       href={href}
       className={`
         group relative overflow-hidden rounded-2xl p-6
-        hover:scale-[1.02] active:scale-[0.98]
-        transition-all duration-300
+        transform hover:scale-[1.02] active:scale-[0.98] transition-all duration-300
         shadow-lg hover:shadow-xl
         text-white
         ${className}
@@ -83,7 +82,7 @@ export function ActionCard({
       </div>
 
       {/* Arrow indicator */}
-      <div className="absolute top-6 right-6 text-white/50 group-hover:text-white group-hover:translate-x-1 transition-all text-2xl">
+      <div className="absolute top-6 right-6 text-white/50 group-hover:text-white group-hover:translate-x-1 transform transition-all duration-300 text-2xl">
         ›
       </div>
     </Link>
@@ -115,8 +114,7 @@ export function ActionButton({
   const baseClasses = `
     inline-flex items-center gap-3
     rounded-xl font-semibold
-    transition-all duration-300
-    hover:scale-105 active:scale-95
+    transform hover:scale-105 active:scale-95 transition-all duration-300
   `;
 
   const variantClasses = {

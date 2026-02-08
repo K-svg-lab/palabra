@@ -1,21 +1,25 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 import { ReviewSessionEnhanced } from "@/components/features/review-session-enhanced";
+import { ReviewSessionVaried } from "@/components/features/review-session-varied";
 import { SessionConfig } from "@/components/features/session-config";
 import { AppHeader } from "@/components/ui/app-header";
 import { useVocabulary } from "@/lib/hooks/use-vocabulary";
+import { useReviewPreferences } from "@/lib/hooks/use-review-preferences";
 import { getReviewByVocabId, createReviewRecord, updateReviewRecord as updateReviewRecordDB, getDueReviews, getAllReviews } from "@/lib/db/reviews";
 import { createSession, updateSession } from "@/lib/db/sessions";
 import { updateStatsAfterSession } from "@/lib/db/stats";
 import { getVocabularyWord, updateVocabularyWord } from "@/lib/db/vocabulary";
 import { updateReviewRecord as updateReviewSM2, createInitialReviewRecord, determineVocabularyStatus } from "@/lib/utils/spaced-repetition";
+import type { ReviewMethodType } from "@/lib/types/review-methods";
 import { updateBadge } from "@/lib/services/notifications";
 import { getSyncService } from "@/lib/services/sync";
 import { getOfflineQueueService } from "@/lib/services/offline-queue";
 import { generateUUID } from "@/lib/utils/uuid";
+import { interleaveWords, DEFAULT_INTERLEAVING_CONFIG, analyzeInterleaving } from "@/lib/services/interleaving";
 import type { VocabularyWord, ReviewRecord, ReviewSession as ReviewSessionType } from "@/lib/types/vocabulary";
 import type { StudySessionConfig, ExtendedReviewResult } from "@/lib/types/review";
 import { DEFAULT_SESSION_CONFIG } from "@/lib/types/review";
@@ -43,6 +47,7 @@ export default function ReviewPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const { data: allWords, isLoading } = useVocabulary();
+  const { preferences, isLoaded: prefsLoaded, toSessionConfig, updateFromConfig } = useReviewPreferences();
   const [showConfig, setShowConfig] = useState(false);
   const [isInSession, setIsInSession] = useState(false);
   const [sessionWords, setSessionWords] = useState<VocabularyWord[]>([]);
@@ -50,6 +55,29 @@ export default function ReviewPage() {
   const [dueCount, setDueCount] = useState<number>(0);
   const [availableTags, setAvailableTags] = useState<string[]>([]);
   const [currentSession, setCurrentSession] = useState<ReviewSessionType | null>(null);
+  const [userLevel, setUserLevel] = useState<string | undefined>();
+  const [autoStartTriggered, setAutoStartTriggered] = useState(false);
+  const [showMidSessionConfig, setShowMidSessionConfig] = useState(false);
+
+  /**
+   * Load user's proficiency level for method selection
+   */
+  useEffect(() => {
+    async function loadUserLevel() {
+      try {
+        const response = await fetch('/api/user/proficiency');
+        if (response.ok) {
+          const data = await response.json();
+          setUserLevel(data.languageLevel || 'B1');
+        }
+      } catch (error) {
+        console.error('Failed to load user level:', error);
+        // Fallback to B1 if fetch fails
+        setUserLevel('B1');
+      }
+    }
+    loadUserLevel();
+  }, []);
 
   /**
    * Load due words and available tags on component mount
@@ -106,9 +134,13 @@ export default function ReviewPage() {
 
   /**
    * Start a review session with custom configuration
+   * Phase 18 UX Enhancement: Saves preferences for next session
    */
   const startSession = async (config: StudySessionConfig) => {
     if (!allWords || !Array.isArray(allWords) || allWords.length === 0) return;
+
+    // Save preferences for next time (smart defaults)
+    updateFromConfig(config);
 
     try {
       // Get all review records for filtering
@@ -177,6 +209,15 @@ export default function ReviewPage() {
       }
 
       if (wordsToReview.length > 0) {
+        // Apply interleaving for optimal learning (Phase 18.1.5)
+        // Intelligently mixes words by part of speech, age, and difficulty
+        // to enhance retention through cognitive variation
+        const interleavingConfig = {
+          ...DEFAULT_INTERLEAVING_CONFIG,
+          enabled: preferences.interleavingEnabled,
+        };
+        const interleavedWords = interleaveWords(wordsToReview, interleavingConfig);
+        
         // Create a new review session record
         const newSession: ReviewSessionType = {
           id: generateUUID(),
@@ -189,14 +230,19 @@ export default function ReviewPage() {
         
         await createSession(newSession);
         setCurrentSession(newSession);
-        setSessionWords(wordsToReview);
+        setSessionWords(interleavedWords);
         setSessionConfig(config);
         setIsInSession(true);
         setShowConfig(false);
       }
     } catch (error) {
       console.error("Failed to start review session:", error);
-      // Fallback: use all words
+      // Fallback: use all words with interleaving
+      const interleavingConfig = {
+        ...DEFAULT_INTERLEAVING_CONFIG,
+        enabled: preferences.interleavingEnabled,
+      };
+      const interleavedWords = interleaveWords(allWords, interleavingConfig);
       const newSession: ReviewSessionType = {
         id: generateUUID(),
         startTime: Date.now(),
@@ -206,12 +252,41 @@ export default function ReviewPage() {
         responses: [],
       };
       setCurrentSession(newSession);
-      setSessionWords(allWords);
+      setSessionWords(interleavedWords);
       setSessionConfig(config);
       setIsInSession(true);
       setShowConfig(false);
     }
   };
+
+  /**
+   * Auto-start session with smart defaults (Phase 18 UX Enhancement)
+   * Immediately starts review session using saved preferences
+   * No intermediate screens for instant engagement
+   */
+  useEffect(() => {
+    if (
+      !autoStartTriggered &&
+      !isInSession &&
+      !showConfig &&
+      allWords &&
+      allWords.length > 0 &&
+      prefsLoaded &&
+      dueCount > 0
+    ) {
+      setAutoStartTriggered(true);
+      
+      // Use smart defaults from saved preferences
+      const config = toSessionConfig({
+        sessionSize: Math.min(dueCount, preferences.sessionSize),
+        practiceMode: false, // Not practice mode if we have due cards
+      });
+      
+      // Start session immediately
+      startSession(config);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [allWords, prefsLoaded, dueCount, autoStartTriggered, isInSession, showConfig]);
 
   /**
    * Handle session completion (Phase 8 Enhanced)
@@ -231,14 +306,25 @@ export default function ReviewPage() {
         // Get existing review record or create new one
         const existingReview = await getReviewByVocabId(result.vocabularyId);
         
+        // Phase 18.1.6: Extract quality adjustment parameters
+        const difficultyMultiplier = result.difficultyMultiplier || 1.0;
+        const responseTime = result.timeSpent; // Time in milliseconds
+        const reviewMethod = result.reviewMethod as ReviewMethodType | undefined;
+
         let updatedReview: ReviewRecord;
         if (existingReview) {
-          // Update existing record using SM-2 algorithm with directional tracking
+          // Update existing record using SM-2 algorithm with:
+          // - Directional tracking (Phase 8)
+          // - Method difficulty multiplier (Phase 18.1.4)
+          // - Quality adjustment based on response time (Phase 18.1.6)
           updatedReview = updateReviewSM2(
             existingReview,
             result.rating,
             reviewDate,
-            result.direction // Phase 8 Enhancement: Pass direction for accurate tracking
+            result.direction,
+            difficultyMultiplier,
+            responseTime,
+            reviewMethod
           );
           
           await updateReviewRecordDB(updatedReview);
@@ -246,12 +332,15 @@ export default function ReviewPage() {
           // Create initial review record
           const newReview = createInitialReviewRecord(result.vocabularyId, reviewDate);
           
-          // Apply first review rating with direction
+          // Apply first review rating with all enhancements
           updatedReview = updateReviewSM2(
             newReview,
             result.rating,
             reviewDate,
-            result.direction // Phase 8 Enhancement: Pass direction for accurate tracking
+            result.direction,
+            difficultyMultiplier,
+            responseTime,
+            reviewMethod
           );
           
           await createReviewRecord(updatedReview);
@@ -302,6 +391,33 @@ export default function ReviewPage() {
         };
         
         await updateSession(updatedSession);
+        
+        // Phase 18.1.5: Track interleaving effectiveness
+        try {
+          const interleavingMetrics = analyzeInterleaving(sessionWords);
+          const completionRate = results.length / sessionWords.length;
+          
+          // Track via API endpoint (async, non-blocking)
+          fetch('/api/analytics/interleaving', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              sessionId: updatedSession.id,
+              interleavingEnabled: preferences.interleavingEnabled,
+              switchRate: interleavingMetrics.switchRate,
+              maxConsecutive: interleavingMetrics.maxConsecutive,
+              avgConsecutive: interleavingMetrics.avgConsecutive,
+              totalWords: sessionWords.length,
+              accuracy: accuracyRate,
+              completionRate,
+            }),
+          }).catch(err => {
+            console.error('Failed to track interleaving metrics:', err);
+          });
+        } catch (error) {
+          console.error('Failed to analyze interleaving metrics:', error);
+          // Non-critical, continue
+        }
         
         // Update daily stats
         const timeSpent = sessionEndTime - currentSession.startTime;
@@ -426,68 +542,87 @@ export default function ReviewPage() {
   }
 
   // Session configuration screen (Phase 8)
-  if (showConfig && !isInSession) {
+  // Phase 18 UX Enhancement: Also used as modal overlay during session
+  if ((showConfig && !isInSession) || showMidSessionConfig) {
     return (
-      <SessionConfig
-        defaultConfig={{
-          ...DEFAULT_SESSION_CONFIG,
-          sessionSize: Math.min(dueCount > 0 ? dueCount : allWords.length, 20),
-          practiceMode: dueCount === 0, // Auto-enable practice mode if no cards due
-        }}
-        availableTags={availableTags}
-        totalAvailable={dueCount > 0 ? dueCount : allWords.length}
-        allWords={allWords}
-        onStart={startSession}
-        onCancel={() => setShowConfig(false)}
-      />
+      <div className={showMidSessionConfig ? "fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4" : ""}>
+        <div className={showMidSessionConfig ? "max-w-4xl w-full max-h-[90vh] overflow-y-auto" : ""}>
+          <SessionConfig
+            defaultConfig={{
+              ...DEFAULT_SESSION_CONFIG,
+              ...(sessionConfig || {}), // Pre-fill with current settings if mid-session
+              sessionSize: Math.min(dueCount > 0 ? dueCount : allWords.length, 20),
+              practiceMode: dueCount === 0, // Auto-enable practice mode if no cards due
+            }}
+            availableTags={availableTags}
+            totalAvailable={dueCount > 0 ? dueCount : allWords.length}
+            allWords={allWords}
+            onStart={(config) => {
+              if (showMidSessionConfig) {
+                // Update current session config
+                setSessionConfig(config);
+                updateFromConfig(config);
+                setShowMidSessionConfig(false);
+              } else {
+                startSession(config);
+              }
+            }}
+            onCancel={() => {
+              if (showMidSessionConfig) {
+                setShowMidSessionConfig(false);
+              } else {
+                setShowConfig(false);
+              }
+            }}
+          />
+        </div>
+      </div>
     );
   }
 
-  // Session start screen
-  if (!isInSession) {
+  // Practice mode prompt (only show if no cards due)
+  // Phase 18 UX Enhancement: Skip this screen when cards are due
+  if (!isInSession && dueCount === 0) {
     return (
       <div className="flex items-center justify-center min-h-[calc(100vh-120px)] p-6">
         <div className="max-w-md text-center space-y-6">
-          <div className="text-6xl mb-4">🎴</div>
+          <div className="text-6xl mb-4">✨</div>
           <h2 className="text-2xl font-semibold text-text">
-            {dueCount > 0 ? 'Ready to Review' : 'Practice Mode'}
+            All Caught Up!
           </h2>
           <div className="space-y-2">
-            {dueCount > 0 ? (
-              <>
-                <p className="text-text-secondary">
-                  You have <span className="font-semibold text-accent">{dueCount}</span> {dueCount === 1 ? 'word' : 'words'} due for review
-                </p>
-                {dueCount < allWords.length && (
-                  <p className="text-sm text-text-tertiary">
-                    {allWords.length - dueCount} {allWords.length - dueCount === 1 ? 'word' : 'words'} not due yet
-                  </p>
-                )}
-              </>
-            ) : (
-              <>
-                <p className="text-text-secondary">
-                  No cards are due right now
-                </p>
-                <p className="text-sm text-orange-600 dark:text-orange-400">
-                  You can practice all <span className="font-semibold">{allWords.length}</span> {allWords.length === 1 ? 'card' : 'cards'} anytime
-                </p>
-              </>
-            )}
+            <p className="text-text-secondary">
+              No cards are due for review right now
+            </p>
+            <p className="text-sm text-text-tertiary">
+              Great work on staying up to date! 🎉
+            </p>
           </div>
 
           <div className="space-y-3 pt-4">
             <button
-              onClick={showSessionConfig}
-              className="w-full px-6 py-4 bg-accent text-white rounded-xl font-medium hover:opacity-90 transition-opacity"
+              onClick={() => {
+                const config = toSessionConfig({
+                  sessionSize: Math.min(allWords.length, preferences.sessionSize),
+                  practiceMode: true, // Enable practice mode
+                });
+                startSession(config);
+              }}
+              className="w-full px-6 py-4 bg-accent text-white rounded-xl font-medium hover:opacity-90 transition-opacity shadow-lg"
             >
-              ⚙️ Configure & Start {dueCount > 0 ? 'Review' : 'Practice Session'}
+              🎯 Practice {allWords.length} {allWords.length === 1 ? 'Card' : 'Cards'}
+            </button>
+            <button
+              onClick={showSessionConfig}
+              className="w-full px-6 py-4 border-2 border-accent/30 text-text rounded-xl font-medium hover:border-accent/50 hover:bg-accent/5 transition-all"
+            >
+              ⚙️ Custom Practice Session
             </button>
             <button
               onClick={() => router.push("/")}
-              className="w-full px-6 py-4 bg-black/5 dark:bg-white/5 text-text rounded-xl font-medium hover:bg-black/10 dark:hover:bg-white/10 transition-colors"
+              className="w-full px-6 py-3 text-text-secondary hover:text-text transition-colors"
             >
-              Back to Home
+              ← Back to Home
             </button>
           </div>
         </div>
@@ -495,14 +630,39 @@ export default function ReviewPage() {
     );
   }
 
-  // Active review session (Phase 8 Enhanced)
+  // Active review session (Phase 18.1 Task 4: Varied Methods)
   return (
-    <ReviewSessionEnhanced
-      words={sessionWords}
-      config={sessionConfig || DEFAULT_SESSION_CONFIG}
-      onComplete={handleSessionComplete}
-      onCancel={handleSessionCancel}
-    />
+    <>
+      <ReviewSessionVaried
+        words={sessionWords}
+        config={sessionConfig || DEFAULT_SESSION_CONFIG}
+        onComplete={handleSessionComplete}
+        onCancel={handleSessionCancel}
+        userLevel={userLevel}
+        onConfigChange={() => setShowMidSessionConfig(true)}
+      />
+      
+      {/* Mid-session configuration modal */}
+      {showMidSessionConfig && (
+        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4" onClick={() => setShowMidSessionConfig(false)}>
+          <div className="max-w-4xl w-full max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+            <SessionConfig
+              defaultConfig={sessionConfig || DEFAULT_SESSION_CONFIG}
+              availableTags={availableTags}
+              totalAvailable={sessionWords.length}
+              allWords={allWords}
+              onStart={(config) => {
+                // Update preferences for future sessions
+                updateFromConfig(config);
+                // Note: Can't change current session cards, just save preferences
+                setShowMidSessionConfig(false);
+              }}
+              onCancel={() => setShowMidSessionConfig(false)}
+            />
+          </div>
+        </div>
+      )}
+    </>
   );
 }
 

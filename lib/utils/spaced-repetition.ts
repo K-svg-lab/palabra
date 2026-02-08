@@ -3,6 +3,20 @@
  * 
  * Implementation of the SuperMemo SM-2 algorithm for optimal vocabulary review scheduling.
  * 
+ * Phase 18.1.6 Enhancements:
+ * - Method difficulty multipliers adjust interval growth
+ * - Quality adjustment based on response time (objective performance metric)
+ * - Integration with 5 retrieval practice methods
+ * 
+ * Quality Adjustment Rationale:
+ * Fast, fluent responses indicate stronger memory encoding than slow, hesitant ones.
+ * The algorithm combines user self-assessment (easy/good/hard) with objective timing
+ * data to produce more accurate interval calculations.
+ * 
+ * Research:
+ * - Koriat & Ma'ayan (2005): Retrieval fluency predicts future memory performance
+ * - Bjork (1994): Desirable difficulties improve long-term retention
+ * 
  * Resources:
  * - Original SM-2 algorithm: https://www.supermemo.com/en/archives1990-2015/english/ol/sm2
  * - Anki's modified implementation for reference
@@ -11,8 +25,10 @@
  */
 
 import { SPACED_REPETITION } from '@/lib/constants/app';
+import { calculateAdjustedQuality, ratingToQuality } from '@/lib/constants/review-methods';
 import type { DifficultyRating, ReviewRecord } from '@/lib/types/vocabulary';
 import type { ReviewDirection } from '@/lib/types/review';
+import type { ReviewMethodType } from '@/lib/types/review-methods';
 import { generateUUID } from '@/lib/utils/uuid';
 
 /**
@@ -42,17 +58,23 @@ const SM2_CONFIG = {
  * 3. If second review: 6 days
  * 4. If third+ review: previous interval * ease factor
  * 
+ * Phase 18.1 Task 4: Added difficultyMultiplier parameter
+ * Harder methods (audio=1.2) reward success more
+ * Easier methods (multiple-choice=0.8) reward success less
+ * 
  * @param currentInterval - Current interval in days
  * @param repetition - Number of consecutive correct reviews
  * @param easeFactor - Current ease factor (SM-2 parameter)
  * @param rating - User's difficulty rating for this review
+ * @param difficultyMultiplier - Method difficulty multiplier (0.8-1.2, default 1.0)
  * @returns New interval in days
  */
 export function calculateNextInterval(
   currentInterval: number,
   repetition: number,
   easeFactor: number,
-  rating: DifficultyRating
+  rating: DifficultyRating,
+  difficultyMultiplier: number = 1.0
 ): number {
   // "Forgot" resets the learning process
   if (rating === 'forgot') {
@@ -70,8 +92,8 @@ export function calculateNextInterval(
   }
 
   // Third+ successful review: apply ease factor
-  // Formula: new_interval = old_interval * ease_factor
-  let newInterval = Math.round(currentInterval * easeFactor);
+  // Formula: new_interval = old_interval * ease_factor * difficultyMultiplier
+  let newInterval = Math.round(currentInterval * easeFactor * difficultyMultiplier);
 
   // Apply rating-based modifiers to fine-tune the interval
   switch (rating) {
@@ -194,27 +216,55 @@ export function isReviewDue(
  * all review tracking parameters after a review session.
  * 
  * Phase 8 Enhancement: Now tracks directional accuracy (ES→EN vs EN→ES)
+ * Phase 18.1.6 Enhancement: Quality adjustment based on response time
  * 
  * @param currentReview - Current review record
  * @param rating - User's difficulty rating
  * @param reviewDate - Date of review (defaults to now)
  * @param direction - Review direction for directional accuracy tracking (optional, defaults to 'spanish-to-english')
+ * @param difficultyMultiplier - Method difficulty multiplier (0.8-1.2, default 1.0)
+ * @param responseTime - Time taken to answer in milliseconds (optional)
+ * @param reviewMethod - Review method used (optional, for quality adjustment)
  * @returns Updated review record
  */
 export function updateReviewRecord(
   currentReview: ReviewRecord,
   rating: DifficultyRating,
   reviewDate: number = Date.now(),
-  direction: ReviewDirection = 'spanish-to-english'
+  direction: ReviewDirection = 'spanish-to-english',
+  difficultyMultiplier: number = 1.0,
+  responseTime?: number,
+  reviewMethod?: ReviewMethodType
 ): ReviewRecord {
+  // Phase 18.1.6: Apply quality adjustment based on response time
+  // This helps correct for metacognitive bias and rewards fluent recall
+  let effectiveRating = rating;
+  if (responseTime !== undefined && reviewMethod && rating !== 'forgot') {
+    const baseQuality = ratingToQuality(rating);
+    const adjustedQuality = calculateAdjustedQuality(baseQuality, responseTime, reviewMethod);
+    
+    // Convert adjusted quality back to rating
+    // This provides a more objective measure of mastery
+    if (adjustedQuality >= 4) {
+      effectiveRating = 'easy';
+    } else if (adjustedQuality >= 3) {
+      effectiveRating = 'good';
+    } else if (adjustedQuality >= 2) {
+      effectiveRating = 'hard';
+    } else {
+      effectiveRating = 'hard'; // Minimum for correct answer
+    }
+  }
+
   // Calculate new parameters using SM-2 algorithm
-  const newRepetition = calculateRepetition(currentReview.repetition, rating);
-  const newEaseFactor = calculateEaseFactor(currentReview.easeFactor, rating);
+  const newRepetition = calculateRepetition(currentReview.repetition, effectiveRating);
+  const newEaseFactor = calculateEaseFactor(currentReview.easeFactor, effectiveRating);
   const newInterval = calculateNextInterval(
     currentReview.interval,
     currentReview.repetition,
     newEaseFactor,
-    rating
+    effectiveRating,
+    difficultyMultiplier
   );
   const newNextReviewDate = calculateNextReviewDate(newInterval, reviewDate);
 

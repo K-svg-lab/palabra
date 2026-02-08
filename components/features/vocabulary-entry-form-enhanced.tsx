@@ -15,6 +15,7 @@
 
 import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
+import { useQuery } from '@tanstack/react-query';
 import { Loader2, Check, AlertCircle, WifiOff } from 'lucide-react';
 import { useLookupVocabulary, useAddVocabulary } from '@/lib/hooks/use-vocabulary';
 import { checkSpanishSpelling } from '@/lib/services/spellcheck';
@@ -23,6 +24,18 @@ import { getOfflineQueueService } from '@/lib/services/offline-queue';
 import { detectDeviceType, isMobile } from '@/lib/utils/device-detection';
 import { CacheIndicator } from '@/components/ui/cache-indicator';
 import type { VocabularyWord, Gender, PartOfSpeech, ExampleSentence } from '@/lib/types/vocabulary';
+
+// ═══════════════════════════════════════════════════════════════════
+// PHASE 18.1.3: AI Examples Response Interface
+// ═══════════════════════════════════════════════════════════════════
+interface AIExamplesResponse {
+  ready: boolean;
+  examples?: Array<{
+    spanish: string;
+    english: string;
+  }>;
+  message?: string;
+}
 
 interface VocabularyFormData {
   spanishWord: string;
@@ -80,6 +93,7 @@ export function VocabularyEntryFormEnhanced({ initialWord, onSuccess, onCancel }
   const [lastLookedUpWord, setLastLookedUpWord] = useState<string>('');
   const [hasAutoTriggered, setHasAutoTriggered] = useState(false);
   const [offlineMode, setOfflineMode] = useState(false);
+  const [pollForExamples, setPollForExamples] = useState(false);
   
   // ═══════════════════════════════════════════════════════════════════
   // 📝 EDIT TRACKING (Phase 16.4.1)
@@ -113,6 +127,49 @@ export function VocabularyEntryFormEnhanced({ initialWord, onSuccess, onCancel }
   const spanishWord = watch('spanishWord');
   const englishTranslation = watch('englishTranslation');
   const notes = watch('notes');
+
+  // ═══════════════════════════════════════════════════════════════════
+  // PHASE 18.1.3: Poll for AI Examples (Progressive Loading)
+  // ═══════════════════════════════════════════════════════════════════
+  const { data: examplesData } = useQuery<AIExamplesResponse | null>({
+    queryKey: ['ai-examples', lastLookedUpWord],
+    queryFn: async (): Promise<AIExamplesResponse | null> => {
+      if (!lastLookedUpWord) return null;
+      console.log(`[Polling] Fetching examples for "${lastLookedUpWord}"...`);
+      const response = await fetch(`/api/vocabulary/examples?word=${encodeURIComponent(lastLookedUpWord)}`);
+      const data = await response.json();
+      console.log(`[Polling] Response:`, data);
+      return data;
+    },
+    enabled: pollForExamples && !!lastLookedUpWord,
+    refetchInterval: (query) => {
+      // Stop polling when examples are ready
+      if (query.state.data?.ready) {
+        console.log('[Polling] Examples ready, stopping poll');
+        return false;
+      }
+      // Poll every 1 second while waiting
+      console.log('[Polling] Not ready yet, will poll again in 1s');
+      return 1000;
+    },
+    refetchOnWindowFocus: false,
+  });
+
+  // Update examples when they become available from polling
+  useEffect(() => {
+    console.log('[Form] examplesData changed:', examplesData);
+    if (examplesData?.ready && examplesData.examples && examplesData.examples.length > 0) {
+      const newExamples = examplesData.examples;
+      console.log('[Form] Examples ready! Updating UI:', newExamples);
+      setLookupData(prev => ({
+        ...prev!,
+        examples: newExamples,
+      }));
+      setValue('exampleSpanish', newExamples[0].spanish);
+      setValue('exampleEnglish', newExamples[0].english);
+      setPollForExamples(false); // Stop polling
+    }
+  }, [examplesData, setValue]);
 
   // Auto-focus input field when component mounts and populate initial word if provided
   useEffect(() => {
@@ -175,8 +232,15 @@ export function VocabularyEntryFormEnhanced({ initialWord, onSuccess, onCancel }
                 
                 // Update example sentence fields if new examples are available
                 if (data.examples && data.examples.length > 0) {
+                  console.log(`[Form] Examples available immediately for "${cleanWord}":`, data.examples);
                   setValue('exampleSpanish', data.examples[0].spanish);
                   setValue('exampleEnglish', data.examples[0].english);
+                  setPollForExamples(false);
+                } else {
+                  // No examples yet, start polling for AI generation
+                  console.log(`[Form] No examples yet for "${cleanWord}", starting polling...`);
+                  console.log(`[Form] Setting lastLookedUpWord to: "${cleanWord}"`);
+                  setPollForExamples(true);
                 }
                 
                 // Keep keyboard closed after auto-fill
@@ -250,8 +314,15 @@ export function VocabularyEntryFormEnhanced({ initialWord, onSuccess, onCancel }
       
       // Update example sentence fields if new examples are available
       if (data.examples && data.examples.length > 0) {
+        console.log(`[Form] Examples available immediately for "${cleanWord}":`, data.examples);
         setValue('exampleSpanish', data.examples[0].spanish);
         setValue('exampleEnglish', data.examples[0].english);
+        setPollForExamples(false);
+      } else {
+        // No examples yet, start polling for AI generation
+        console.log(`[Form] No examples yet for "${cleanWord}", starting polling...`);
+        console.log(`[Form] Setting lastLookedUpWord to: "${cleanWord}"`);
+        setPollForExamples(true);
       }
     } catch (error) {
       console.error('Lookup error:', error);
@@ -771,27 +842,51 @@ export function VocabularyEntryFormEnhanced({ initialWord, onSuccess, onCancel }
           </div>
 
           {/* Example Sentence - Editable on click, Centered */}
-          {lookupData.examples && lookupData.examples.length > 0 && (
+          {lookupData && (
             <div className="pt-3">
               <label className="block text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-400 text-center mb-2">
                 Example Sentence
               </label>
-              <div className="space-y-2 text-center">
-                <input
-                  type="text"
-                  {...register('exampleSpanish')}
-                  defaultValue={lookupData.examples[0].spanish}
-                  placeholder="Spanish example"
-                  className="w-full px-3 py-2 text-sm sm:text-base text-center italic text-gray-700 dark:text-gray-300 bg-transparent border border-transparent hover:border-gray-300 dark:hover:border-gray-600 focus:border-accent focus:bg-white dark:focus:bg-black rounded-lg focus:ring-2 focus:ring-accent focus:ring-opacity-20 transition-colors"
-                />
-                <input
-                  type="text"
-                  {...register('exampleEnglish')}
-                  defaultValue={lookupData.examples[0].english}
-                  placeholder="English translation"
-                  className="w-full px-3 py-2 text-xs sm:text-sm text-center text-gray-500 dark:text-gray-400 bg-transparent border border-transparent hover:border-gray-300 dark:hover:border-gray-600 focus:border-accent focus:bg-white dark:focus:bg-black rounded-lg focus:ring-2 focus:ring-accent focus:ring-opacity-20 transition-colors"
-                />
-              </div>
+              
+              {/* Loading State - Smooth skeleton animation */}
+              {pollForExamples && (!lookupData.examples || lookupData.examples.length === 0) && (
+                <div className="space-y-2 text-center animate-pulse">
+                  <div className="flex items-center justify-center gap-2">
+                    <div className="w-2 h-2 bg-accent/60 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                    <div className="w-2 h-2 bg-accent/60 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+                    <div className="w-2 h-2 bg-accent/60 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+                  </div>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">Generating example...</p>
+                  <div className="h-10 bg-gray-200 dark:bg-gray-800 rounded-lg mx-auto w-full"></div>
+                  <div className="h-8 bg-gray-100 dark:bg-gray-900 rounded-lg mx-auto w-4/5"></div>
+                </div>
+              )}
+              
+              {/* Examples Ready - Smooth fade-in animation */}
+              {lookupData.examples && lookupData.examples.length > 0 && (
+                <div 
+                  className="space-y-2 text-center"
+                  style={{ 
+                    animation: 'fadeIn 300ms ease-out',
+                    animationFillMode: 'backwards'
+                  }}
+                >
+                  <input
+                    type="text"
+                    {...register('exampleSpanish')}
+                    defaultValue={lookupData.examples[0].spanish}
+                    placeholder="Spanish example"
+                    className="w-full px-3 py-2 text-sm sm:text-base text-center italic text-gray-700 dark:text-gray-300 bg-transparent border border-transparent hover:border-gray-300 dark:hover:border-gray-600 focus:border-accent focus:bg-white dark:focus:bg-black rounded-lg focus:ring-2 focus:ring-accent focus:ring-opacity-20 transition-colors"
+                  />
+                  <input
+                    type="text"
+                    {...register('exampleEnglish')}
+                    defaultValue={lookupData.examples[0].english}
+                    placeholder="English translation"
+                    className="w-full px-3 py-2 text-xs sm:text-sm text-center text-gray-500 dark:text-gray-400 bg-transparent border border-transparent hover:border-gray-300 dark:hover:border-gray-600 focus:border-accent focus:bg-white dark:focus:bg-black rounded-lg focus:ring-2 focus:ring-accent focus:ring-opacity-20 transition-colors"
+                  />
+                </div>
+              )}
             </div>
           )}
         </div>

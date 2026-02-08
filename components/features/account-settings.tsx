@@ -6,10 +6,11 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { User, LogOut, Cloud, Smartphone, GraduationCap } from 'lucide-react';
+import { User, LogOut, Cloud, Smartphone, GraduationCap, Shuffle } from 'lucide-react';
 import Link from 'next/link';
 import { clearAllUserData } from '@/lib/db/schema';
 import { type CEFRLevel, CEFR_LEVELS, getLevelDescription } from '@/lib/types/proficiency';
+import { useReviewPreferences } from '@/lib/hooks/use-review-preferences';
 
 interface AccountSettingsProps {
   onAuthChanged?: () => void;
@@ -25,6 +26,9 @@ export function AccountSettings({ onAuthChanged }: AccountSettingsProps) {
   const [signingOut, setSigningOut] = useState(false);
   const [proficiencyLevel, setProficiencyLevel] = useState<CEFRLevel>('B1');
   const [updatingLevel, setUpdatingLevel] = useState(false);
+  
+  // Phase 18.1.5: Interleaving preferences
+  const { preferences, setPreferences } = useReviewPreferences();
 
   useEffect(() => {
     checkAuth();
@@ -262,6 +266,59 @@ export function AccountSettings({ onAuthChanged }: AccountSettingsProps) {
           </div>
         </div>
       )}
+
+      {/* Learning Preferences - Phase 18.1.5 */}
+      <div>
+        <h2 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4 flex items-center gap-2">
+          <Shuffle className="w-5 h-5" />
+          Learning Preferences
+        </h2>
+        
+        <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-3 sm:p-4">
+          {/* Interleaving Toggle */}
+          <div className="flex items-start justify-between gap-4">
+            <div className="flex-1">
+              <label className="block text-sm font-medium text-gray-900 dark:text-gray-100 mb-1">
+                Interleaved Practice
+              </label>
+              <p className="text-xs text-gray-600 dark:text-gray-400">
+                Mix words by type, age, and difficulty during review sessions for better retention (recommended)
+              </p>
+            </div>
+            
+            <button
+              onClick={() => setPreferences({ interleavingEnabled: !preferences.interleavingEnabled })}
+              className={`
+                relative inline-flex h-7 w-12 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent 
+                transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2
+                ${preferences.interleavingEnabled ? 'bg-blue-600' : 'bg-gray-200 dark:bg-gray-700'}
+              `}
+              role="switch"
+              aria-checked={preferences.interleavingEnabled}
+              aria-label="Toggle interleaved practice"
+            >
+              <span
+                className={`
+                  pointer-events-none inline-block h-6 w-6 transform rounded-full bg-white shadow ring-0 
+                  transition duration-200 ease-in-out
+                  ${preferences.interleavingEnabled ? 'translate-x-5' : 'translate-x-0'}
+                `}
+              />
+            </button>
+          </div>
+          
+          {/* Info Box */}
+          <div className="mt-3 sm:mt-4 pt-3 sm:pt-4 border-t border-gray-200 dark:border-gray-800">
+            <div className="flex items-start gap-2">
+              <div className="text-blue-600 dark:text-blue-400 text-sm flex-shrink-0">🧠</div>
+              <p className="text-xs text-gray-600 dark:text-gray-400">
+                <strong>Research-backed:</strong> Interleaving improves long-term retention by 43% compared to blocked practice. 
+                Words are mixed by part of speech, age (new/mature), and difficulty level.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
 
       {/* Cloud Sync Benefits */}
       <div>
