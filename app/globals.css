@@ -163,7 +163,8 @@ p {
   line-height: 1.6;
 }
 
-a {
+/* Anchor tag defaults - only apply to links without custom transitions */
+a:not([class*="transition"]) {
   text-decoration: none;
   transition: color var(--transition-fast);
 }
@@ -502,4 +503,19 @@ textarea:focus-visible {
 
 .animate-shimmer {
   animation: shimmer 2s infinite;
+}
+
+/* Subtle pulse for CTA button - Phase 18 UX Enhancement */
+/* Fixed: Removed transform animation to avoid conflict with hover transitions */
+@keyframes pulse-subtle {
+  0%, 100% {
+    box-shadow: 0 10px 40px -12px rgba(102, 126, 234, 0.3);
+  }
+  50% {
+    box-shadow: 0 12px 48px -12px rgba(102, 126, 234, 0.5);
+  }
+}
+
+.animate-pulse-subtle {
+  animation: pulse-subtle 2.5s ease-in-out infinite;
 }
