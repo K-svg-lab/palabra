@@ -39,7 +39,8 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
   // Phase 18: Pre-hydrate vocabulary data after login for immediate offline capability
   // This ensures IndexedDB has data even if user hasn't visited vocabulary page yet
-  useDataPreload(user?.id, { enabled: true, delay: 2000 });
+  // TEMPORARILY DISABLED: Causing infinite loading issue, needs investigation
+  // useDataPreload(user?.id, { enabled: true, delay: 2000 });
 
   // Pages that have user icon in their header (don't show floating indicator)
   // Also hide during review sessions to avoid distraction
