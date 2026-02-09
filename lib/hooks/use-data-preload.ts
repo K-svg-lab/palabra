@@ -103,12 +103,15 @@ export function useDataPreload(
         const syncService = getSyncService();
         const result = await syncService.sync('incremental');
         
-        if (result.success) {
+        if (result.status === 'success') {
           console.log('[Preload] ✅ Vocabulary data preloaded successfully');
           console.log('[Preload] Downloaded:', result.downloaded, 'items');
           hasPreloadedRef.current = true;
         } else {
-          console.warn('[Preload] ⚠️ Sync failed:', result.error);
+          console.warn('[Preload] ⚠️ Sync failed:', result.status);
+          if (result.errorDetails && result.errorDetails.length > 0) {
+            console.warn('[Preload] Error details:', result.errorDetails[0].message);
+          }
           // Don't set hasPreloaded to true so it can retry on next mount
         }
       } catch (error) {
@@ -156,11 +159,14 @@ export async function preloadVocabularyData(): Promise<{
     const syncService = getSyncService();
     const result = await syncService.sync('incremental');
     
-    if (!result.success) {
+    if (result.status !== 'success') {
+      const errorMsg = result.errorDetails && result.errorDetails.length > 0 
+        ? result.errorDetails[0].message 
+        : `Sync failed with status: ${result.status}`;
       return {
         success: false,
         wordsLoaded: 0,
-        error: result.error,
+        error: errorMsg,
       };
     }
     
