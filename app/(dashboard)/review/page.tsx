@@ -589,8 +589,8 @@ export default function ReviewPage() {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
         <SessionConfig
-          wordCount={allWords.length}
-          dueCount={dueCount}
+          totalAvailable={dueCount}
+          allWords={allWords || []}
           onStart={handleStartSession}
           onCancel={() => router.push("/")}
           defaultConfig={sessionConfig || DEFAULT_SESSION_CONFIG}
@@ -606,8 +606,8 @@ export default function ReviewPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
           <div className="bg-white dark:bg-gray-900 rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <SessionConfig
-              wordCount={allWords.length}
-              dueCount={dueCount}
+              totalAvailable={dueCount}
+              allWords={allWords || []}
               onStart={(config) => {
                 // Update config mid-session
                 setSessionConfig(config);
@@ -615,7 +615,6 @@ export default function ReviewPage() {
               }}
               onCancel={() => setShowMidSessionConfig(false)}
               defaultConfig={sessionConfig || DEFAULT_SESSION_CONFIG}
-              inSession={true}
             />
           </div>
         </div>
