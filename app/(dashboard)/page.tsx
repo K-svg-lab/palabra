@@ -47,6 +47,9 @@ export default function HomePage() {
   const [user, setUser] = useState<any>(null);
   const [userLoading, setUserLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  
+  // Phase 18 UX Fix: Background processing indicator
+  const [showProcessing, setShowProcessing] = useState(false);
 
   const hasVocabulary = (stats?.total || 0) > 0;
   
@@ -65,6 +68,27 @@ export default function HomePage() {
       ]);
     },
   });
+
+  // Phase 18 UX Fix: Show background processing indicator after session completion
+  useEffect(() => {
+    // Check if we just completed a session (redirect from review page)
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('sessionComplete') === 'true') {
+      setShowProcessing(true);
+      
+      // Hide after 3 seconds (background processing should be done by then)
+      const timer = setTimeout(() => {
+        setShowProcessing(false);
+        
+        // Clean up URL parameter
+        const url = new URL(window.location.href);
+        url.searchParams.delete('sessionComplete');
+        window.history.replaceState({}, '', url.toString());
+      }, 3000);
+      
+      return () => clearTimeout(timer);
+    }
+  }, []);
 
   // Check authentication status and proficiency onboarding
   // Guest Mode (Feb 8, 2026): Allow unauthenticated users to use app with local data
@@ -440,6 +464,18 @@ export default function HomePage() {
           </section>
         )}
       </div>
+      
+      {/* Phase 18 UX Fix: Background processing indicator */}
+      {showProcessing && (
+        <div className="fixed bottom-4 left-4 z-50 bg-white dark:bg-gray-800 shadow-lg rounded-full px-4 py-2 border border-gray-200 dark:border-gray-700 animate-in slide-in-from-bottom-4 duration-300">
+          <div className="flex items-center gap-2">
+            <RefreshCw className="w-4 h-4 animate-spin text-blue-600" />
+            <span className="text-sm text-gray-700 dark:text-gray-200">
+              Saving progress...
+            </span>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

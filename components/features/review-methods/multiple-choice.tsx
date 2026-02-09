@@ -318,9 +318,22 @@ function generateOptions(
   allWords: VocabularyWord[],
   direction: 'spanish-to-english' | 'english-to-spanish'
 ): MultipleChoiceOption[] {
+  // Phase 18 UX Fix: Debug direction flow (development only)
+  if (process.env.NODE_ENV === 'development') {
+    console.log('🔍 [Multiple Choice] generateOptions called:', {
+      direction,
+      wordSpanish: word.spanishWord,
+      wordEnglish: word.englishTranslation,
+    });
+  }
+  
   const correctAnswer = direction === 'spanish-to-english'
     ? word.englishTranslation
     : word.spanishWord;
+  
+  if (process.env.NODE_ENV === 'development') {
+    console.log('🔍 [Multiple Choice] correctAnswer should be:', correctAnswer, '(', direction === 'spanish-to-english' ? 'English' : 'Spanish', ')');
+  }
 
   // Filter out current word and get potential distractors
   const otherWords = allWords.filter(w => w.id !== word.id);

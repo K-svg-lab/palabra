@@ -21,7 +21,7 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
-import { X, TrendingUp, Settings } from 'lucide-react';
+import { X, TrendingUp, Settings, ArrowRight } from 'lucide-react';
 import type { VocabularyWord, DifficultyRating } from '@/lib/types/vocabulary';
 import type { StudySessionConfig, ExtendedReviewResult, ReviewDirection } from '@/lib/types/review';
 import type {
@@ -153,6 +153,20 @@ export function ReviewSessionVaried({
       setCurrentDirection(Math.random() > 0.5 ? 'spanish-to-english' : 'english-to-spanish');
     }
   }, [currentIndex, config.direction, currentWord]);
+
+  // Phase 18 UX Fix: Debug direction flow (development only)
+  useEffect(() => {
+    if (process.env.NODE_ENV === 'development') {
+      console.log('🔍 [Direction Debug]', {
+        configDirection: config.direction,
+        currentDirection,
+        currentIndex,
+        wordId: currentWord?.id,
+        wordSpanish: currentWord?.spanishWord,
+        wordEnglish: currentWord?.englishTranslation,
+      });
+    }
+  }, [config.direction, currentDirection, currentIndex, currentWord]);
 
   /**
    * Handle method completion
@@ -384,8 +398,32 @@ export function ReviewSessionVaried({
               <X className="w-5 h-5 text-text-secondary" />
             </button>
 
-            <div className="flex items-center gap-2 text-sm text-text-secondary">
+            <div className="flex items-center gap-3 text-sm text-text-secondary">
+              {/* Phase 18 UX Fix: Direction indicator */}
+              <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full ${
+                currentDirection === 'spanish-to-english'
+                  ? 'bg-blue-50 dark:bg-blue-900/20'
+                  : 'bg-purple-50 dark:bg-purple-900/20'
+              }`}>
+                {currentDirection === 'spanish-to-english' ? (
+                  <>
+                    <span className="text-xs font-medium text-blue-700 dark:text-blue-300">ES</span>
+                    <ArrowRight className="w-3 h-3 text-blue-600 dark:text-blue-400" />
+                    <span className="text-xs font-medium text-blue-700 dark:text-blue-300">EN</span>
+                  </>
+                ) : (
+                  <>
+                    <span className="text-xs font-medium text-purple-700 dark:text-purple-300">EN</span>
+                    <ArrowRight className="w-3 h-3 text-purple-600 dark:text-purple-400" />
+                    <span className="text-xs font-medium text-purple-700 dark:text-purple-300">ES</span>
+                  </>
+                )}
+              </div>
+              
+              {/* Method indicator */}
               <span className="hidden sm:inline">{methodMetadata.icon} {methodMetadata.name}</span>
+              
+              {/* Card counter */}
               <span className="font-semibold text-accent">{results.length + 1} / {processedWords.length}</span>
             </div>
 

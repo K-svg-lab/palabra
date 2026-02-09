@@ -55,7 +55,8 @@ export function ContextSelectionReview({
   const [keyboardEnabled, setKeyboardEnabled] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // Select a random example sentence
+  // Phase 18 UX Fix: Full Spanish Immersion
+  // ALWAYS use Spanish examples (immersion learning)
   const example = word.examples && word.examples.length > 0
     ? word.examples[Math.floor(Math.random() * word.examples.length)]
     : null;
@@ -64,32 +65,57 @@ export function ContextSelectionReview({
   const [question] = useState(() => {
     if (!example) {
       // Fallback: simple definition sentence
-      return {
-        sentence: direction === 'spanish-to-english'
-          ? `"${word.spanishWord}" translates to ______`
-          : `"______ " is the Spanish word for "${word.englishTranslation}"`,
-        options: generateOptions(word, allWords, direction),
-        correctIndex: 0, // Always first option initially (will be shuffled)
-        translation: null,
-      };
+      // ES→EN: Spanish word translates to ______ (English options)
+      // EN→ES: Spanish sentence with ______ (Spanish options)
+      if (direction === 'spanish-to-english') {
+        return {
+          sentence: `"${word.spanishWord}" se traduce a ______`,
+          englishPrompt: null,
+          options: generateOptions(word, allWords, direction),
+          correctIndex: 0,
+          translation: word.englishTranslation,
+        };
+      } else {
+        return {
+          sentence: `"______" es la palabra en español para "${word.englishTranslation}"`,
+          englishPrompt: `What is the Spanish word for "${word.englishTranslation}"?`,
+          options: generateOptions(word, allWords, direction),
+          correctIndex: 0,
+          translation: word.englishTranslation,
+        };
+      }
     }
 
-    // Create blank sentence from example
-    const sentenceLanguage = direction === 'spanish-to-english' ? 'spanish' : 'english';
-    const targetWord = direction === 'spanish-to-english' ? word.spanishWord : word.englishTranslation;
-    const fullSentence = sentenceLanguage === 'spanish' ? example.spanish : example.english;
+    // Full Immersion: ALWAYS use Spanish sentence (even for EN→ES)
+    const spanishSentence = example.spanish;
+    const englishTranslation = example.english;
     
-    // Replace target word with blank
-    const blankSentence = fullSentence.replace(
-      new RegExp(`\\b${targetWord}\\b`, 'gi'),
-      '______'
+    // Replace Spanish word with blank
+    const blankSentence = spanishSentence.replace(
+      new RegExp(`\\b${word.spanishWord}\\b`, 'gi'),
+      '_______'
     );
+
+    // For EN→ES, show English prompt to clarify what user is looking for
+    const englishPrompt = direction === 'english-to-spanish'
+      ? `What is the Spanish word for "${word.englishTranslation}"?`
+      : null;
+
+    if (process.env.NODE_ENV === 'development') {
+      console.log('🔍 [Context Selection] Full immersion:', {
+        direction,
+        spanishSentence,
+        englishPrompt,
+        optionsLanguage: direction === 'spanish-to-english' ? 'English' : 'Spanish',
+      });
+    }
 
     return {
       sentence: blankSentence,
+      englishPrompt,
       options: generateOptions(word, allWords, direction),
       correctIndex: 0,
-      translation: sentenceLanguage === 'spanish' ? example.english : example.spanish,
+      translation: englishTranslation,
     };
   });
 
@@ -210,17 +236,27 @@ export function ContextSelectionReview({
     >
       {/* Question card - Compact for mobile-first */}
       <div className="w-full bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-200 dark:border-gray-700 p-4 sm:p-6 space-y-3 sm:space-y-4">
-        {/* Sentence with blank */}
+        
+        {/* Phase 18 UX Fix: English prompt for EN→ES mode (Full Immersion) */}
+        {question.englishPrompt && !isSubmitted && (
+          <div className="bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 rounded-xl p-3 sm:p-4 animate-in fade-in slide-in-from-top-2 duration-300">
+            <p className="text-sm sm:text-base text-purple-800 dark:text-purple-200 text-center font-medium">
+              {question.englishPrompt}
+            </p>
+          </div>
+        )}
+        
+        {/* Spanish sentence with blank (ALWAYS Spanish for immersion) */}
         <div className="text-center p-4 sm:p-5 bg-accent/5 rounded-xl border border-accent/20">
           <p className="text-lg sm:text-xl md:text-2xl text-text leading-snug">
             {question.sentence}
           </p>
         </div>
 
-        {/* Translation hint */}
-        {question.translation && (
+        {/* English translation hint (subtle, for context) */}
+        {question.translation && !isSubmitted && (
           <div className="text-center">
-            <p className="text-xs sm:text-sm text-text-secondary italic">
+            <p className="text-xs sm:text-sm text-text-tertiary italic">
               "{question.translation}"
             </p>
           </div>
@@ -361,15 +397,30 @@ export function ContextSelectionReview({
 
 /**
  * Generate 4 word options (1 correct + 3 similar distractors)
+ * Phase 18 UX Fix: Corrected logic for language learning
+ * 
+ * ES→EN: User sees Spanish sentence, selects English translation
+ * EN→ES: User sees Spanish sentence, selects Spanish word (with English prompt)
  */
 function generateOptions(
   word: VocabularyWord,
   allWords: VocabularyWord[],
   direction: 'spanish-to-english' | 'english-to-spanish'
 ): string[] {
+  // Phase 18 UX Fix: Options are in TARGET language (what user must produce/identify)
+  // ES→EN: Spanish sentence → English options (translate)
+  // EN→ES: Spanish sentence → Spanish options (identify/produce)
   const correctWord = direction === 'spanish-to-english'
-    ? word.spanishWord
-    : word.englishTranslation;
+    ? word.englishTranslation  // ES→EN: Show English options
+    : word.spanishWord;        // EN→ES: Show Spanish options
+
+  if (process.env.NODE_ENV === 'development') {
+    console.log('🔍 [Context Selection] generateOptions:', {
+      direction,
+      correctWord,
+      language: direction === 'spanish-to-english' ? 'English' : 'Spanish',
+    });
+  }
 
   // Filter words of same part of speech for better distractors
   const samePartOfSpeech = allWords.filter(
@@ -381,14 +432,14 @@ function generateOptions(
     ? samePartOfSpeech 
     : allWords.filter(w => w.id !== word.id);
 
-  // Get 3 random distractors
+  // Get 3 random distractors in TARGET language
   const distractors: string[] = [];
   const shuffled = [...distractorPool].sort(() => Math.random() - 0.5);
 
   for (const w of shuffled) {
     const distractor = direction === 'spanish-to-english'
-      ? w.spanishWord
-      : w.englishTranslation;
+      ? w.englishTranslation  // ES→EN: English distractors
+      : w.spanishWord;        // EN→ES: Spanish distractors
 
     if (distractor !== correctWord && !distractors.includes(distractor)) {
       distractors.push(distractor);

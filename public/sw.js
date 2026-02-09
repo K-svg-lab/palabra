@@ -10,7 +10,8 @@
 
 // CRITICAL: Increment cache version to bust old caches
 // Use timestamp-based versioning to force cache refresh on every deployment
-const CACHE_VERSION = 'v4-20260130';
+// Phase 18 UX Fix: v5-20260209 - Added critical routes for offline quiz start
+const CACHE_VERSION = 'v5-20260209';
 const CACHE_NAME = `palabra-${CACHE_VERSION}`;
 const STATIC_CACHE = `palabra-static-${CACHE_VERSION}`;
 const DYNAMIC_CACHE = `palabra-dynamic-${CACHE_VERSION}`;
@@ -18,11 +19,18 @@ const IMAGE_CACHE = `palabra-images-${CACHE_VERSION}`;
 const AUDIO_CACHE = `palabra-audio-${CACHE_VERSION}`;
 
 // Files to cache immediately
+// Phase 18 UX Fix: Pre-cache critical app routes for offline quiz start
+// Users can now START a quiz offline (data is already in IndexedDB)
 const STATIC_FILES = [
   '/',
   '/manifest.json',
   '/icon-192.png',
   '/icon-512.png',
+  // Critical UI pages for offline functionality
+  '/review',        // Quiz interface
+  '/vocabulary',    // Vocabulary management
+  '/progress',      // Progress tracking
+  '/settings',      // Settings/preferences
 ];
 
 // API routes that should use network-first strategy
