@@ -9,7 +9,7 @@
  */
 
 import { useEffect, useRef } from 'react';
-import { syncService } from '@/lib/services/sync';
+import { getSyncService } from '@/lib/services/sync';
 
 interface UseDataPreloadOptions {
   /**
@@ -100,6 +100,7 @@ export function useDataPreload(
         
         // Trigger a background sync to pull data from cloud
         console.log('[Preload] Starting background vocabulary sync...');
+        const syncService = getSyncService();
         const result = await syncService.sync('incremental');
         
         if (result.success) {
@@ -152,6 +153,7 @@ export async function preloadVocabularyData(): Promise<{
     const beforeCount = (await getAllVocabularyWords()).length;
     
     // Trigger sync
+    const syncService = getSyncService();
     const result = await syncService.sync('incremental');
     
     if (!result.success) {
