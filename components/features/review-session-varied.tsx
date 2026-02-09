@@ -72,7 +72,7 @@ export function ReviewSessionVaried({
   const [results, setResults] = useState<ExtendedReviewResult[]>([]);
   const [methodHistory, setMethodHistory] = useState<MethodHistory[]>([]);
   const [methodPerformance, setMethodPerformance] = useState<MethodPerformance[]>([]);
-  const [currentDirection, setCurrentDirection] = useState<ReviewDirection>(
+  const [currentDirection, setCurrentDirection] = useState<'spanish-to-english' | 'english-to-spanish'>(
     config.direction === 'mixed' ? 'spanish-to-english' : config.direction
   );
   const [showCompletionDialog, setShowCompletionDialog] = useState(false);
