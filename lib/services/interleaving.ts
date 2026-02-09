@@ -99,9 +99,7 @@ export function categorizeWord(word: VocabularyWord): WordCategory {
   const partOfSpeech = word.partOfSpeech || 'unknown';
   
   // Age (days since creation)
-  const createdAt = word.createdAt instanceof Date 
-    ? word.createdAt 
-    : new Date(word.createdAt);
+  const createdAt = new Date(word.createdAt);
   const ageInDays = Math.floor((Date.now() - createdAt.getTime()) / (1000 * 60 * 60 * 24));
   
   let age: 'new' | 'young' | 'mature';
