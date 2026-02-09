@@ -110,7 +110,7 @@ export function useDataPreload(
         } else {
           console.warn('[Preload] ⚠️ Sync failed:', result.status);
           if (result.errorDetails && result.errorDetails.length > 0) {
-            console.warn('[Preload] Error details:', result.errorDetails[0].message);
+            console.warn('[Preload] Error details:', result.errorDetails[0].error);
           }
           // Don't set hasPreloaded to true so it can retry on next mount
         }
@@ -161,7 +161,7 @@ export async function preloadVocabularyData(): Promise<{
     
     if (result.status !== 'success') {
       const errorMsg = result.errorDetails && result.errorDetails.length > 0 
-        ? result.errorDetails[0].message 
+        ? result.errorDetails[0].error 
         : `Sync failed with status: ${result.status}`;
       return {
         success: false,
