@@ -94,7 +94,7 @@ const DIFFICULTY_THRESHOLDS = {
 /**
  * Categorize a word for interleaving purposes
  */
-export function categorizeWord(word: VocabularyWord): WordCategory {
+export function categorizeWord(word: VocabularyWord & { easeFactor?: number }): WordCategory {
   // Part of speech
   const partOfSpeech = word.partOfSpeech || 'unknown';
   
@@ -180,15 +180,15 @@ function isDifferentCategory(
  * @returns Interleaved list of words
  */
 export function interleaveWords(
-  words: VocabularyWord[],
+  words: (VocabularyWord & { easeFactor?: number })[],
   config: InterleavingConfig = DEFAULT_INTERLEAVING_CONFIG
-): VocabularyWord[] {
+): (VocabularyWord & { easeFactor?: number })[] {
   // If disabled or too few words, return as-is
   if (!config.enabled || words.length <= 2) {
     return [...words];
   }
   
-  const result: VocabularyWord[] = [];
+  const result: (VocabularyWord & { easeFactor?: number })[] = [];
   const remaining = [...words];
   const categories = new Map(words.map(w => [w.id, categorizeWord(w)]));
   
@@ -293,7 +293,7 @@ export interface InterleavingMetrics {
 /**
  * Analyze interleaving quality of a word sequence
  */
-export function analyzeInterleaving(words: VocabularyWord[]): InterleavingMetrics {
+export function analyzeInterleaving(words: (VocabularyWord & { easeFactor?: number })[]): InterleavingMetrics {
   if (words.length === 0) {
     return {
       totalWords: 0,
