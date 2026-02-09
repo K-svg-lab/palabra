@@ -192,7 +192,8 @@ export function ReviewSessionVaried({
             ? currentWord.englishTranslation
             : currentWord.spanishWord,
           isCorrect: methodResult.isCorrect,
-          similarity: methodResult.similarity || 0,
+          similarityScore: methodResult.similarity || 0,
+          timeToAnswer: 0, // Would need to track this
         },
       }),
     };
