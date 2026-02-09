@@ -13,6 +13,7 @@ import { SkipLink } from '@/components/shared/skip-link';
 import { SyncStatusBanner } from '@/components/ui/sync-status-banner';
 import { useOnlineStatus } from '@/lib/hooks/use-online-status';
 import { useRetentionTracking } from '@/lib/hooks/use-retention-tracking';
+import { useDataPreload } from '@/lib/hooks/use-data-preload';
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -35,6 +36,10 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
   // Phase 18.1.2: Initialize retention tracking (tracks user activity)
   useRetentionTracking(user?.id);
+
+  // Phase 18: Pre-hydrate vocabulary data after login for immediate offline capability
+  // This ensures IndexedDB has data even if user hasn't visited vocabulary page yet
+  useDataPreload(user?.id, { enabled: true, delay: 2000 });
 
   // Pages that have user icon in their header (don't show floating indicator)
   // Also hide during review sessions to avoid distraction
