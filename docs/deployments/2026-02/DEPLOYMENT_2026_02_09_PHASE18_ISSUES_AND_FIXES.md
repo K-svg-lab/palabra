@@ -7,10 +7,10 @@
 
 This document provides a comprehensive record of all deployment issues encountered during the Phase 18 rollout to production (Vercel). The deployment involved multiple TypeScript errors that required iterative fixes, as well as a CSS hover transition bug that was resolved.
 
-**Status:** ✅ All issues resolved as of commit `0e03e48`
+**Status:** ✅ All issues resolved as of commit `8fed0e3`
 **Production URL:** https://palabra-nu.vercel.app/
-**Total Build Attempts:** 6
-**Total Fixes Applied:** 6
+**Total Build Attempts:** 9
+**Total Fixes Applied:** 7 (6 TypeScript errors + 1 CSS bug)
 
 ---
 
@@ -356,6 +356,80 @@ export function analyzeInterleaving(words: (VocabularyWord & { easeFactor?: numb
 
 ---
 
+### Error #6: Type Import Used as Value
+**Status:** ✅ RESOLVED  
+**Commit:** `8fed0e3`  
+**Build Time:** 01:30:32.039
+
+#### Error Message
+```
+Type error: 'DEFAULT_METHOD_SELECTOR_CONFIG' cannot be used as a value because it was imported using 'import type'.
+  33 | export function selectReviewMethod(
+  34 |   context: MethodSelectionContext,
+> 35 |   config: MethodSelectorConfig = DEFAULT_METHOD_SELECTOR_CONFIG
+     |                                  ^
+  36 | ): MethodSelectionResult {
+  37 |   const { word, recentHistory, performance, userLevel } = context;
+```
+
+#### File
+`lib/services/method-selector.ts`
+
+#### Root Cause
+The `DEFAULT_METHOD_SELECTOR_CONFIG` constant was imported using TypeScript's `import type` syntax, which is only for type-level imports and gets erased at compile time. However, the constant was being used as a default parameter value in the `selectReviewMethod` function, which requires the actual runtime value.
+
+#### TypeScript Import Rules
+```typescript
+// Type-only imports (erased at runtime)
+import type { SomeType } from './module';
+
+// Value imports (available at runtime)
+import { someConstant } from './module';
+
+// Mixed imports (separate types from values)
+import type { SomeType } from './module';
+import { someConstant } from './module';
+```
+
+#### Fix Applied
+Split the import to separate types from values:
+
+```typescript
+// BEFORE
+import type {
+  ReviewMethodType,
+  MethodSelectionContext,
+  MethodSelectionResult,
+  MethodSelectorConfig,
+  MethodPerformance,
+  DEFAULT_METHOD_SELECTOR_CONFIG,  // ❌ Can't use as runtime value
+} from '@/lib/types/review-methods';
+
+// AFTER
+import type {
+  ReviewMethodType,
+  MethodSelectionContext,
+  MethodSelectionResult,
+  MethodSelectorConfig,
+  MethodPerformance,
+} from '@/lib/types/review-methods';
+import { DEFAULT_METHOD_SELECTOR_CONFIG } from '@/lib/types/review-methods';  // ✅ Regular import for value
+```
+
+Also removed unnecessary type assertion:
+
+```typescript
+// BEFORE
+config: MethodSelectorConfig = DEFAULT_METHOD_SELECTOR_CONFIG as MethodSelectorConfig
+
+// AFTER
+config: MethodSelectorConfig = DEFAULT_METHOD_SELECTOR_CONFIG
+```
+
+**Rationale:** TypeScript's `import type` is only for type checking and doesn't exist at runtime. Constants, enums, and other runtime values must use regular imports.
+
+---
+
 ## 📊 Deployment Timeline
 
 | Commit | Time | Status | Issue |
@@ -366,7 +440,9 @@ export function analyzeInterleaving(words: (VocabularyWord & { easeFactor?: numb
 | `dce1aad` | ~01:02 | ❌ Failed | RecallAttempt fix → ReviewDirection type error |
 | `f4ee78a` | ~01:05 | ❌ Failed | ReviewDirection fix → Date instanceof error |
 | `14f770d` | ~01:12 | ❌ Failed | Date fix → easeFactor missing error |
-| `0e03e48` | ~01:20 | ✅ Pending | easeFactor fix |
+| `0e03e48` | ~01:22 | ❌ Failed | easeFactor fix → type import error |
+| `0a696ad` | ~01:24 | ❌ Failed | Documentation update (no code change) |
+| `8fed0e3` | ~01:32 | ✅ Pending | Type import fix |
 
 ---
 
@@ -630,6 +706,10 @@ cat PHASE18.2_PLAN.md
 
 ## 🏁 Conclusion
 
-This deployment session resolved **6 TypeScript errors** and **1 CSS bug** across **multiple files and services**. All Phase 18 core features are now deployed and functional in production. The main lesson learned is to run comprehensive TypeScript type checking (`npx tsc --noEmit`) before pushing to production, especially after implementing new features that span multiple files and type definitions.
+This deployment session resolved **6 TypeScript errors** and **1 CSS bug** across **multiple files and services**. All Phase 18 core features are now deployed and functional in production. The main lessons learned are:
 
-**Final Status:** ✅ All known issues resolved, awaiting final Vercel build verification.
+1. **Run comprehensive TypeScript type checking** (`npx tsc --noEmit`) before pushing to production
+2. **Understand the difference between type imports and value imports** - constants and default parameters need regular imports, not `import type`
+3. **Test builds locally** with `npm run build` to catch issues before CI/CD deployment
+
+**Final Status:** ✅ All known issues resolved as of commit `8fed0e3`, awaiting final Vercel build verification.
