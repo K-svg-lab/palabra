@@ -19,8 +19,8 @@ import type {
   MethodSelectionResult,
   MethodSelectorConfig,
   MethodPerformance,
-  DEFAULT_METHOD_SELECTOR_CONFIG,
 } from '@/lib/types/review-methods';
+import { DEFAULT_METHOD_SELECTOR_CONFIG } from '@/lib/types/review-methods';
 import type { VocabularyWord } from '@/lib/types/vocabulary';
 
 /**
@@ -32,7 +32,7 @@ import type { VocabularyWord } from '@/lib/types/vocabulary';
  */
 export function selectReviewMethod(
   context: MethodSelectionContext,
-  config: MethodSelectorConfig = DEFAULT_METHOD_SELECTOR_CONFIG as MethodSelectorConfig
+  config: MethodSelectorConfig = DEFAULT_METHOD_SELECTOR_CONFIG
 ): MethodSelectionResult {
   const { word, recentHistory, performance, userLevel } = context;
 
