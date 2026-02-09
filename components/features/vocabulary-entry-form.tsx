@@ -43,6 +43,7 @@ interface AIExamplesResponse {
 export function VocabularyEntryForm({ onSuccess, onCancel }: Props) {
   const [lookupData, setLookupData] = useState<{
     translation?: string;
+    alternativeTranslations?: string[];
     gender?: Gender;
     partOfSpeech?: PartOfSpeech;
     examples?: Array<{ spanish: string; english: string }>;
