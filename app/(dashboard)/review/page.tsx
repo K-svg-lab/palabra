@@ -2,6 +2,8 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { Plus } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { ReviewSessionEnhanced } from "@/components/features/review-session-enhanced";
 import { ReviewSessionVaried } from "@/components/features/review-session-varied";
