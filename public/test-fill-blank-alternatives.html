@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Fill-in-the-Blank Alternative Translations</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 900px;
+            margin: 40px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .card {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 { color: #667eea; }
+        .test-result {
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 6px;
+            border-left: 4px solid;
+        }
+        .pass {
+            background: #d4edda;
+            border-color: #28a745;
+            color: #155724;
+        }
+        .fail {
+            background: #f8d7da;
+            border-color: #dc3545;
+            color: #721c24;
+        }
+        button {
+            padding: 12px 24px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+        }
+        button:hover {
+            background: #5568d3;
+        }
+        pre {
+            background: #f8f9fa;
+            padding: 12px;
+            border-radius: 4px;
+            overflow-x: auto;
+            font-size: 13px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🧪 Fill-in-the-Blank Alternative Translations Test</h1>
+    
+    <div class="card">
+        <h2>Test: Migrated Word Data</h2>
+        <p>This tests if words migrated from comma-separated to array structure work correctly.</p>
+        <button onclick="runTest()">▶ Run Test</button>
+        <div id="test-results"></div>
+    </div>
+
+    <script>
+        const DB_NAME = 'palabra_db';
+        const DB_VERSION = 5;
+        const VOCABULARY_STORE = 'vocabulary';
+        
+        // Answer checker (from codebase)
+        function normalizeString(str) {
+            return str.toLowerCase()
+                .normalize('NFD')
+                .replace(/[\u0300-\u036f]/g, '')
+                .replace(/[^\w\s]/g, '')
+                .trim()
+                .replace(/\s+/g, ' ');
+        }
+        
+        function levenshteinDistance(str1, str2) {
+            const len1 = str1.length;
+            const len2 = str2.length;
+            const matrix = [];
+            
+            for (let i = 0; i <= len1; i++) matrix[i] = [i];
+            for (let j = 0; j <= len2; j++) matrix[0][j] = j;
+            
+            for (let i = 1; i <= len1; i++) {
+                for (let j = 1; j <= len2; j++) {
+                    if (str1[i - 1] === str2[j - 1]) {
+                        matrix[i][j] = matrix[i - 1][j - 1];
+                    } else {
+                        matrix[i][j] = Math.min(
+                            matrix[i - 1][j - 1] + 1,
+                            matrix[i][j - 1] + 1,
+                            matrix[i - 1][j] + 1
+                        );
+                    }
+                }
+            }
+            
+            return matrix[len1][len2];
+        }
+        
+        function calculateSimilarity(userAnswer, correctAnswer) {
+            const normalizedUser = normalizeString(userAnswer);
+            const normalizedCorrect = normalizeString(correctAnswer);
+            
+            if (normalizedUser === normalizedCorrect) return 1.0;
+            if (normalizedUser.length === 0) return 0.0;
+            
+            const distance = levenshteinDistance(normalizedUser, normalizedCorrect);
+            const maxLength = Math.max(normalizedUser.length, normalizedCorrect.length);
+            const similarity = 1 - (distance / maxLength);
+            
+            return Math.max(0, Math.min(1, similarity));
+        }
+        
+        function checkAnswer(userAnswer, correctAnswer) {
+            const similarity = calculateSimilarity(userAnswer, correctAnswer);
+            const CORRECT_THRESHOLD = 0.85;
+            
+            return {
+                isCorrect: similarity >= CORRECT_THRESHOLD,
+                similarity,
+                feedback: similarity >= 1.0 ? '✅ Perfect!' :
+                         similarity >= CORRECT_THRESHOLD ? '✅ Correct!' :
+                         similarity >= 0.70 ? '⚠️ Close' :
+                         '❌ Incorrect'
+            };
+        }
+        
+        async function runTest() {
+            const resultsDiv = document.getElementById('test-results');
+            resultsDiv.innerHTML = '<p>Running tests...</p>';
+            
+            try {
+                // Open database
+                const db = await new Promise((resolve, reject) => {
+                    const request = indexedDB.open(DB_NAME, DB_VERSION);
+                    request.onerror = () => reject(request.error);
+                    request.onsuccess = () => resolve(request.result);
+                });
+                
+                // Get moribundo
+                const tx = db.transaction(VOCABULARY_STORE, 'readonly');
+                const store = tx.objectStore(VOCABULARY_STORE);
+                const getAllRequest = store.getAll();
+                const allWords = await new Promise((resolve, reject) => {
+                    getAllRequest.onsuccess = () => resolve(getAllRequest.result);
+                    getAllRequest.onerror = () => reject(getAllRequest.error);
+                });
+                
+                const moribundo = allWords.find(w => w.spanishWord === 'moribundo');
+                
+                if (!moribundo) {
+                    resultsDiv.innerHTML = '<div class="test-result fail">❌ Word "moribundo" not found in database</div>';
+                    return;
+                }
+                
+                db.close();
+                
+                // Display word data
+                let html = `<h3>Word Data After Migration:</h3>`;
+                html += `<pre>${JSON.stringify({
+                    spanishWord: moribundo.spanishWord,
+                    englishTranslation: moribundo.englishTranslation,
+                    alternativeTranslations: moribundo.alternativeTranslations
+                }, null, 2)}</pre>`;
+                
+                // Simulate fill-in-the-blank logic
+                const direction = 'spanish-to-english';
+                const allValidTranslations = direction === 'spanish-to-english'
+                    ? [moribundo.englishTranslation, ...(moribundo.alternativeTranslations || [])]
+                    : [moribundo.spanishWord];
+                
+                html += `<h3>All Valid Translations:</h3>`;
+                html += `<pre>${JSON.stringify(allValidTranslations, null, 2)}</pre>`;
+                
+                // Test cases
+                const testInputs = [
+                    'dying',
+                    'dying person',
+                    'moribund',
+                    'dead'
+                ];
+                
+                html += `<h3>Test Results:</h3>`;
+                
+                testInputs.forEach(userInput => {
+                    let bestResult = { isCorrect: false, similarity: 0 };
+                    let matchedWord = null;
+                    
+                    for (const validTranslation of allValidTranslations) {
+                        const result = checkAnswer(userInput, validTranslation);
+                        if (result.similarity > bestResult.similarity) {
+                            bestResult = result;
+                            matchedWord = validTranslation;
+                        }
+                        if (result.isCorrect) break;
+                    }
+                    
+                    const passClass = bestResult.isCorrect ? 'pass' : 'fail';
+                    html += `<div class="test-result ${passClass}">
+                        <strong>Input: "${userInput}"</strong><br>
+                        Result: ${bestResult.isCorrect ? '✅ ACCEPTED' : '❌ REJECTED'}<br>
+                        Matched: "${matchedWord}" (${(bestResult.similarity * 100).toFixed(1)}% similar)<br>
+                        Feedback: ${bestResult.feedback}
+                    </div>`;
+                });
+                
+                // Summary
+                const primaryTest = checkAnswer('dying', allValidTranslations[0]);
+                const alternativeTest = allValidTranslations[1] ? checkAnswer('dying person', allValidTranslations[1]) : null;
+                
+                if (primaryTest.isCorrect && alternativeTest && alternativeTest.isCorrect) {
+                    html += `<div class="test-result pass" style="margin-top: 20px; font-size: 16px;">
+                        <strong>✅ SUCCESS: Both primary and alternative translations are accepted!</strong>
+                    </div>`;
+                } else {
+                    html += `<div class="test-result fail" style="margin-top: 20px; font-size: 16px;">
+                        <strong>❌ FAILURE: Not all translations are accepted</strong>
+                    </div>`;
+                }
+                
+                resultsDiv.innerHTML = html;
+                
+            } catch (error) {
+                resultsDiv.innerHTML = `<div class="test-result fail">❌ Test failed: ${error.message}</div>`;
+                console.error('Test error:', error);
+            }
+        }
+    </script>
+</body>
+</html>

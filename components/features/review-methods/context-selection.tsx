@@ -45,11 +45,14 @@ export function ContextSelectionReview({
   cardNumber,
   onComplete,
 }: ContextSelectionReviewProps) {
+  console.log('[ContextSelectionReview] 🎭 RENDER START for word:', word.spanishWord, 'allWords:', allWords.length);
+  
   const [selectedOption, setSelectedOption] = useState<number | null>(null);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isCorrect, setIsCorrect] = useState(false);
   const [startTime] = useState(Date.now());
   const [ratingSubmitted, setRatingSubmitted] = useState(false);
+  const [keyboardEnabled, setKeyboardEnabled] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
   // Select a random example sentence
@@ -110,13 +113,27 @@ export function ContextSelectionReview({
     };
   });
 
+  console.log('[ContextSelectionReview] 🎭 State initialized, question:', question.sentence.substring(0, 50), 'options:', shuffledOptions.options.length);
+
   // Auto-focus container for keyboard events
   useEffect(() => {
+    console.log('[ContextSelectionReview] 🎭 MOUNTED for word:', word.spanishWord);
     const timer = setTimeout(() => {
       if (containerRef.current) {
         containerRef.current.focus();
       }
     }, 100);
+    return () => {
+      console.log('[ContextSelectionReview] 🎭 UNMOUNTING word:', word.spanishWord);
+      clearTimeout(timer);
+    };
+  }, [word.spanishWord]);
+
+  // Enable keyboard shortcuts after delay to prevent accidental triggers during page load
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setKeyboardEnabled(true);
+    }, 500);
     return () => clearTimeout(timer);
   }, []);
 
@@ -157,6 +174,11 @@ export function ContextSelectionReview({
    * Handle keyboard shortcuts
    */
   const handleKeyDown = (e: React.KeyboardEvent) => {
+    // Prevent accidental triggers during initial page load
+    if (!keyboardEnabled) {
+      return;
+    }
+
     if (isSubmitted && !ratingSubmitted) {
       // Rating shortcuts
       if (['Digit1', 'Digit2', 'Digit3', 'Digit4'].includes(e.code)) {

@@ -52,12 +52,17 @@ export default function ReviewPage() {
   const [isInSession, setIsInSession] = useState(false);
   const [sessionWords, setSessionWords] = useState<VocabularyWord[]>([]);
   const [sessionConfig, setSessionConfig] = useState<StudySessionConfig | null>(null);
-  const [dueCount, setDueCount] = useState<number>(0);
+  const [dueCount, setDueCount] = useState<number>(-1); // -1 = not calculated yet, 0 = calculated and none due
   const [availableTags, setAvailableTags] = useState<string[]>([]);
   const [currentSession, setCurrentSession] = useState<ReviewSessionType | null>(null);
   const [userLevel, setUserLevel] = useState<string | undefined>();
   const [autoStartTriggered, setAutoStartTriggered] = useState(false);
   const [showMidSessionConfig, setShowMidSessionConfig] = useState(false);
+  
+  // Track isInSession changes
+  useEffect(() => {
+    console.log('[isInSession CHANGED]', isInSession, 'Stack:', new Error().stack?.split('\n')[2]);
+  }, [isInSession]);
 
   /**
    * Load user's proficiency level for method selection
@@ -85,6 +90,7 @@ export default function ReviewPage() {
    */
   useEffect(() => {
     async function loadDueWords() {
+      console.log('[loadDueWords] Starting, allWords:', allWords?.length);
       if (!allWords || !Array.isArray(allWords) || allWords.length === 0) return;
 
       try {
@@ -107,6 +113,7 @@ export default function ReviewPage() {
           return !hasReview || isDue;
         });
 
+        console.log('[loadDueWords] ✅ Setting dueCount to:', wordsToReview.length);
         setDueCount(wordsToReview.length);
         
         // Extract unique tags from all words
@@ -137,7 +144,12 @@ export default function ReviewPage() {
    * Phase 18 UX Enhancement: Saves preferences for next session
    */
   const startSession = async (config: StudySessionConfig) => {
-    if (!allWords || !Array.isArray(allWords) || allWords.length === 0) return;
+    console.log('[startSession] Called with config:', config, 'Current isInSession:', isInSession);
+    
+    if (!allWords || !Array.isArray(allWords) || allWords.length === 0) {
+      console.log('[startSession] Aborted - no words available');
+      return;
+    }
 
     // Save preferences for next time (smart defaults)
     updateFromConfig(config);
@@ -234,6 +246,12 @@ export default function ReviewPage() {
         setSessionConfig(config);
         setIsInSession(true);
         setShowConfig(false);
+        
+        console.log('[startSession] ✅ Session started successfully:', {
+          wordsCount: interleavedWords.length,
+          sessionId: newSession.id,
+          firstWord: interleavedWords[0]?.spanishWord
+        });
       }
     } catch (error) {
       console.error("Failed to start review session:", error);
@@ -265,6 +283,15 @@ export default function ReviewPage() {
    * No intermediate screens for instant engagement
    */
   useEffect(() => {
+    console.log('[AUTO-START EFFECT] Triggered with:', {
+      autoStartTriggered,
+      isInSession,
+      showConfig,
+      hasWords: !!allWords && allWords.length > 0,
+      prefsLoaded,
+      dueCount
+    });
+
     if (
       !autoStartTriggered &&
       !isInSession &&
@@ -274,6 +301,7 @@ export default function ReviewPage() {
       prefsLoaded &&
       dueCount > 0
     ) {
+      console.log('[AUTO-START] Starting session with', dueCount, 'due cards');
       setAutoStartTriggered(true);
       
       // Use smart defaults from saved preferences
@@ -297,6 +325,7 @@ export default function ReviewPage() {
    */
   const handleSessionComplete = async (results: ExtendedReviewResult[]) => {
     const sessionEndTime = Date.now();
+    console.log('[handleSessionComplete] ✅ Called with', results.length, 'results. Stack:', new Error().stack);
     
     try {
       // Update review records for each result and update vocabulary status
@@ -503,13 +532,15 @@ export default function ReviewPage() {
    * Handle session cancellation
    */
   const handleSessionCancel = () => {
+    console.log('[handleSessionCancel] ⚠️ Session cancelled! Stack:', new Error().stack);
     setIsInSession(false);
     setShowConfig(false);
     router.push("/");
   };
 
   // Loading state
-  if (isLoading) {
+  // Also show loading if dueCount hasn't been calculated yet (-1)
+  if (isLoading || dueCount === -1) {
     return (
       <div className="flex items-center justify-center min-h-[calc(100vh-120px)] p-6">
         <div className="text-center space-y-4">
@@ -582,7 +613,14 @@ export default function ReviewPage() {
 
   // Practice mode prompt (only show if no cards due)
   // Phase 18 UX Enhancement: Skip this screen when cards are due
-  if (!isInSession && dueCount === 0) {
+  // IMPORTANT: Only show "All Caught Up!" if:
+  // - Not in session
+  // - No cards due (dueCount === 0)
+  // - No session in progress (sessionWords.length === 0)
+  // - Auto-start not triggered
+  // - AND preferences are loaded (to avoid showing during initial load)
+  if (!isInSession && dueCount === 0 && sessionWords.length === 0 && !autoStartTriggered && prefsLoaded) {
+    console.log('[ReviewPage RENDER] ✨ Showing "All Caught Up!" screen - isInSession:', isInSession, 'dueCount:', dueCount, 'sessionWords:', sessionWords.length, 'autoStart:', autoStartTriggered, 'prefsLoaded:', prefsLoaded);
     return (
       <div className="flex items-center justify-center min-h-[calc(100vh-120px)] p-6">
         <div className="max-w-md text-center space-y-6">
@@ -631,6 +669,8 @@ export default function ReviewPage() {
   }
 
   // Active review session (Phase 18.1 Task 4: Varied Methods)
+  console.log('[ReviewPage RENDER] Rendering ReviewSessionVaried with sessionWords:', sessionWords.length, 'isInSession:', isInSession);
+  
   return (
     <>
       <ReviewSessionVaried

@@ -52,6 +52,7 @@ export function FillBlankReview({
   const [startTime] = useState(Date.now());
   const [ratingSubmitted, setRatingSubmitted] = useState(false);
   const [showHint, setShowHint] = useState(false);
+  const [keyboardEnabled, setKeyboardEnabled] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
   // Select a random example sentence
@@ -84,11 +85,23 @@ export function FillBlankReview({
 
   // Auto-focus input
   useEffect(() => {
+    console.log('[FillBlankReview] ✏️ MOUNTED for word:', word.spanishWord, 'direction:', direction);
     const timer = setTimeout(() => {
       if (inputRef.current) {
         inputRef.current.focus();
       }
     }, 100);
+    return () => {
+      console.log('[FillBlankReview] ✏️ UNMOUNTING word:', word.spanishWord);
+      clearTimeout(timer);
+    };
+  }, [word.spanishWord, direction]);
+
+  // Enable keyboard shortcuts after delay to prevent accidental triggers during page load
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setKeyboardEnabled(true);
+    }, 500);
     return () => clearTimeout(timer);
   }, []);
 
@@ -97,8 +110,12 @@ export function FillBlankReview({
    * Checks against all valid translations (primary + alternatives)
    */
   const handleSubmit = (e?: React.FormEvent) => {
+    console.log('[FillBlankReview] 📝 handleSubmit called, userAnswer:', userAnswer, 'isSubmitted:', isSubmitted);
     if (e) e.preventDefault();
-    if (isSubmitted || !userAnswer.trim()) return;
+    if (isSubmitted || !userAnswer.trim()) {
+      console.log('[FillBlankReview] ⚠️ Submission blocked - already submitted or empty answer');
+      return;
+    }
 
     // Check answer against ALL valid translations
     let bestResult = { isCorrect: false, similarity: 0, feedback: '' };
@@ -133,6 +150,7 @@ export function FillBlankReview({
    * Handle rating selection
    */
   const handleRating = (rating: DifficultyRating) => {
+    console.log('[FillBlankReview] 📊 Rating submitted:', rating, 'for word:', word.spanishWord);
     if (ratingSubmitted) return;
 
     setRatingSubmitted(true);
@@ -149,6 +167,7 @@ export function FillBlankReview({
       similarity,
     };
 
+    console.log('[FillBlankReview] 🚀 Calling onComplete with result:', methodResult);
     onComplete(methodResult);
   };
 
@@ -166,6 +185,11 @@ export function FillBlankReview({
    * Handle Enter key
    */
   const handleKeyDown = (e: React.KeyboardEvent) => {
+    // Prevent accidental triggers during initial page load
+    if (!keyboardEnabled) {
+      return;
+    }
+
     if (e.key === 'Enter') {
       if (!isSubmitted) {
         handleSubmit();

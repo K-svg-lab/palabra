@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Palabra - Alternative Translations Migration</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 800px;
+            width: 100%;
+            padding: 40px;
+        }
+        
+        h1 {
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+        
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+        
+        .status {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .status-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #e9ecef;
+        }
+        
+        .status-item:last-child {
+            border-bottom: none;
+        }
+        
+        .status-label {
+            font-weight: 600;
+            color: #495057;
+        }
+        
+        .status-value {
+            color: #667eea;
+            font-weight: 600;
+        }
+        
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 14px 28px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            width: 100%;
+            margin-bottom: 12px;
+        }
+        
+        button:hover:not(:disabled) {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+        
+        button:disabled {
+            background: #cbd5e0;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+        }
+        
+        .error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+        }
+        
+        .warning {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            color: #856404;
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+        }
+        
+        .samples {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 16px;
+            margin-top: 20px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .sample {
+            background: white;
+            border-radius: 6px;
+            padding: 12px;
+            margin-bottom: 12px;
+            border-left: 4px solid #667eea;
+        }
+        
+        .sample-word {
+            font-weight: 700;
+            color: #667eea;
+            margin-bottom: 8px;
+        }
+        
+        .sample-before, .sample-after {
+            font-size: 13px;
+            margin: 4px 0;
+        }
+        
+        .sample-before {
+            color: #dc3545;
+        }
+        
+        .sample-after {
+            color: #28a745;
+        }
+        
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 0.8s linear infinite;
+            margin-right: 8px;
+            vertical-align: middle;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        code {
+            background: #f1f3f5;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔄 Alternative Translations Migration</h1>
+        <p class="subtitle">Fix vocabulary words to properly support multiple translations</p>
+        
+        <div id="status" class="status">
+            <div class="status-item">
+                <span class="status-label">Total Words:</span>
+                <span class="status-value" id="total-words">-</span>
+            </div>
+            <div class="status-item">
+                <span class="status-label">Need Migration:</span>
+                <span class="status-value" id="needs-migration">-</span>
+            </div>
+            <div class="status-item">
+                <span class="status-label">Migrated:</span>
+                <span class="status-value" id="migrated">-</span>
+            </div>
+            <div class="status-item">
+                <span class="status-label">Errors:</span>
+                <span class="status-value" id="errors">-</span>
+            </div>
+        </div>
+        
+        <div id="message-area"></div>
+        
+        <button id="scan-btn" onclick="scanDatabase()">
+            📊 Scan Database
+        </button>
+        
+        <button id="migrate-btn" onclick="runMigration()" disabled>
+            🚀 Run Migration
+        </button>
+        
+        <button id="validate-btn" onclick="validateMigration()" disabled>
+            ✅ Validate Migration
+        </button>
+        
+        <div id="samples"></div>
+    </div>
+
+    <script>
+        const DB_NAME = 'palabra_db';
+        const DB_VERSION = 5;
+        const VOCABULARY_STORE = 'vocabulary';
+        
+        let scanResult = null;
+        
+        function hasMultipleTranslations(translation) {
+            if (translation.includes(',')) {
+                const parts = translation.split(',').map(t => t.trim());
+                return parts.filter(p => p.length > 0).length >= 2;
+            }
+            return false;
+        }
+        
+        function splitTranslations(translation) {
+            const parts = translation
+                .split(',')
+                .map(t => t.trim())
+                .filter(t => t.length > 0);
+            
+            return {
+                primary: parts[0] || translation,
+                alternatives: parts.slice(1),
+            };
+        }
+        
+        function showMessage(type, text) {
+            const area = document.getElementById('message-area');
+            const div = document.createElement('div');
+            div.className = type;
+            div.textContent = text;
+            area.innerHTML = '';
+            area.appendChild(div);
+        }
+        
+        function updateStatus(total, needs, migrated, errors) {
+            document.getElementById('total-words').textContent = total;
+            document.getElementById('needs-migration').textContent = needs;
+            document.getElementById('migrated').textContent = migrated;
+            document.getElementById('errors').textContent = errors;
+        }
+        
+        function showSamples(samples) {
+            const container = document.getElementById('samples');
+            if (samples.length === 0) {
+                container.innerHTML = '';
+                return;
+            }
+            
+            let html = '<div class="samples"><h3 style="margin-bottom: 12px;">Sample Migrations (First 10):</h3>';
+            samples.forEach(sample => {
+                html += `
+                    <div class="sample">
+                        <div class="sample-word">${sample.spanishWord}</div>
+                        <div class="sample-before">❌ Before: "${sample.before.englishTranslation}"</div>
+                        <div class="sample-after">✅ After: "${sample.after.englishTranslation}" + [${sample.after.alternativeTranslations.join(', ')}]</div>
+                    </div>
+                `;
+            });
+            html += '</div>';
+            container.innerHTML = html;
+        }
+        
+        async function scanDatabase() {
+            const btn = document.getElementById('scan-btn');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="loading"></span>Scanning...';
+            
+            try {
+                const db = await openIndexedDB();
+                const tx = db.transaction(VOCABULARY_STORE, 'readonly');
+                const store = tx.objectStore(VOCABULARY_STORE);
+                const getAllRequest = store.getAll();
+                const allWords = await new Promise((resolve, reject) => {
+                    getAllRequest.onsuccess = () => resolve(getAllRequest.result);
+                    getAllRequest.onerror = () => reject(getAllRequest.error);
+                });
+                
+                let needsMigration = 0;
+                const samples = [];
+                
+                for (const word of allWords) {
+                    const needs = hasMultipleTranslations(word.englishTranslation) &&
+                                (!word.alternativeTranslations || word.alternativeTranslations.length === 0);
+                    
+                    if (needs) {
+                        needsMigration++;
+                        if (samples.length < 10) {
+                            const { primary, alternatives } = splitTranslations(word.englishTranslation);
+                            samples.push({
+                                spanishWord: word.spanishWord,
+                                before: {
+                                    englishTranslation: word.englishTranslation,
+                                },
+                                after: {
+                                    englishTranslation: primary,
+                                    alternativeTranslations: alternatives,
+                                },
+                            });
+                        }
+                    }
+                }
+                
+                await new Promise((resolve, reject) => {
+                    tx.oncomplete = () => resolve(true);
+                    tx.onerror = () => reject(tx.error);
+                });
+                
+                db.close();
+                
+                scanResult = {
+                    totalWords: allWords.length,
+                    needsMigration,
+                };
+                
+                updateStatus(allWords.length, needsMigration, 0, 0);
+                showSamples(samples);
+                
+                if (needsMigration > 0) {
+                    showMessage('warning', `Found ${needsMigration} words that need migration. Click "Run Migration" to fix them.`);
+                    document.getElementById('migrate-btn').disabled = false;
+                } else {
+                    showMessage('success', '✅ All words are properly formatted! No migration needed.');
+                }
+                
+                btn.innerHTML = '📊 Scan Database';
+                btn.disabled = false;
+            } catch (error) {
+                console.error('Scan error:', error);
+                showMessage('error', `Scan failed: ${error.message}`);
+                btn.innerHTML = '📊 Scan Database';
+                btn.disabled = false;
+            }
+        }
+        
+        async function runMigration() {
+            if (!confirm(`This will modify ${scanResult.needsMigration} words. Continue?`)) {
+                return;
+            }
+            
+            const btn = document.getElementById('migrate-btn');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="loading"></span>Migrating...';
+            
+            try {
+                const db = await openIndexedDB();
+                const tx = db.transaction(VOCABULARY_STORE, 'readwrite');
+                const store = tx.objectStore(VOCABULARY_STORE);
+                const getAllRequest = store.getAll();
+                const allWords = await new Promise((resolve, reject) => {
+                    getAllRequest.onsuccess = () => resolve(getAllRequest.result);
+                    getAllRequest.onerror = () => reject(getAllRequest.error);
+                });
+                
+                let migrated = 0;
+                let errors = 0;
+                const samples = [];
+                
+                for (const word of allWords) {
+                    try {
+                        const needsMigration = hasMultipleTranslations(word.englishTranslation) &&
+                                             (!word.alternativeTranslations || word.alternativeTranslations.length === 0);
+                        
+                        if (needsMigration) {
+                            const { primary, alternatives } = splitTranslations(word.englishTranslation);
+                            
+                            if (samples.length < 10) {
+                                samples.push({
+                                    spanishWord: word.spanishWord,
+                                    before: {
+                                        englishTranslation: word.englishTranslation,
+                                    },
+                                    after: {
+                                        englishTranslation: primary,
+                                        alternativeTranslations: alternatives,
+                                    },
+                                });
+                            }
+                            
+                            const updatedWord = {
+                                ...word,
+                                englishTranslation: primary,
+                                alternativeTranslations: alternatives,
+                                updatedAt: Date.now(),
+                            };
+                            
+                            const putRequest = store.put(updatedWord);
+                            await new Promise((resolve, reject) => {
+                                putRequest.onsuccess = () => resolve(true);
+                                putRequest.onerror = () => reject(putRequest.error);
+                            });
+                            migrated++;
+                            
+                            console.log(`✅ Migrated "${word.spanishWord}": "${word.englishTranslation}" → "${primary}" + [${alternatives.join(', ')}]`);
+                        }
+                    } catch (error) {
+                        errors++;
+                        console.error(`❌ Failed to migrate "${word.spanishWord}":`, error);
+                    }
+                }
+                
+                await new Promise((resolve, reject) => {
+                    tx.oncomplete = () => resolve(true);
+                    tx.onerror = () => reject(tx.error);
+                });
+                db.close();
+                
+                updateStatus(allWords.length, 0, migrated, errors);
+                showSamples(samples);
+                
+                if (errors === 0) {
+                    showMessage('success', `✅ Successfully migrated ${migrated} words! Click "Validate Migration" to verify.`);
+                } else {
+                    showMessage('warning', `⚠️ Migrated ${migrated} words with ${errors} errors. Check console for details.`);
+                }
+                
+                document.getElementById('validate-btn').disabled = false;
+                btn.innerHTML = '🚀 Run Migration';
+            } catch (error) {
+                console.error('Migration error:', error);
+                showMessage('error', `Migration failed: ${error.message}`);
+                btn.innerHTML = '🚀 Run Migration';
+                btn.disabled = false;
+            }
+        }
+        
+        async function validateMigration() {
+            const btn = document.getElementById('validate-btn');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="loading"></span>Validating...';
+            
+            try {
+                const db = await openIndexedDB();
+                const tx = db.transaction(VOCABULARY_STORE, 'readonly');
+                const store = tx.objectStore(VOCABULARY_STORE);
+                const getAllRequest = store.getAll();
+                const allWords = await new Promise((resolve, reject) => {
+                    getAllRequest.onsuccess = () => resolve(getAllRequest.result);
+                    getAllRequest.onerror = () => reject(getAllRequest.error);
+                });
+                
+                const issues = [];
+                
+                for (const word of allWords.slice(0, 100)) {
+                    if (hasMultipleTranslations(word.englishTranslation)) {
+                        issues.push(`"${word.spanishWord}" still has comma-separated translations: "${word.englishTranslation}"`);
+                    }
+                    
+                    if (word.alternativeTranslations && !Array.isArray(word.alternativeTranslations)) {
+                        issues.push(`"${word.spanishWord}" has invalid alternativeTranslations type`);
+                    }
+                }
+                
+                await new Promise((resolve, reject) => {
+                    tx.oncomplete = () => resolve(true);
+                    tx.onerror = () => reject(tx.error);
+                });
+                
+                db.close();
+                
+                if (issues.length === 0) {
+                    showMessage('success', '✅ Validation passed! All checked words are properly formatted.');
+                } else {
+                    showMessage('error', `❌ Found ${issues.length} issues:\n` + issues.slice(0, 5).join('\n'));
+                }
+                
+                btn.innerHTML = '✅ Validate Migration';
+                btn.disabled = false;
+            } catch (error) {
+                console.error('Validation error:', error);
+                showMessage('error', `Validation failed: ${error.message}`);
+                btn.innerHTML = '✅ Validate Migration';
+                btn.disabled = false;
+            }
+        }
+        
+        async function openIndexedDB() {
+            return new Promise((resolve, reject) => {
+                const request = indexedDB.open(DB_NAME, DB_VERSION);
+                request.onerror = () => reject(request.error);
+                request.onsuccess = () => resolve(request.result);
+                request.onupgradeneeded = () => {
+                    console.warn('Database upgrade triggered - database may not exist yet');
+                };
+            });
+        }
+        
+        // Auto-scan on load
+        window.addEventListener('load', () => {
+            setTimeout(scanDatabase, 500);
+        });
+    </script>
+</body>
+</html>

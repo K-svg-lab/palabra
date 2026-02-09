@@ -196,6 +196,7 @@ export function VocabularyEntryForm({ onSuccess, onCancel }: Props) {
       const vocabularyWord: Omit<VocabularyWord, 'id' | 'createdAt' | 'updatedAt'> = {
         spanishWord: data.spanishWord.trim(),
         englishTranslation: data.englishTranslation.trim(),
+        alternativeTranslations: lookupData?.alternativeTranslations || [], // FIX: Include alternative translations from API
         gender: data.gender,
         partOfSpeech: data.partOfSpeech,
         examples: data.exampleSpanish && data.exampleEnglish ? [

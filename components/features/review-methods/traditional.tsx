@@ -51,6 +51,7 @@ export function TraditionalReview({
   const [isPlaying, setIsPlaying] = useState(false);
   const [startTime] = useState(Date.now());
   const [ratingSubmitted, setRatingSubmitted] = useState(false);
+  const [keyboardEnabled, setKeyboardEnabled] = useState(false);
   const cardRef = useRef<HTMLDivElement>(null);
 
   // Determine front and back text based on direction
@@ -64,11 +65,23 @@ export function TraditionalReview({
 
   // Auto-focus card for keyboard events
   useEffect(() => {
+    console.log('[TraditionalReview] 🎴 MOUNTED for word:', word.spanishWord);
     const timer = setTimeout(() => {
       if (cardRef.current) {
         cardRef.current.focus();
       }
     }, 100);
+    return () => {
+      console.log('[TraditionalReview] 🎴 UNMOUNTING word:', word.spanishWord);
+      clearTimeout(timer);
+    };
+  }, [word.spanishWord]);
+
+  // Enable keyboard shortcuts after delay to prevent accidental triggers during page load
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setKeyboardEnabled(true);
+    }, 500);
     return () => clearTimeout(timer);
   }, []);
 
@@ -105,6 +118,7 @@ export function TraditionalReview({
   const handleRating = (rating: DifficultyRating) => {
     if (ratingSubmitted) return;
     
+    console.log('[TraditionalReview] 📊 Rating submitted:', rating, 'for word:', word.spanishWord);
     setRatingSubmitted(true);
     
     const timeSpent = Date.now() - startTime;
@@ -118,6 +132,7 @@ export function TraditionalReview({
       isCorrect,
     };
     
+    console.log('[TraditionalReview] 🚀 Calling onComplete with result:', result);
     onComplete(result);
   };
 
@@ -125,6 +140,11 @@ export function TraditionalReview({
    * Handle keyboard shortcuts
    */
   const handleKeyDown = (e: React.KeyboardEvent) => {
+    // Prevent accidental triggers during initial page load
+    if (!keyboardEnabled) {
+      return;
+    }
+
     // Prevent default for all our shortcuts
     if (['Space', 'Enter', '1', '2', '3', '4'].includes(e.code)) {
       e.preventDefault();

@@ -51,6 +51,7 @@ export function MultipleChoiceReview({
   const [isCorrect, setIsCorrect] = useState(false);
   const [startTime] = useState(Date.now());
   const [ratingSubmitted, setRatingSubmitted] = useState(false);
+  const [keyboardEnabled, setKeyboardEnabled] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
   // Generate options
@@ -69,11 +70,23 @@ export function MultipleChoiceReview({
 
   // Auto-focus container for keyboard events
   useEffect(() => {
+    console.log('[MultipleChoiceReview] 🎯 MOUNTED for word:', word.spanishWord, 'options:', options.length);
     const timer = setTimeout(() => {
       if (containerRef.current) {
         containerRef.current.focus();
       }
     }, 100);
+    return () => {
+      console.log('[MultipleChoiceReview] 🎯 UNMOUNTING word:', word.spanishWord);
+      clearTimeout(timer);
+    };
+  }, [word.spanishWord, options.length]);
+
+  // Enable keyboard shortcuts after delay to prevent accidental triggers during page load
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setKeyboardEnabled(true);
+    }, 500);
     return () => clearTimeout(timer);
   }, []);
 
@@ -81,6 +94,7 @@ export function MultipleChoiceReview({
    * Handle option selection
    */
   const handleSelectOption = (optionId: string) => {
+    console.log('[MultipleChoiceReview] 🎯 handleSelectOption called, optionId:', optionId, 'isSubmitted:', isSubmitted, 'Stack:', new Error().stack);
     if (isSubmitted || ratingSubmitted) return;
 
     setSelectedOption(optionId);
@@ -96,6 +110,7 @@ export function MultipleChoiceReview({
    * Handle rating selection
    */
   const handleRating = (rating: DifficultyRating) => {
+    console.log('[MultipleChoiceReview] 📊 Rating submitted:', rating, 'for word:', word.spanishWord);
     if (ratingSubmitted) return;
 
     setRatingSubmitted(true);
@@ -111,6 +126,7 @@ export function MultipleChoiceReview({
       selectedOptionId: selectedOption || undefined,
     };
 
+    console.log('[MultipleChoiceReview] 🚀 Calling onComplete with result:', methodResult);
     onComplete(methodResult);
   };
 
@@ -118,6 +134,13 @@ export function MultipleChoiceReview({
    * Handle keyboard shortcuts
    */
   const handleKeyDown = (e: React.KeyboardEvent) => {
+    console.log('[MultipleChoiceReview] ⌨️ Key pressed:', e.code, 'keyboardEnabled:', keyboardEnabled, 'isSubmitted:', isSubmitted);
+    // Prevent accidental triggers during initial page load
+    if (!keyboardEnabled) {
+      console.log('[MultipleChoiceReview] ⌨️ KEY BLOCKED - keyboard not enabled yet');
+      return;
+    }
+
     if (isSubmitted && !ratingSubmitted) {
       // Rating shortcuts
       if (['Digit1', 'Digit2', 'Digit3', 'Digit4'].includes(e.code)) {

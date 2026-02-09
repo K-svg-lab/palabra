@@ -50,6 +50,7 @@ export function AudioRecognitionReview({
   const [ratingSubmitted, setRatingSubmitted] = useState(false);
   const [showSpanish, setShowSpanish] = useState(false);
   const [ttsError, setTtsError] = useState(false);
+  const [keyboardEnabled, setKeyboardEnabled] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
   // Auto-play audio on mount
@@ -66,6 +67,14 @@ export function AudioRecognitionReview({
       inputRef.current.focus();
     }
   }, [hasPlayed]);
+
+  // Enable keyboard shortcuts after delay to prevent accidental triggers during page load
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setKeyboardEnabled(true);
+    }, 500);
+    return () => clearTimeout(timer);
+  }, []);
 
   /**
    * Play Spanish audio
@@ -129,6 +138,11 @@ export function AudioRecognitionReview({
    * Handle Enter key
    */
   const handleKeyDown = (e: React.KeyboardEvent) => {
+    // Prevent accidental triggers during initial page load
+    if (!keyboardEnabled) {
+      return;
+    }
+
     if (e.key === 'Enter' && !isSubmitted) {
       handleSubmit();
     }

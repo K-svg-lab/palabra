@@ -85,22 +85,48 @@ export function ReviewSessionVaried({
   }, []);
 
   // Process words based on configuration
+  // NOTE: Parent component (page.tsx) already handles:
+  // - Filtering (due cards, weak cards, tags, etc.)
+  // - Interleaving for optimal method distribution
+  // - Randomization (if config.randomize is true)
+  // So we just take the words as-is and slice to sessionSize
   const processedWords = useMemo(() => {
-    let filtered = [...words];
-    filtered = filtered.slice(0, config.sessionSize);
-    if (config.randomize) {
-      filtered = filtered.sort(() => Math.random() - 0.5);
-    }
-    return filtered;
-  }, [words, config]);
+    console.log('[processedWords] Using', words.length, 'words from parent (already filtered/interleaved), sessionSize:', config.sessionSize);
+    
+    // Just slice to sessionSize - parent already handled everything else
+    const result = words.slice(0, config.sessionSize);
+    
+    console.log('[processedWords] Result:', result.length, 'words, first:', result[0]?.spanishWord);
+    return result;
+  }, [words, config.sessionSize]);
 
   const currentWord = processedWords[currentIndex];
   const progress = Math.min(((results.length) / processedWords.length) * 100, 100);
   const isSessionComplete = results.length === processedWords.length;
+  
+  console.log('[Session State] processedWords:', processedWords.length, 'currentIndex:', currentIndex, 'results:', results.length, 'isComplete:', isSessionComplete, 'showCompletionDialog:', showCompletionDialog);
 
-  // Select method for current word
+  // Debug: Log when currentWord changes
+  useEffect(() => {
+    if (currentWord) {
+      console.log('[currentWord Changed] Index:', currentIndex, 'Word:', currentWord.spanishWord, 'Word ID:', currentWord.id);
+    } else {
+      console.log('[currentWord Changed] ⚠️ currentWord is UNDEFINED! processedWords.length:', processedWords.length, 'currentIndex:', currentIndex);
+    }
+  }, [currentWord, currentIndex]);
+
+  // Select method for current word - STABLE across renders
+  const [selectedMethodsMap] = useState<Map<string, ReviewMethodType>>(new Map());
+  
   const selectedMethod = useMemo(() => {
     if (!currentWord) return 'traditional' as ReviewMethodType;
+
+    // Check if we already selected a method for this word in this session
+    if (selectedMethodsMap.has(currentWord.id)) {
+      const cachedMethod = selectedMethodsMap.get(currentWord.id)!;
+      console.log(`[Method Selector] Word ${currentIndex + 1}/${processedWords.length}: "${currentWord.spanishWord}" → Method: ${cachedMethod} (CACHED)`);
+      return cachedMethod;
+    }
 
     const context: MethodSelectionContext = {
       word: currentWord,
@@ -111,29 +137,46 @@ export function ReviewSessionVaried({
 
     const selection = selectReviewMethod(context, DEFAULT_METHOD_SELECTOR_CONFIG);
     
-    console.log(`[Method Selector] Word: "${currentWord.spanishWord}" → Method: ${selection.method} (${(selection.confidence * 100).toFixed(0)}% confidence)`);
+    // Cache the selected method to prevent it from changing across re-renders
+    selectedMethodsMap.set(currentWord.id, selection.method);
+    
+    console.log(`[Method Selector] Word ${currentIndex + 1}/${processedWords.length}: "${currentWord.spanishWord}" → Method: ${selection.method} (${(selection.confidence * 100).toFixed(0)}% confidence) [FIRST SELECTION]`);
     
     return selection.method;
-  }, [currentWord, methodHistory, methodPerformance, userLevel]);
+  }, [currentWord, methodHistory, methodPerformance, userLevel, currentIndex, processedWords.length, selectedMethodsMap]);
 
   // Reset state when moving to next card
   useEffect(() => {
+    console.log('[Direction Effect] Triggered for currentIndex:', currentIndex, 'currentWord:', currentWord?.spanishWord);
     // For mixed mode, randomly choose direction for each card
     if (config.direction === 'mixed') {
       setCurrentDirection(Math.random() > 0.5 ? 'spanish-to-english' : 'english-to-spanish');
     }
-  }, [currentIndex, config.direction]);
+  }, [currentIndex, config.direction, currentWord]);
 
   /**
    * Handle method completion
    */
   const handleMethodComplete = (methodResult: ReviewMethodResult) => {
-    if (!currentWord) return;
-
-    // Guard: Prevent duplicate results
-    if (results.some(r => r.vocabularyId === currentWord.id)) {
+    if (!currentWord) {
+      console.warn('[handleMethodComplete] Called with no currentWord');
       return;
     }
+
+    // Guard: Prevent duplicate results
+    const isDuplicate = results.some(r => r.vocabularyId === currentWord.id);
+    if (isDuplicate) {
+      console.warn('[handleMethodComplete] DUPLICATE BLOCKED:', currentWord.spanishWord);
+      return;
+    }
+
+    console.log('[handleMethodComplete] Processing:', {
+      word: currentWord.spanishWord,
+      method: methodResult.method,
+      rating: methodResult.rating,
+      currentIndex,
+      totalWords: processedWords.length
+    });
 
     // Update method history
     const newHistory: MethodHistory = {
@@ -220,6 +263,8 @@ export function ReviewSessionVaried({
    * Handle session cancellation
    */
   const handleCancel = () => {
+    console.log('[handleCancel] ⚠️ CANCEL TRIGGERED! Results:', results.length, 'Stack trace:', new Error().stack);
+    
     if (results.length > 0) {
       if (confirm(`You've reviewed ${results.length} card${results.length === 1 ? '' : 's'}. Save progress?`)) {
         onComplete(results);
@@ -227,6 +272,7 @@ export function ReviewSessionVaried({
         onCancel();
       }
     } else {
+      console.log('[handleCancel] No results yet - calling onCancel()');
       onCancel();
     }
   };
@@ -383,62 +429,85 @@ export function ReviewSessionVaried({
 
       {/* Method component */}
       <div className="max-w-4xl mx-auto">
-        {!currentWord ? (
-          <div className="flex items-center justify-center min-h-[400px]">
-            <div className="text-center space-y-3">
-              <div className="text-4xl">⏳</div>
-              <p className="text-text-secondary">Loading card...</p>
-            </div>
-          </div>
-        ) : (
-          <>
-            {selectedMethod === 'traditional' && (
-              <TraditionalReview
-                word={currentWord}
-                direction={currentDirection}
-                cardNumber={`${results.length + 1} of ${processedWords.length}`}
-                onComplete={handleMethodComplete}
-              />
-            )}
+        {(() => {
+          console.log('[Render Decision] currentWord:', currentWord?.spanishWord, 'selectedMethod:', selectedMethod);
+          
+          if (!currentWord) {
+            return (
+              <div className="flex items-center justify-center min-h-[400px]">
+                <div className="text-center space-y-3">
+                  <div className="text-4xl">⏳</div>
+                  <p className="text-text-secondary">Loading card...</p>
+                </div>
+              </div>
+            );
+          }
+          
+          return (
+            <>
+              {selectedMethod === 'traditional' && (
+                <>
+                  {console.log('[Rendering] Traditional component for:', currentWord.spanishWord)}
+                  <TraditionalReview
+                    word={currentWord}
+                    direction={currentDirection}
+                    cardNumber={`${results.length + 1} of ${processedWords.length}`}
+                    onComplete={handleMethodComplete}
+                  />
+                </>
+              )}
 
-            {selectedMethod === 'fill-blank' && (
-              <FillBlankReview
-                word={currentWord}
-                direction={currentDirection}
-                cardNumber={`${results.length + 1} of ${processedWords.length}`}
-                onComplete={handleMethodComplete}
-              />
-            )}
+              {selectedMethod === 'fill-blank' && (
+                <>
+                  {console.log('[Rendering] Fill-Blank component for:', currentWord.spanishWord)}
+                  <FillBlankReview
+                    word={currentWord}
+                    direction={currentDirection}
+                    cardNumber={`${results.length + 1} of ${processedWords.length}`}
+                    onComplete={handleMethodComplete}
+                  />
+                </>
+              )}
 
-            {selectedMethod === 'multiple-choice' && (
-              <MultipleChoiceReview
-                word={currentWord}
-                allWords={processedWords}
-                direction={currentDirection}
-                cardNumber={`${results.length + 1} of ${processedWords.length}`}
-                onComplete={handleMethodComplete}
-              />
-            )}
+              {selectedMethod === 'multiple-choice' && (
+                <>
+                  {console.log('[Rendering] Multiple-Choice component for:', currentWord.spanishWord)}
+                  <MultipleChoiceReview
+                    word={currentWord}
+                    allWords={processedWords}
+                    direction={currentDirection}
+                    cardNumber={`${results.length + 1} of ${processedWords.length}`}
+                    onComplete={handleMethodComplete}
+                  />
+                </>
+              )}
 
-            {selectedMethod === 'audio-recognition' && (
-              <AudioRecognitionReview
-                word={currentWord}
-                cardNumber={`${results.length + 1} of ${processedWords.length}`}
-                onComplete={handleMethodComplete}
-              />
-            )}
+              {selectedMethod === 'audio-recognition' && (
+                <>
+                  {console.log('[Rendering] Audio-Recognition component for:', currentWord.spanishWord)}
+                  <AudioRecognitionReview
+                    word={currentWord}
+                    cardNumber={`${results.length + 1} of ${processedWords.length}`}
+                    onComplete={handleMethodComplete}
+                  />
+                </>
+              )}
 
-            {selectedMethod === 'context-selection' && (
-              <ContextSelectionReview
-                word={currentWord}
-                allWords={processedWords}
-                direction={currentDirection}
-                cardNumber={`${results.length + 1} of ${processedWords.length}`}
-                onComplete={handleMethodComplete}
-              />
-            )}
-          </>
-        )}
+              {selectedMethod === 'context-selection' && (
+                <>
+                  {console.log('[Rendering] Context-Selection component for:', currentWord.spanishWord)}
+                  <ContextSelectionReview
+                    word={currentWord}
+                    allWords={processedWords}
+                    direction={currentDirection}
+                    cardNumber={`${results.length + 1} of ${processedWords.length}`}
+                    onComplete={handleMethodComplete}
+                  />
+                </>
+              )}
+            </>
+          );
+        })()}
       </div>
     </div>
   );
