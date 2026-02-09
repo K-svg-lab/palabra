@@ -48,6 +48,7 @@ export function FillBlankReview({
   const [isCorrect, setIsCorrect] = useState(false);
   const [similarity, setSimilarity] = useState(0);
   const [feedback, setFeedback] = useState('');
+  const [matchedTranslation, setMatchedTranslation] = useState<string | null>(null);
   const [startTime] = useState(Date.now());
   const [ratingSubmitted, setRatingSubmitted] = useState(false);
   const [showHint, setShowHint] = useState(false);
@@ -62,6 +63,11 @@ export function FillBlankReview({
   const targetWord = direction === 'spanish-to-english'
     ? word.englishTranslation
     : word.spanishWord;
+
+  // Get all valid translations (primary + alternatives)
+  const allValidTranslations = direction === 'spanish-to-english'
+    ? [word.englishTranslation, ...(word.alternativeTranslations || [])]
+    : [word.spanishWord];
 
   const sentenceToUse = example
     ? (direction === 'spanish-to-english' ? example.spanish : example.english)
@@ -88,20 +94,39 @@ export function FillBlankReview({
 
   /**
    * Handle answer submission
+   * Checks against all valid translations (primary + alternatives)
    */
   const handleSubmit = (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     if (isSubmitted || !userAnswer.trim()) return;
 
-    // Check answer using appropriate checker
-    const result = direction === 'english-to-spanish'
-      ? checkSpanishAnswer(userAnswer.trim(), targetWord)
-      : checkAnswer(userAnswer.trim(), targetWord);
+    // Check answer against ALL valid translations
+    let bestResult = { isCorrect: false, similarity: 0, feedback: '' };
+    let matchedWord: string | null = null;
+
+    for (const validTranslation of allValidTranslations) {
+      const result = direction === 'english-to-spanish'
+        ? checkSpanishAnswer(userAnswer.trim(), validTranslation)
+        : checkAnswer(userAnswer.trim(), validTranslation);
+
+      // If we find a correct match, use it
+      if (result.isCorrect) {
+        bestResult = result;
+        matchedWord = validTranslation;
+        break;
+      }
+
+      // Track the best similarity score for feedback
+      if (result.similarity > bestResult.similarity) {
+        bestResult = result;
+      }
+    }
 
     setIsSubmitted(true);
-    setIsCorrect(result.isCorrect);
-    setSimilarity(result.similarity);
-    setFeedback(result.feedback);
+    setIsCorrect(bestResult.isCorrect);
+    setSimilarity(bestResult.similarity);
+    setFeedback(bestResult.feedback);
+    setMatchedTranslation(matchedWord);
   };
 
   /**
@@ -159,21 +184,27 @@ export function FillBlankReview({
     <div className="flex flex-col items-center justify-center p-4 max-w-2xl mx-auto">
       {/* Question card - Compact for mobile-first */}
       <div className="w-full bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-200 dark:border-gray-700 p-4 sm:p-6 space-y-4">
-        {/* Sentence with blank */}
+        {/* Clear prompt showing what to translate */}
+        <div className="text-center p-3 sm:p-4 bg-blue-500/10 rounded-xl border border-blue-500/30">
+          <p className="text-xs sm:text-sm font-medium text-blue-600 dark:text-blue-400 mb-2">
+            {direction === 'spanish-to-english' ? 'Translate to English:' : 'Translate to Spanish:'}
+          </p>
+          <p className="text-2xl sm:text-3xl font-bold text-accent">
+            {direction === 'spanish-to-english' ? word.spanishWord : word.englishTranslation}
+          </p>
+          {word.partOfSpeech && (
+            <p className="text-xs text-text-tertiary mt-1">
+              {word.partOfSpeech}
+            </p>
+          )}
+        </div>
+
+        {/* Sentence with blank - for context */}
         <div className="text-center p-4 sm:p-5 bg-accent/5 rounded-xl border border-accent/20">
           <p className="text-lg sm:text-xl md:text-2xl text-text leading-snug">
             {blankSentence}
           </p>
         </div>
-
-        {/* Translation hint */}
-        {example && (
-          <div className="text-center">
-            <p className="text-xs sm:text-sm text-text-secondary italic">
-              "{direction === 'spanish-to-english' ? example.english : example.spanish}"
-            </p>
-          </div>
-        )}
 
         {/* Hint button */}
         {!isSubmitted && !showHint && (
@@ -267,12 +298,38 @@ export function FillBlankReview({
               )}
             </div>
 
-            {/* Show correct answer if wrong - Compact */}
-            {!isCorrect && (
-              <div className="text-center p-3 sm:p-4 bg-gray-50 dark:bg-gray-900 rounded-xl space-y-1">
-                <p className="text-xs text-text-tertiary">Correct answer:</p>
-                <p className="text-lg sm:text-xl font-bold text-accent">{targetWord}</p>
-                <p className="text-xs sm:text-sm text-text-secondary">Your answer: "{userAnswer}"</p>
+            {/* Show translation feedback */}
+            {isCorrect ? (
+              /* Show which translation matched + other options */
+              <div className="text-center p-3 sm:p-4 bg-green-50 dark:bg-green-900/20 rounded-xl space-y-2">
+                <p className="text-xs text-text-tertiary">You entered:</p>
+                <p className="text-lg sm:text-xl font-bold text-green-600 dark:text-green-400">
+                  {matchedTranslation}
+                </p>
+                {allValidTranslations.length > 1 && (
+                  <div className="pt-2 border-t border-green-200 dark:border-green-800">
+                    <p className="text-xs text-text-tertiary mb-1">Other valid translations:</p>
+                    <p className="text-sm text-text-secondary">
+                      {allValidTranslations
+                        .filter(t => t !== matchedTranslation)
+                        .join(', ')}
+                    </p>
+                  </div>
+                )}
+              </div>
+            ) : (
+              /* Show correct answers if wrong */
+              <div className="text-center p-3 sm:p-4 bg-gray-50 dark:bg-gray-900 rounded-xl space-y-2">
+                <p className="text-xs text-text-tertiary">
+                  {allValidTranslations.length > 1 ? 'Correct answers:' : 'Correct answer:'}
+                </p>
+                <p className="text-lg sm:text-xl font-bold text-accent">
+                  {allValidTranslations.join(', ')}
+                </p>
+                <div className="pt-2 border-t border-gray-200 dark:border-gray-700">
+                  <p className="text-xs text-text-tertiary">Your answer:</p>
+                  <p className="text-sm text-text-secondary">"{userAnswer}"</p>
+                </div>
               </div>
             )}
 

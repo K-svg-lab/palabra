@@ -164,7 +164,7 @@ export function TraditionalReview({
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-[500px] p-4">
+    <div className="flex flex-col items-center justify-center p-4 max-w-2xl mx-auto">
       {/* Card number */}
       {cardNumber && (
         <div className="text-sm text-text-secondary mb-4 font-medium">
@@ -240,7 +240,7 @@ export function TraditionalReview({
               transform: 'rotateY(180deg)',
             }}
           >
-            <div className="text-center space-y-6 w-full">
+            <div className="text-center space-y-3">
               {/* Answer */}
               <div className="space-y-3">
                 <p className="text-sm text-text-tertiary uppercase tracking-wide">Answer</p>
@@ -249,65 +249,8 @@ export function TraditionalReview({
                 </p>
               </div>
 
-              {/* Rating buttons */}
-              {isFlipped && !ratingSubmitted && (
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-8 w-full max-w-lg">
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleRating('forgot');
-                    }}
-                    className="flex flex-col items-center gap-2 p-4 bg-red-500/10 hover:bg-red-500/20 border-2 border-red-500/30 rounded-xl transition-colors min-h-[80px] sm:min-h-[100px]"
-                    aria-label="Forgot - Press 1"
-                  >
-                    <span className="text-2xl">😞</span>
-                    <span className="text-sm font-semibold text-red-600 dark:text-red-400">Forgot</span>
-                    <span className="text-xs text-text-tertiary">(1)</span>
-                  </button>
-
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleRating('hard');
-                    }}
-                    className="flex flex-col items-center gap-2 p-4 bg-orange-500/10 hover:bg-orange-500/20 border-2 border-orange-500/30 rounded-xl transition-colors min-h-[80px] sm:min-h-[100px]"
-                    aria-label="Hard - Press 2"
-                  >
-                    <span className="text-2xl">😕</span>
-                    <span className="text-sm font-semibold text-orange-600 dark:text-orange-400">Hard</span>
-                    <span className="text-xs text-text-tertiary">(2)</span>
-                  </button>
-
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleRating('good');
-                    }}
-                    className="flex flex-col items-center gap-2 p-4 bg-green-500/10 hover:bg-green-500/20 border-2 border-green-500/30 rounded-xl transition-colors min-h-[80px] sm:min-h-[100px]"
-                    aria-label="Good - Press 3"
-                  >
-                    <span className="text-2xl">🙂</span>
-                    <span className="text-sm font-semibold text-green-600 dark:text-green-400">Good</span>
-                    <span className="text-xs text-text-tertiary">(3)</span>
-                  </button>
-
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleRating('easy');
-                    }}
-                    className="flex flex-col items-center gap-2 p-4 bg-blue-500/10 hover:bg-blue-500/20 border-2 border-blue-500/30 rounded-xl transition-colors min-h-[80px] sm:min-h-[100px]"
-                    aria-label="Easy - Press 4"
-                  >
-                    <span className="text-2xl">😊</span>
-                    <span className="text-sm font-semibold text-blue-600 dark:text-blue-400">Easy</span>
-                    <span className="text-xs text-text-tertiary">(4)</span>
-                  </button>
-                </div>
-              )}
-
               {ratingSubmitted && (
-                <p className="text-sm text-text-secondary animate-pulse">
+                <p className="text-sm text-text-secondary animate-pulse mt-4">
                   Moving to next card...
                 </p>
               )}
@@ -316,10 +259,60 @@ export function TraditionalReview({
         </div>
       </div>
 
-      {/* Keyboard hints */}
-      <div className="mt-6 text-xs text-text-tertiary text-center space-y-1">
-        <p>⌨️ Keyboard: Space to flip, 1-4 to rate</p>
-      </div>
+      {/* Rating buttons - OUTSIDE card, shown when flipped */}
+      {isFlipped && !ratingSubmitted && (
+        <div className="w-full max-w-md mt-4">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                handleRating('forgot');
+              }}
+              className="flex flex-col items-center gap-1 p-3 bg-red-500/10 hover:bg-red-500/20 border-2 border-red-500/30 rounded-xl transition-colors min-h-[70px]"
+              aria-label="Rate as Forgot"
+            >
+              <span className="text-2xl">😞</span>
+              <span className="text-sm font-semibold text-red-600 dark:text-red-400">Forgot</span>
+            </button>
+
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                handleRating('hard');
+              }}
+              className="flex flex-col items-center gap-1 p-3 bg-orange-500/10 hover:bg-orange-500/20 border-2 border-orange-500/30 rounded-xl transition-colors min-h-[70px]"
+              aria-label="Rate as Hard"
+            >
+              <span className="text-2xl">😕</span>
+              <span className="text-sm font-semibold text-orange-600 dark:text-orange-400">Hard</span>
+            </button>
+
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                handleRating('good');
+              }}
+              className="flex flex-col items-center gap-1 p-3 bg-green-500/10 hover:bg-green-500/20 border-2 border-green-500/30 rounded-xl transition-colors min-h-[70px]"
+              aria-label="Rate as Good"
+            >
+              <span className="text-2xl">🙂</span>
+              <span className="text-sm font-semibold text-green-600 dark:text-green-400">Good</span>
+            </button>
+
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                handleRating('easy');
+              }}
+              className="flex flex-col items-center gap-1 p-3 bg-blue-500/10 hover:bg-blue-500/20 border-2 border-blue-500/30 rounded-xl transition-colors min-h-[70px]"
+              aria-label="Rate as Easy"
+            >
+              <span className="text-2xl">😊</span>
+              <span className="text-sm font-semibold text-blue-600 dark:text-blue-400">Easy</span>
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
