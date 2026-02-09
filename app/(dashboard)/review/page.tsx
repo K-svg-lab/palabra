@@ -591,7 +591,7 @@ export default function ReviewPage() {
         <SessionConfig
           totalAvailable={dueCount}
           allWords={allWords || []}
-          onStart={handleStartSession}
+          onStart={startSession}
           onCancel={() => router.push("/")}
           defaultConfig={sessionConfig || DEFAULT_SESSION_CONFIG}
         />
