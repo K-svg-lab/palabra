@@ -35,7 +35,7 @@ interface ReviewPreferences {
  */
 const DEFAULT_PREFERENCES: ReviewPreferences = {
   sessionSize: 20,
-  direction: 'spanish-to-english',
+  direction: 'mixed',  // Phase 18.2: Mixed mode for balanced ES→EN and EN→ES practice
   mode: 'recognition',
   statusFilter: ['new', 'learning'], // Focus on active learning by default
   weakWordsOnly: false,
@@ -60,6 +60,22 @@ export function useReviewPreferences() {
       const stored = localStorage.getItem(STORAGE_KEY);
       if (stored) {
         const parsed = JSON.parse(stored) as ReviewPreferences;
+        
+        // Migration: Update old 'spanish-to-english' default to 'mixed'
+        // This ensures existing users get the new balanced bidirectional practice
+        if (parsed.direction === 'spanish-to-english') {
+          console.log('[Preferences] 🔄 Migrating direction from ES→EN to mixed mode');
+          parsed.direction = 'mixed';
+          parsed.lastUpdated = Date.now();
+          
+          // Save migrated preferences
+          try {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(parsed));
+          } catch (saveError) {
+            console.error('Failed to save migrated preferences:', saveError);
+          }
+        }
+        
         setPreferencesState(parsed);
       }
     } catch (error) {
