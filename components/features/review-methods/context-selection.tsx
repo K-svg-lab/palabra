@@ -20,6 +20,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Check, X } from 'lucide-react';
 import type { VocabularyWord, DifficultyRating } from '@/lib/types/vocabulary';
 import type { ReviewMethodResult } from '@/lib/types/review-methods';
+import { replaceWithBlank, validateSentenceForContextSelection } from '@/lib/utils/spanish-word-matcher';
 
 export interface ContextSelectionReviewProps {
   /** The vocabulary word to review */
@@ -57,66 +58,107 @@ export function ContextSelectionReview({
 
   // Phase 18 UX Fix: Full Spanish Immersion
   // ALWAYS use Spanish examples (immersion learning)
-  const example = word.examples && word.examples.length > 0
-    ? word.examples[Math.floor(Math.random() * word.examples.length)]
-    : null;
+  const availableExamples = word.examples && word.examples.length > 0
+    ? word.examples
+    : [];
 
   // Generate options and blank sentence
   const [question] = useState(() => {
-    if (!example) {
-      // Fallback: simple definition sentence (Phase 18.2: Always Spanish options)
-      // ES→EN: Spanish sentence with ______ (Spanish options, meaning shown after)
-      // EN→ES: Spanish sentence with ______ (Spanish options, English prompt)
-      if (direction === 'spanish-to-english') {
-        return {
-          sentence: `¿Qué palabra completa la frase? "_______" se relaciona con "${word.englishTranslation}"`,
-          englishPrompt: null,
-          options: generateOptions(word, allWords, direction),
-          correctIndex: 0,
-          translation: word.englishTranslation,
-        };
-      } else {
-        return {
-          sentence: `"______" es la palabra en español para "${word.englishTranslation}"`,
-          englishPrompt: `What is the Spanish word for "${word.englishTranslation}"?`,
-          options: generateOptions(word, allWords, direction),
-          correctIndex: 0,
-          translation: word.englishTranslation,
-        };
+    // Try to find a valid example sentence
+    let validExample = null;
+    let blankResult = null;
+
+    // Try each example until we find one that works
+    for (const example of availableExamples) {
+      const validation = validateSentenceForContextSelection(
+        example.spanish,
+        word.spanishWord
+      );
+
+      if (validation.valid) {
+        // Try to create blank
+        blankResult = replaceWithBlank(example.spanish, word.spanishWord);
+        
+        if (blankResult.success) {
+          validExample = example;
+          
+          if (process.env.NODE_ENV === 'development') {
+            console.log('✅ [Context Selection] Found valid example:', {
+              word: word.spanishWord,
+              matchedForm: blankResult.matchedForm,
+              strategy: blankResult.strategy,
+              sentence: example.spanish.substring(0, 60) + '...',
+            });
+          }
+          break;
+        }
       }
     }
 
-    // Full Immersion: ALWAYS use Spanish sentence (even for EN→ES)
-    const spanishSentence = example.spanish;
-    const englishTranslation = example.english;
-    
-    // Replace Spanish word with blank
-    const blankSentence = spanishSentence.replace(
-      new RegExp(`\\b${word.spanishWord}\\b`, 'gi'),
-      '_______'
-    );
+    // If we found a valid example, use it
+    if (validExample && blankResult) {
+      const spanishSentence = validExample.spanish;
+      const englishTranslation = validExample.english;
 
-    // For EN→ES, show English prompt to clarify what user is looking for
-    const englishPrompt = direction === 'english-to-spanish'
-      ? `What is the Spanish word for "${word.englishTranslation}"?`
-      : null;
+      // For EN→ES, show English prompt to clarify what user is looking for
+      const englishPrompt = direction === 'english-to-spanish'
+        ? `What is the Spanish word for "${word.englishTranslation}"?`
+        : null;
 
-    if (process.env.NODE_ENV === 'development') {
-      console.log('🔍 [Context Selection] Full immersion:', {
-        direction,
-        spanishSentence,
+      if (process.env.NODE_ENV === 'development') {
+        console.log('🔍 [Context Selection] Full immersion with example:', {
+          direction,
+          originalWord: word.spanishWord,
+          matchedForm: blankResult.matchedForm,
+          strategy: blankResult.strategy,
+          hasBlank: blankResult.result.includes('_______'),
+          englishPrompt,
+          optionsLanguage: 'Spanish (both modes - full immersion)',
+        });
+      }
+
+      return {
+        sentence: blankResult.result,
         englishPrompt,
-        optionsLanguage: 'Spanish (both modes - full immersion)',
+        options: generateOptions(word, allWords, direction),
+        correctIndex: 0,
+        translation: englishTranslation,
+        matchedForm: blankResult.matchedForm,
+      };
+    }
+
+    // Fallback: Use simple definition sentence (Phase 18.2: Always Spanish options)
+    // This is used when no examples exist or none can be matched
+    if (process.env.NODE_ENV === 'development') {
+      console.warn('⚠️ [Context Selection] Using fallback sentence for:', word.spanishWord, {
+        reason: availableExamples.length === 0 
+          ? 'No examples available' 
+          : 'Could not match word in any example',
+        examplesCount: availableExamples.length,
       });
     }
 
-    return {
-      sentence: blankSentence,
-      englishPrompt,
-      options: generateOptions(word, allWords, direction),
-      correctIndex: 0,
-      translation: englishTranslation,
-    };
+    // ES→EN: Spanish sentence with ______ (Spanish options, meaning shown after)
+    // EN→ES: Spanish sentence with ______ (Spanish options, English prompt)
+    if (direction === 'spanish-to-english') {
+      return {
+        sentence: `¿Qué palabra completa la frase? "_______" se relaciona con "${word.englishTranslation}"`,
+        englishPrompt: null,
+        options: generateOptions(word, allWords, direction),
+        correctIndex: 0,
+        translation: word.englishTranslation,
+        matchedForm: word.spanishWord,
+      };
+    } else {
+      return {
+        sentence: `"_______" es la palabra en español para "${word.englishTranslation}"`,
+        englishPrompt: `What is the Spanish word for "${word.englishTranslation}"?`,
+        options: generateOptions(word, allWords, direction),
+        correctIndex: 0,
+        translation: word.englishTranslation,
+        matchedForm: word.spanishWord,
+      };
+    }
   });
 
   // Shuffle options after generation

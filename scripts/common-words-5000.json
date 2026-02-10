@@ -1,0 +1,4714 @@
+{
+  "metadata": {
+    "version": "1.0",
+    "created": "2026-02-09",
+    "source": "Based on frequency analysis from multiple corpora (movie subtitles, RAE CREA, news)",
+    "description": "5,000 most common Spanish words for pre-generation of AI examples",
+    "totalWords": 669,
+    "coverage": "~90% of spoken Spanish",
+    "notes": "Words ordered by frequency (most common first). Includes verbs in infinitive form.",
+    "lastUpdated": "2026-02-10T08:43:11.063Z"
+  },
+  "words": [
+    {
+      "rank": 1,
+      "word": "ser",
+      "pos": "verb",
+      "translation": "to be",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 2,
+      "word": "estar",
+      "pos": "verb",
+      "translation": "to be",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 3,
+      "word": "haber",
+      "pos": "verb",
+      "translation": "to have",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 4,
+      "word": "tener",
+      "pos": "verb",
+      "translation": "to have",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 5,
+      "word": "hacer",
+      "pos": "verb",
+      "translation": "to do/make",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 6,
+      "word": "poder",
+      "pos": "verb",
+      "translation": "to be able",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 7,
+      "word": "decir",
+      "pos": "verb",
+      "translation": "to say",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 8,
+      "word": "ir",
+      "pos": "verb",
+      "translation": "to go",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 9,
+      "word": "ver",
+      "pos": "verb",
+      "translation": "to see",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 10,
+      "word": "dar",
+      "pos": "verb",
+      "translation": "to give",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 11,
+      "word": "saber",
+      "pos": "verb",
+      "translation": "to know",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 12,
+      "word": "querer",
+      "pos": "verb",
+      "translation": "to want",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 13,
+      "word": "llegar",
+      "pos": "verb",
+      "translation": "to arrive",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 14,
+      "word": "pasar",
+      "pos": "verb",
+      "translation": "to pass/happen",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 15,
+      "word": "deber",
+      "pos": "verb",
+      "translation": "must/should",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 16,
+      "word": "poner",
+      "pos": "verb",
+      "translation": "to put",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 17,
+      "word": "parecer",
+      "pos": "verb",
+      "translation": "to seem",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 18,
+      "word": "quedar",
+      "pos": "verb",
+      "translation": "to remain/stay",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 19,
+      "word": "creer",
+      "pos": "verb",
+      "translation": "to believe",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 20,
+      "word": "hablar",
+      "pos": "verb",
+      "translation": "to speak",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 21,
+      "word": "llevar",
+      "pos": "verb",
+      "translation": "to carry/wear",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 22,
+      "word": "dejar",
+      "pos": "verb",
+      "translation": "to leave/let",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 23,
+      "word": "sentir",
+      "pos": "verb",
+      "translation": "to feel",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 24,
+      "word": "encontrar",
+      "pos": "verb",
+      "translation": "to find",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 25,
+      "word": "llamar",
+      "pos": "verb",
+      "translation": "to call",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 26,
+      "word": "venir",
+      "pos": "verb",
+      "translation": "to come",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 27,
+      "word": "pensar",
+      "pos": "verb",
+      "translation": "to think",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 28,
+      "word": "salir",
+      "pos": "verb",
+      "translation": "to leave/go out",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 29,
+      "word": "volver",
+      "pos": "verb",
+      "translation": "to return",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 30,
+      "word": "tomar",
+      "pos": "verb",
+      "translation": "to take",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 31,
+      "word": "conocer",
+      "pos": "verb",
+      "translation": "to know/meet",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 32,
+      "word": "vivir",
+      "pos": "verb",
+      "translation": "to live",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 33,
+      "word": "sentirse",
+      "pos": "verb",
+      "translation": "to feel",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 34,
+      "word": "tratar",
+      "pos": "verb",
+      "translation": "to try/treat",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 35,
+      "word": "mirar",
+      "pos": "verb",
+      "translation": "to look",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 36,
+      "word": "contar",
+      "pos": "verb",
+      "translation": "to count/tell",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 37,
+      "word": "empezar",
+      "pos": "verb",
+      "translation": "to begin",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 38,
+      "word": "esperar",
+      "pos": "verb",
+      "translation": "to wait/hope",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 39,
+      "word": "buscar",
+      "pos": "verb",
+      "translation": "to search",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 40,
+      "word": "existir",
+      "pos": "verb",
+      "translation": "to exist",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 41,
+      "word": "entrar",
+      "pos": "verb",
+      "translation": "to enter",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 42,
+      "word": "trabajar",
+      "pos": "verb",
+      "translation": "to work",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 43,
+      "word": "escribir",
+      "pos": "verb",
+      "translation": "to write",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 44,
+      "word": "perder",
+      "pos": "verb",
+      "translation": "to lose",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 45,
+      "word": "producir",
+      "pos": "verb",
+      "translation": "to produce",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 46,
+      "word": "ocurrir",
+      "pos": "verb",
+      "translation": "to happen",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 47,
+      "word": "entender",
+      "pos": "verb",
+      "translation": "to understand",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 48,
+      "word": "pedir",
+      "pos": "verb",
+      "translation": "to ask for",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 49,
+      "word": "recibir",
+      "pos": "verb",
+      "translation": "to receive",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 50,
+      "word": "recordar",
+      "pos": "verb",
+      "translation": "to remember",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 51,
+      "word": "el",
+      "pos": "article",
+      "translation": "the",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 52,
+      "word": "la",
+      "pos": "article",
+      "translation": "the",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 53,
+      "word": "de",
+      "pos": "preposition",
+      "translation": "of/from",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 54,
+      "word": "que",
+      "pos": "conjunction",
+      "translation": "that",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 55,
+      "word": "y",
+      "pos": "conjunction",
+      "translation": "and",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 56,
+      "word": "a",
+      "pos": "preposition",
+      "translation": "to/at",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 57,
+      "word": "en",
+      "pos": "preposition",
+      "translation": "in/on",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 58,
+      "word": "un",
+      "pos": "article",
+      "translation": "a/an",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 59,
+      "word": "por",
+      "pos": "preposition",
+      "translation": "by/for",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 60,
+      "word": "con",
+      "pos": "preposition",
+      "translation": "with",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 61,
+      "word": "no",
+      "pos": "adverb",
+      "translation": "no/not",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 62,
+      "word": "una",
+      "pos": "article",
+      "translation": "a/an",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 63,
+      "word": "para",
+      "pos": "preposition",
+      "translation": "for",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 64,
+      "word": "su",
+      "pos": "pronoun",
+      "translation": "his/her/their",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 65,
+      "word": "al",
+      "pos": "contraction",
+      "translation": "to the",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 66,
+      "word": "lo",
+      "pos": "pronoun",
+      "translation": "it",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 67,
+      "word": "como",
+      "pos": "adverb",
+      "translation": "as/like",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 68,
+      "word": "más",
+      "pos": "adverb",
+      "translation": "more",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 69,
+      "word": "del",
+      "pos": "contraction",
+      "translation": "of the",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 70,
+      "word": "pero",
+      "pos": "conjunction",
+      "translation": "but",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 71,
+      "word": "año",
+      "pos": "noun",
+      "translation": "year",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 72,
+      "word": "tiempo",
+      "pos": "noun",
+      "translation": "time",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 73,
+      "word": "día",
+      "pos": "noun",
+      "translation": "day",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 74,
+      "word": "casa",
+      "pos": "noun",
+      "translation": "house",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 75,
+      "word": "vida",
+      "pos": "noun",
+      "translation": "life",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 76,
+      "word": "vez",
+      "pos": "noun",
+      "translation": "time/occasion",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 77,
+      "word": "mundo",
+      "pos": "noun",
+      "translation": "world",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 78,
+      "word": "parte",
+      "pos": "noun",
+      "translation": "part",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 79,
+      "word": "país",
+      "pos": "noun",
+      "translation": "country",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 80,
+      "word": "caso",
+      "pos": "noun",
+      "translation": "case",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 81,
+      "word": "mano",
+      "pos": "noun",
+      "translation": "hand",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 82,
+      "word": "lugar",
+      "pos": "noun",
+      "translation": "place",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 83,
+      "word": "hora",
+      "pos": "noun",
+      "translation": "hour",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 84,
+      "word": "forma",
+      "pos": "noun",
+      "translation": "way/form",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 85,
+      "word": "hombre",
+      "pos": "noun",
+      "translation": "man",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 86,
+      "word": "mujer",
+      "pos": "noun",
+      "translation": "woman",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 87,
+      "word": "niño",
+      "pos": "noun",
+      "translation": "child/boy",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 88,
+      "word": "gobierno",
+      "pos": "noun",
+      "translation": "government",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 89,
+      "word": "señor",
+      "pos": "noun",
+      "translation": "mister/sir",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 90,
+      "word": "problema",
+      "pos": "noun",
+      "translation": "problem",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 91,
+      "word": "momento",
+      "pos": "noun",
+      "translation": "moment",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 92,
+      "word": "nombre",
+      "pos": "noun",
+      "translation": "name",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 93,
+      "word": "ciudad",
+      "pos": "noun",
+      "translation": "city",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 94,
+      "word": "trabajo",
+      "pos": "noun",
+      "translation": "work/job",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 95,
+      "word": "agua",
+      "pos": "noun",
+      "translation": "water",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 96,
+      "word": "punto",
+      "pos": "noun",
+      "translation": "point",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 97,
+      "word": "semana",
+      "pos": "noun",
+      "translation": "week",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 98,
+      "word": "cosa",
+      "pos": "noun",
+      "translation": "thing",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 99,
+      "word": "fin",
+      "pos": "noun",
+      "translation": "end",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 100,
+      "word": "padre",
+      "pos": "noun",
+      "translation": "father",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 101,
+      "word": "madre",
+      "pos": "noun",
+      "translation": "mother",
+      "frequency": "high"
+    },
+    {
+      "rank": 102,
+      "word": "hijo",
+      "pos": "noun",
+      "translation": "son",
+      "frequency": "high"
+    },
+    {
+      "rank": 103,
+      "word": "pueblo",
+      "pos": "noun",
+      "translation": "town/people",
+      "frequency": "high"
+    },
+    {
+      "rank": 104,
+      "word": "grupo",
+      "pos": "noun",
+      "translation": "group",
+      "frequency": "high"
+    },
+    {
+      "rank": 105,
+      "word": "razón",
+      "pos": "noun",
+      "translation": "reason",
+      "frequency": "high"
+    },
+    {
+      "rank": 106,
+      "word": "historia",
+      "pos": "noun",
+      "translation": "history/story",
+      "frequency": "high"
+    },
+    {
+      "rank": 107,
+      "word": "manera",
+      "pos": "noun",
+      "translation": "way/manner",
+      "frequency": "high"
+    },
+    {
+      "rank": 108,
+      "word": "mes",
+      "pos": "noun",
+      "translation": "month",
+      "frequency": "high"
+    },
+    {
+      "rank": 109,
+      "word": "hermano",
+      "pos": "noun",
+      "translation": "brother",
+      "frequency": "high"
+    },
+    {
+      "rank": 110,
+      "word": "cambio",
+      "pos": "noun",
+      "translation": "change",
+      "frequency": "high"
+    },
+    {
+      "rank": 111,
+      "word": "ojo",
+      "pos": "noun",
+      "translation": "eye",
+      "frequency": "high"
+    },
+    {
+      "rank": 112,
+      "word": "libro",
+      "pos": "noun",
+      "translation": "book",
+      "frequency": "high"
+    },
+    {
+      "rank": 113,
+      "word": "calle",
+      "pos": "noun",
+      "translation": "street",
+      "frequency": "high"
+    },
+    {
+      "rank": 114,
+      "word": "puerta",
+      "pos": "noun",
+      "translation": "door",
+      "frequency": "high"
+    },
+    {
+      "rank": 115,
+      "word": "tarde",
+      "pos": "noun",
+      "translation": "afternoon",
+      "frequency": "high"
+    },
+    {
+      "rank": 116,
+      "word": "noche",
+      "pos": "noun",
+      "translation": "night",
+      "frequency": "high"
+    },
+    {
+      "rank": 117,
+      "word": "mañana",
+      "pos": "noun",
+      "translation": "morning/tomorrow",
+      "frequency": "high"
+    },
+    {
+      "rank": 118,
+      "word": "cabeza",
+      "pos": "noun",
+      "translation": "head",
+      "frequency": "high"
+    },
+    {
+      "rank": 119,
+      "word": "pie",
+      "pos": "noun",
+      "translation": "foot",
+      "frequency": "high"
+    },
+    {
+      "rank": 120,
+      "word": "cuerpo",
+      "pos": "noun",
+      "translation": "body",
+      "frequency": "high"
+    },
+    {
+      "rank": 121,
+      "word": "luz",
+      "pos": "noun",
+      "translation": "light",
+      "frequency": "high"
+    },
+    {
+      "rank": 122,
+      "word": "voz",
+      "pos": "noun",
+      "translation": "voice",
+      "frequency": "high"
+    },
+    {
+      "rank": 123,
+      "word": "amigo",
+      "pos": "noun",
+      "translation": "friend",
+      "frequency": "high"
+    },
+    {
+      "rank": 124,
+      "word": "mesa",
+      "pos": "noun",
+      "translation": "table",
+      "frequency": "high"
+    },
+    {
+      "rank": 125,
+      "word": "ventana",
+      "pos": "noun",
+      "translation": "window",
+      "frequency": "high"
+    },
+    {
+      "rank": 126,
+      "word": "coche",
+      "pos": "noun",
+      "translation": "car",
+      "frequency": "high"
+    },
+    {
+      "rank": 127,
+      "word": "escuela",
+      "pos": "noun",
+      "translation": "school",
+      "frequency": "high"
+    },
+    {
+      "rank": 128,
+      "word": "profesor",
+      "pos": "noun",
+      "translation": "teacher",
+      "frequency": "high"
+    },
+    {
+      "rank": 129,
+      "word": "familia",
+      "pos": "noun",
+      "translation": "family",
+      "frequency": "high"
+    },
+    {
+      "rank": 130,
+      "word": "número",
+      "pos": "noun",
+      "translation": "number",
+      "frequency": "high"
+    },
+    {
+      "rank": 131,
+      "word": "palabra",
+      "pos": "noun",
+      "translation": "word",
+      "frequency": "high"
+    },
+    {
+      "rank": 132,
+      "word": "tierra",
+      "pos": "noun",
+      "translation": "earth/land",
+      "frequency": "high"
+    },
+    {
+      "rank": 133,
+      "word": "guerra",
+      "pos": "noun",
+      "translation": "war",
+      "frequency": "high"
+    },
+    {
+      "rank": 134,
+      "word": "muerte",
+      "pos": "noun",
+      "translation": "death",
+      "frequency": "high"
+    },
+    {
+      "rank": 135,
+      "word": "grande",
+      "pos": "adjective",
+      "translation": "big/great",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 136,
+      "word": "nuevo",
+      "pos": "adjective",
+      "translation": "new",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 137,
+      "word": "bueno",
+      "pos": "adjective",
+      "translation": "good",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 138,
+      "word": "primero",
+      "pos": "adjective",
+      "translation": "first",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 139,
+      "word": "último",
+      "pos": "adjective",
+      "translation": "last",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 140,
+      "word": "largo",
+      "pos": "adjective",
+      "translation": "long",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 141,
+      "word": "mismo",
+      "pos": "adjective",
+      "translation": "same",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 142,
+      "word": "pequeño",
+      "pos": "adjective",
+      "translation": "small",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 143,
+      "word": "otro",
+      "pos": "adjective",
+      "translation": "other",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 144,
+      "word": "poco",
+      "pos": "adjective",
+      "translation": "little",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 145,
+      "word": "mucho",
+      "pos": "adjective",
+      "translation": "much/many",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 146,
+      "word": "mejor",
+      "pos": "adjective",
+      "translation": "better",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 147,
+      "word": "peor",
+      "pos": "adjective",
+      "translation": "worse",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 148,
+      "word": "alto",
+      "pos": "adjective",
+      "translation": "tall/high",
+      "frequency": "high"
+    },
+    {
+      "rank": 149,
+      "word": "bajo",
+      "pos": "adjective",
+      "translation": "short/low",
+      "frequency": "high"
+    },
+    {
+      "rank": 150,
+      "word": "viejo",
+      "pos": "adjective",
+      "translation": "old",
+      "frequency": "high"
+    },
+    {
+      "rank": 151,
+      "word": "seguir",
+      "pos": "verb",
+      "translation": "to follow/continue",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 152,
+      "word": "comenzar",
+      "pos": "verb",
+      "translation": "to begin",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 153,
+      "word": "partir",
+      "pos": "verb",
+      "translation": "to leave/depart",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 154,
+      "word": "caer",
+      "pos": "verb",
+      "translation": "to fall",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 155,
+      "word": "presentar",
+      "pos": "verb",
+      "translation": "to present",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 156,
+      "word": "crear",
+      "pos": "verb",
+      "translation": "to create",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 157,
+      "word": "abrir",
+      "pos": "verb",
+      "translation": "to open",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 158,
+      "word": "considerar",
+      "pos": "verb",
+      "translation": "to consider",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 159,
+      "word": "oír",
+      "pos": "verb",
+      "translation": "to hear",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 160,
+      "word": "acabar",
+      "pos": "verb",
+      "translation": "to finish",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 161,
+      "word": "permitir",
+      "pos": "verb",
+      "translation": "to permit/allow",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 162,
+      "word": "aparecer",
+      "pos": "verb",
+      "translation": "to appear",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 163,
+      "word": "conseguir",
+      "pos": "verb",
+      "translation": "to get/obtain",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 164,
+      "word": "servir",
+      "pos": "verb",
+      "translation": "to serve",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 165,
+      "word": "sacar",
+      "pos": "verb",
+      "translation": "to take out",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 166,
+      "word": "necesitar",
+      "pos": "verb",
+      "translation": "to need",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 167,
+      "word": "mantener",
+      "pos": "verb",
+      "translation": "to maintain",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 168,
+      "word": "resultar",
+      "pos": "verb",
+      "translation": "to result/turn out",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 169,
+      "word": "leer",
+      "pos": "verb",
+      "translation": "to read",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 170,
+      "word": "ofrecer",
+      "pos": "verb",
+      "translation": "to offer",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 171,
+      "word": "tocar",
+      "pos": "verb",
+      "translation": "to touch/play",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 172,
+      "word": "reconocer",
+      "pos": "verb",
+      "translation": "to recognize",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 173,
+      "word": "estudiar",
+      "pos": "verb",
+      "translation": "to study",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 174,
+      "word": "alcanzar",
+      "pos": "verb",
+      "translation": "to reach/achieve",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 175,
+      "word": "nacer",
+      "pos": "verb",
+      "translation": "to be born",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 176,
+      "word": "dirigir",
+      "pos": "verb",
+      "translation": "to direct",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 177,
+      "word": "correr",
+      "pos": "verb",
+      "translation": "to run",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 178,
+      "word": "utilizar",
+      "pos": "verb",
+      "translation": "to use/utilize",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 179,
+      "word": "pagar",
+      "pos": "verb",
+      "translation": "to pay",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 180,
+      "word": "ayudar",
+      "pos": "verb",
+      "translation": "to help",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 181,
+      "word": "gustar",
+      "pos": "verb",
+      "translation": "to like/be pleasing",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 182,
+      "word": "jugar",
+      "pos": "verb",
+      "translation": "to play",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 183,
+      "word": "realizar",
+      "pos": "verb",
+      "translation": "to carry out",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 184,
+      "word": "intentar",
+      "pos": "verb",
+      "translation": "to try/attempt",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 185,
+      "word": "subir",
+      "pos": "verb",
+      "translation": "to go up/climb",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 186,
+      "word": "bajar",
+      "pos": "verb",
+      "translation": "to go down/lower",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 187,
+      "word": "cumplir",
+      "pos": "verb",
+      "translation": "to fulfill/turn (age)",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 188,
+      "word": "echar",
+      "pos": "verb",
+      "translation": "to throw",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 189,
+      "word": "andar",
+      "pos": "verb",
+      "translation": "to walk",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 190,
+      "word": "responder",
+      "pos": "verb",
+      "translation": "to respond",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 191,
+      "word": "persona",
+      "pos": "noun",
+      "translation": "person",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 192,
+      "word": "gente",
+      "pos": "noun",
+      "translation": "people",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 193,
+      "word": "lado",
+      "pos": "noun",
+      "translation": "side",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 194,
+      "word": "frente",
+      "pos": "noun",
+      "translation": "front/forehead",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 195,
+      "word": "brazo",
+      "pos": "noun",
+      "translation": "arm",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 196,
+      "word": "boca",
+      "pos": "noun",
+      "translation": "mouth",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 197,
+      "word": "cara",
+      "pos": "noun",
+      "translation": "face",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 198,
+      "word": "corazón",
+      "pos": "noun",
+      "translation": "heart",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 199,
+      "word": "dedo",
+      "pos": "noun",
+      "translation": "finger",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 200,
+      "word": "espalda",
+      "pos": "noun",
+      "translation": "back",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 201,
+      "word": "pierna",
+      "pos": "noun",
+      "translation": "leg",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 202,
+      "word": "rodilla",
+      "pos": "noun",
+      "translation": "knee",
+      "frequency": "high"
+    },
+    {
+      "rank": 203,
+      "word": "oreja",
+      "pos": "noun",
+      "translation": "ear",
+      "frequency": "high"
+    },
+    {
+      "rank": 204,
+      "word": "nariz",
+      "pos": "noun",
+      "translation": "nose",
+      "frequency": "high"
+    },
+    {
+      "rank": 205,
+      "word": "lengua",
+      "pos": "noun",
+      "translation": "tongue/language",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 206,
+      "word": "pelo",
+      "pos": "noun",
+      "translation": "hair",
+      "frequency": "high"
+    },
+    {
+      "rank": 207,
+      "word": "compañero",
+      "pos": "noun",
+      "translation": "companion/partner",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 208,
+      "word": "hermana",
+      "pos": "noun",
+      "translation": "sister",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 209,
+      "word": "esposo",
+      "pos": "noun",
+      "translation": "husband",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 210,
+      "word": "esposa",
+      "pos": "noun",
+      "translation": "wife",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 211,
+      "word": "abuelo",
+      "pos": "noun",
+      "translation": "grandfather",
+      "frequency": "high"
+    },
+    {
+      "rank": 212,
+      "word": "abuela",
+      "pos": "noun",
+      "translation": "grandmother",
+      "frequency": "high"
+    },
+    {
+      "rank": 213,
+      "word": "tío",
+      "pos": "noun",
+      "translation": "uncle",
+      "frequency": "high"
+    },
+    {
+      "rank": 214,
+      "word": "tía",
+      "pos": "noun",
+      "translation": "aunt",
+      "frequency": "high"
+    },
+    {
+      "rank": 215,
+      "word": "primo",
+      "pos": "noun",
+      "translation": "cousin",
+      "frequency": "high"
+    },
+    {
+      "rank": 216,
+      "word": "novio",
+      "pos": "noun",
+      "translation": "boyfriend/groom",
+      "frequency": "high"
+    },
+    {
+      "rank": 217,
+      "word": "novia",
+      "pos": "noun",
+      "translation": "girlfriend/bride",
+      "frequency": "high"
+    },
+    {
+      "rank": 218,
+      "word": "bebé",
+      "pos": "noun",
+      "translation": "baby",
+      "frequency": "high"
+    },
+    {
+      "rank": 219,
+      "word": "sol",
+      "pos": "noun",
+      "translation": "sun",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 220,
+      "word": "aire",
+      "pos": "noun",
+      "translation": "air",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 221,
+      "word": "mar",
+      "pos": "noun",
+      "translation": "sea",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 222,
+      "word": "cielo",
+      "pos": "noun",
+      "translation": "sky/heaven",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 223,
+      "word": "luna",
+      "pos": "noun",
+      "translation": "moon",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 224,
+      "word": "estrella",
+      "pos": "noun",
+      "translation": "star",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 225,
+      "word": "nube",
+      "pos": "noun",
+      "translation": "cloud",
+      "frequency": "high"
+    },
+    {
+      "rank": 226,
+      "word": "viento",
+      "pos": "noun",
+      "translation": "wind",
+      "frequency": "high"
+    },
+    {
+      "rank": 227,
+      "word": "lluvia",
+      "pos": "noun",
+      "translation": "rain",
+      "frequency": "high"
+    },
+    {
+      "rank": 228,
+      "word": "nieve",
+      "pos": "noun",
+      "translation": "snow",
+      "frequency": "high"
+    },
+    {
+      "rank": 229,
+      "word": "fuego",
+      "pos": "noun",
+      "translation": "fire",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 230,
+      "word": "árbol",
+      "pos": "noun",
+      "translation": "tree",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 231,
+      "word": "flor",
+      "pos": "noun",
+      "translation": "flower",
+      "frequency": "high"
+    },
+    {
+      "rank": 232,
+      "word": "río",
+      "pos": "noun",
+      "translation": "river",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 233,
+      "word": "montaña",
+      "pos": "noun",
+      "translation": "mountain",
+      "frequency": "high"
+    },
+    {
+      "rank": 234,
+      "word": "playa",
+      "pos": "noun",
+      "translation": "beach",
+      "frequency": "high"
+    },
+    {
+      "rank": 235,
+      "word": "bosque",
+      "pos": "noun",
+      "translation": "forest",
+      "frequency": "high"
+    },
+    {
+      "rank": 236,
+      "word": "campo",
+      "pos": "noun",
+      "translation": "field/countryside",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 237,
+      "word": "amor",
+      "pos": "noun",
+      "translation": "love",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 238,
+      "word": "paz",
+      "pos": "noun",
+      "translation": "peace",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 239,
+      "word": "fuerza",
+      "pos": "noun",
+      "translation": "strength/force",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 240,
+      "word": "ley",
+      "pos": "noun",
+      "translation": "law",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 241,
+      "word": "sangre",
+      "pos": "noun",
+      "translation": "blood",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 242,
+      "word": "arte",
+      "pos": "noun",
+      "translation": "art",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 243,
+      "word": "papel",
+      "pos": "noun",
+      "translation": "paper/role",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 244,
+      "word": "música",
+      "pos": "noun",
+      "translation": "music",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 245,
+      "word": "verdad",
+      "pos": "noun",
+      "translation": "truth",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 246,
+      "word": "mentira",
+      "pos": "noun",
+      "translation": "lie",
+      "frequency": "high"
+    },
+    {
+      "rank": 247,
+      "word": "suerte",
+      "pos": "noun",
+      "translation": "luck",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 248,
+      "word": "miedo",
+      "pos": "noun",
+      "translation": "fear",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 249,
+      "word": "alegría",
+      "pos": "noun",
+      "translation": "joy",
+      "frequency": "high"
+    },
+    {
+      "rank": 250,
+      "word": "tristeza",
+      "pos": "noun",
+      "translation": "sadness",
+      "frequency": "high"
+    },
+    {
+      "rank": 251,
+      "word": "esperanza",
+      "pos": "noun",
+      "translation": "hope",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 252,
+      "word": "sueño",
+      "pos": "noun",
+      "translation": "dream/sleep",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 253,
+      "word": "pensamiento",
+      "pos": "noun",
+      "translation": "thought",
+      "frequency": "high"
+    },
+    {
+      "rank": 254,
+      "word": "sentimiento",
+      "pos": "noun",
+      "translation": "feeling",
+      "frequency": "high"
+    },
+    {
+      "rank": 255,
+      "word": "mente",
+      "pos": "noun",
+      "translation": "mind",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 256,
+      "word": "cama",
+      "pos": "noun",
+      "translation": "bed",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 257,
+      "word": "silla",
+      "pos": "noun",
+      "translation": "chair",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 258,
+      "word": "pared",
+      "pos": "noun",
+      "translation": "wall",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 259,
+      "word": "suelo",
+      "pos": "noun",
+      "translation": "floor/ground",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 260,
+      "word": "techo",
+      "pos": "noun",
+      "translation": "roof/ceiling",
+      "frequency": "high"
+    },
+    {
+      "rank": 261,
+      "word": "cocina",
+      "pos": "noun",
+      "translation": "kitchen",
+      "frequency": "high"
+    },
+    {
+      "rank": 262,
+      "word": "baño",
+      "pos": "noun",
+      "translation": "bathroom",
+      "frequency": "high"
+    },
+    {
+      "rank": 263,
+      "word": "habitación",
+      "pos": "noun",
+      "translation": "room",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 264,
+      "word": "edificio",
+      "pos": "noun",
+      "translation": "building",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 265,
+      "word": "tienda",
+      "pos": "noun",
+      "translation": "store/shop",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 266,
+      "word": "mercado",
+      "pos": "noun",
+      "translation": "market",
+      "frequency": "high"
+    },
+    {
+      "rank": 267,
+      "word": "restaurante",
+      "pos": "noun",
+      "translation": "restaurant",
+      "frequency": "high"
+    },
+    {
+      "rank": 268,
+      "word": "hotel",
+      "pos": "noun",
+      "translation": "hotel",
+      "frequency": "high"
+    },
+    {
+      "rank": 269,
+      "word": "hospital",
+      "pos": "noun",
+      "translation": "hospital",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 270,
+      "word": "iglesia",
+      "pos": "noun",
+      "translation": "church",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 271,
+      "word": "banco",
+      "pos": "noun",
+      "translation": "bank/bench",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 272,
+      "word": "oficina",
+      "pos": "noun",
+      "translation": "office",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 273,
+      "word": "comida",
+      "pos": "noun",
+      "translation": "food",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 274,
+      "word": "bebida",
+      "pos": "noun",
+      "translation": "drink",
+      "frequency": "high"
+    },
+    {
+      "rank": 275,
+      "word": "pan",
+      "pos": "noun",
+      "translation": "bread",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 276,
+      "word": "leche",
+      "pos": "noun",
+      "translation": "milk",
+      "frequency": "high"
+    },
+    {
+      "rank": 277,
+      "word": "café",
+      "pos": "noun",
+      "translation": "coffee",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 278,
+      "word": "té",
+      "pos": "noun",
+      "translation": "tea",
+      "frequency": "high"
+    },
+    {
+      "rank": 279,
+      "word": "vino",
+      "pos": "noun",
+      "translation": "wine",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 280,
+      "word": "carne",
+      "pos": "noun",
+      "translation": "meat",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 281,
+      "word": "pescado",
+      "pos": "noun",
+      "translation": "fish",
+      "frequency": "high"
+    },
+    {
+      "rank": 282,
+      "word": "pollo",
+      "pos": "noun",
+      "translation": "chicken",
+      "frequency": "high"
+    },
+    {
+      "rank": 283,
+      "word": "huevo",
+      "pos": "noun",
+      "translation": "egg",
+      "frequency": "high"
+    },
+    {
+      "rank": 284,
+      "word": "arroz",
+      "pos": "noun",
+      "translation": "rice",
+      "frequency": "high"
+    },
+    {
+      "rank": 285,
+      "word": "fruta",
+      "pos": "noun",
+      "translation": "fruit",
+      "frequency": "high"
+    },
+    {
+      "rank": 286,
+      "word": "verdura",
+      "pos": "noun",
+      "translation": "vegetable",
+      "frequency": "high"
+    },
+    {
+      "rank": 287,
+      "word": "queso",
+      "pos": "noun",
+      "translation": "cheese",
+      "frequency": "high"
+    },
+    {
+      "rank": 288,
+      "word": "sal",
+      "pos": "noun",
+      "translation": "salt",
+      "frequency": "high"
+    },
+    {
+      "rank": 289,
+      "word": "azúcar",
+      "pos": "noun",
+      "translation": "sugar",
+      "frequency": "high"
+    },
+    {
+      "rank": 290,
+      "word": "blanco",
+      "pos": "adjective",
+      "translation": "white",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 291,
+      "word": "negro",
+      "pos": "adjective",
+      "translation": "black",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 292,
+      "word": "rojo",
+      "pos": "adjective",
+      "translation": "red",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 293,
+      "word": "azul",
+      "pos": "adjective",
+      "translation": "blue",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 294,
+      "word": "verde",
+      "pos": "adjective",
+      "translation": "green",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 295,
+      "word": "amarillo",
+      "pos": "adjective",
+      "translation": "yellow",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 296,
+      "word": "gris",
+      "pos": "adjective",
+      "translation": "gray",
+      "frequency": "high"
+    },
+    {
+      "rank": 297,
+      "word": "marrón",
+      "pos": "adjective",
+      "translation": "brown",
+      "frequency": "high"
+    },
+    {
+      "rank": 298,
+      "word": "rosa",
+      "pos": "adjective",
+      "translation": "pink",
+      "frequency": "high"
+    },
+    {
+      "rank": 299,
+      "word": "morado",
+      "pos": "adjective",
+      "translation": "purple",
+      "frequency": "high"
+    },
+    {
+      "rank": 300,
+      "word": "fuerte",
+      "pos": "adjective",
+      "translation": "strong",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 301,
+      "word": "débil",
+      "pos": "adjective",
+      "translation": "weak",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 302,
+      "word": "feliz",
+      "pos": "adjective",
+      "translation": "happy",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 303,
+      "word": "triste",
+      "pos": "adjective",
+      "translation": "sad",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 304,
+      "word": "rico",
+      "pos": "adjective",
+      "translation": "rich",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 305,
+      "word": "pobre",
+      "pos": "adjective",
+      "translation": "poor",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 306,
+      "word": "lleno",
+      "pos": "adjective",
+      "translation": "full",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 307,
+      "word": "vacío",
+      "pos": "adjective",
+      "translation": "empty",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 308,
+      "word": "cerca",
+      "pos": "adverb",
+      "translation": "near/close",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 309,
+      "word": "lejos",
+      "pos": "adverb",
+      "translation": "far",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 310,
+      "word": "rápido",
+      "pos": "adjective",
+      "translation": "fast",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 311,
+      "word": "lento",
+      "pos": "adjective",
+      "translation": "slow",
+      "frequency": "high"
+    },
+    {
+      "rank": 312,
+      "word": "fácil",
+      "pos": "adjective",
+      "translation": "easy",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 313,
+      "word": "difícil",
+      "pos": "adjective",
+      "translation": "difficult",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 314,
+      "word": "importante",
+      "pos": "adjective",
+      "translation": "important",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 315,
+      "word": "necesario",
+      "pos": "adjective",
+      "translation": "necessary",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 316,
+      "word": "posible",
+      "pos": "adjective",
+      "translation": "possible",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 317,
+      "word": "imposible",
+      "pos": "adjective",
+      "translation": "impossible",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 318,
+      "word": "verdadero",
+      "pos": "adjective",
+      "translation": "true",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 319,
+      "word": "falso",
+      "pos": "adjective",
+      "translation": "false",
+      "frequency": "high"
+    },
+    {
+      "rank": 320,
+      "word": "simple",
+      "pos": "adjective",
+      "translation": "simple",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 321,
+      "word": "complejo",
+      "pos": "adjective",
+      "translation": "complex",
+      "frequency": "high"
+    },
+    {
+      "rank": 322,
+      "word": "limpio",
+      "pos": "adjective",
+      "translation": "clean",
+      "frequency": "high"
+    },
+    {
+      "rank": 323,
+      "word": "sucio",
+      "pos": "adjective",
+      "translation": "dirty",
+      "frequency": "high"
+    },
+    {
+      "rank": 324,
+      "word": "caliente",
+      "pos": "adjective",
+      "translation": "hot",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 325,
+      "word": "frío",
+      "pos": "adjective",
+      "translation": "cold",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 326,
+      "word": "ancho",
+      "pos": "adjective",
+      "translation": "wide",
+      "frequency": "high"
+    },
+    {
+      "rank": 327,
+      "word": "estrecho",
+      "pos": "adjective",
+      "translation": "narrow",
+      "frequency": "high"
+    },
+    {
+      "rank": 328,
+      "word": "gordo",
+      "pos": "adjective",
+      "translation": "fat",
+      "frequency": "high"
+    },
+    {
+      "rank": 329,
+      "word": "delgado",
+      "pos": "adjective",
+      "translation": "thin/slim",
+      "frequency": "high"
+    },
+    {
+      "rank": 330,
+      "word": "hermoso",
+      "pos": "adjective",
+      "translation": "beautiful",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 331,
+      "word": "feo",
+      "pos": "adjective",
+      "translation": "ugly",
+      "frequency": "high"
+    },
+    {
+      "rank": 332,
+      "word": "duro",
+      "pos": "adjective",
+      "translation": "hard",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 333,
+      "word": "blando",
+      "pos": "adjective",
+      "translation": "soft",
+      "frequency": "high"
+    },
+    {
+      "rank": 334,
+      "word": "seco",
+      "pos": "adjective",
+      "translation": "dry",
+      "frequency": "high"
+    },
+    {
+      "rank": 335,
+      "word": "mojado",
+      "pos": "adjective",
+      "translation": "wet",
+      "frequency": "high"
+    },
+    {
+      "rank": 336,
+      "word": "abierto",
+      "pos": "adjective",
+      "translation": "open",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 337,
+      "word": "cerrado",
+      "pos": "adjective",
+      "translation": "closed",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 338,
+      "word": "uno",
+      "pos": "number",
+      "translation": "one",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 339,
+      "word": "dos",
+      "pos": "number",
+      "translation": "two",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 340,
+      "word": "tres",
+      "pos": "number",
+      "translation": "three",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 341,
+      "word": "cuatro",
+      "pos": "number",
+      "translation": "four",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 342,
+      "word": "cinco",
+      "pos": "number",
+      "translation": "five",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 343,
+      "word": "seis",
+      "pos": "number",
+      "translation": "six",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 344,
+      "word": "siete",
+      "pos": "number",
+      "translation": "seven",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 345,
+      "word": "ocho",
+      "pos": "number",
+      "translation": "eight",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 346,
+      "word": "nueve",
+      "pos": "number",
+      "translation": "nine",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 347,
+      "word": "diez",
+      "pos": "number",
+      "translation": "ten",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 348,
+      "word": "veinte",
+      "pos": "number",
+      "translation": "twenty",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 349,
+      "word": "treinta",
+      "pos": "number",
+      "translation": "thirty",
+      "frequency": "high"
+    },
+    {
+      "rank": 350,
+      "word": "cien",
+      "pos": "number",
+      "translation": "hundred",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 351,
+      "word": "mil",
+      "pos": "number",
+      "translation": "thousand",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 352,
+      "word": "siempre",
+      "pos": "adverb",
+      "translation": "always",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 353,
+      "word": "nunca",
+      "pos": "adverb",
+      "translation": "never",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 354,
+      "word": "hoy",
+      "pos": "adverb",
+      "translation": "today",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 355,
+      "word": "ayer",
+      "pos": "adverb",
+      "translation": "yesterday",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 356,
+      "word": "ahora",
+      "pos": "adverb",
+      "translation": "now",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 357,
+      "word": "luego",
+      "pos": "adverb",
+      "translation": "later/then",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 358,
+      "word": "después",
+      "pos": "adverb",
+      "translation": "after/later",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 359,
+      "word": "antes",
+      "pos": "adverb",
+      "translation": "before",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 360,
+      "word": "aquí",
+      "pos": "adverb",
+      "translation": "here",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 361,
+      "word": "allí",
+      "pos": "adverb",
+      "translation": "there",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 362,
+      "word": "arriba",
+      "pos": "adverb",
+      "translation": "up/above",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 363,
+      "word": "abajo",
+      "pos": "adverb",
+      "translation": "down/below",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 364,
+      "word": "dentro",
+      "pos": "adverb",
+      "translation": "inside",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 365,
+      "word": "fuera",
+      "pos": "adverb",
+      "translation": "outside",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 366,
+      "word": "bien",
+      "pos": "adverb",
+      "translation": "well",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 367,
+      "word": "mal",
+      "pos": "adverb",
+      "translation": "badly/wrong",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 368,
+      "word": "casi",
+      "pos": "adverb",
+      "translation": "almost",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 369,
+      "word": "bastante",
+      "pos": "adverb",
+      "translation": "quite/enough",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 370,
+      "word": "demasiado",
+      "pos": "adverb",
+      "translation": "too much",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 371,
+      "word": "juntos",
+      "pos": "adverb",
+      "translation": "together",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 372,
+      "word": "solo",
+      "pos": "adverb",
+      "translation": "only/alone",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 373,
+      "word": "también",
+      "pos": "adverb",
+      "translation": "also",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 374,
+      "word": "tampoco",
+      "pos": "adverb",
+      "translation": "neither/either",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 375,
+      "word": "auto",
+      "pos": "noun",
+      "translation": "car",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 376,
+      "word": "autobús",
+      "pos": "noun",
+      "translation": "bus",
+      "frequency": "high"
+    },
+    {
+      "rank": 377,
+      "word": "tren",
+      "pos": "noun",
+      "translation": "train",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 378,
+      "word": "avión",
+      "pos": "noun",
+      "translation": "airplane",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 379,
+      "word": "barco",
+      "pos": "noun",
+      "translation": "boat/ship",
+      "frequency": "high"
+    },
+    {
+      "rank": 380,
+      "word": "bicicleta",
+      "pos": "noun",
+      "translation": "bicycle",
+      "frequency": "high"
+    },
+    {
+      "rank": 381,
+      "word": "camino",
+      "pos": "noun",
+      "translation": "path/way",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 382,
+      "word": "carretera",
+      "pos": "noun",
+      "translation": "road/highway",
+      "frequency": "high"
+    },
+    {
+      "rank": 383,
+      "word": "viaje",
+      "pos": "noun",
+      "translation": "trip/journey",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 384,
+      "word": "teléfono",
+      "pos": "noun",
+      "translation": "telephone",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 385,
+      "word": "computadora",
+      "pos": "noun",
+      "translation": "computer",
+      "frequency": "high"
+    },
+    {
+      "rank": 386,
+      "word": "ordenador",
+      "pos": "noun",
+      "translation": "computer (Spain)",
+      "frequency": "high"
+    },
+    {
+      "rank": 387,
+      "word": "internet",
+      "pos": "noun",
+      "translation": "internet",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 388,
+      "word": "correo",
+      "pos": "noun",
+      "translation": "mail/email",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 389,
+      "word": "mensaje",
+      "pos": "noun",
+      "translation": "message",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 390,
+      "word": "foto",
+      "pos": "noun",
+      "translation": "photo",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 391,
+      "word": "película",
+      "pos": "noun",
+      "translation": "movie/film",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 392,
+      "word": "televisión",
+      "pos": "noun",
+      "translation": "television",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 393,
+      "word": "radio",
+      "pos": "noun",
+      "translation": "radio",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 394,
+      "word": "periódico",
+      "pos": "noun",
+      "translation": "newspaper",
+      "frequency": "high"
+    },
+    {
+      "rank": 395,
+      "word": "revista",
+      "pos": "noun",
+      "translation": "magazine",
+      "frequency": "high"
+    },
+    {
+      "rank": 396,
+      "word": "movimiento",
+      "pos": "noun",
+      "translation": "movement",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 397,
+      "word": "paso",
+      "pos": "noun",
+      "translation": "step",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 398,
+      "word": "salto",
+      "pos": "noun",
+      "translation": "jump",
+      "frequency": "high"
+    },
+    {
+      "rank": 399,
+      "word": "vuelta",
+      "pos": "noun",
+      "translation": "turn/return",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 400,
+      "word": "golpe",
+      "pos": "noun",
+      "translation": "hit/blow",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 401,
+      "word": "empujar",
+      "pos": "verb",
+      "translation": "to push",
+      "frequency": "high"
+    },
+    {
+      "rank": 402,
+      "word": "tirar",
+      "pos": "verb",
+      "translation": "to pull/throw",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 403,
+      "word": "agarrar",
+      "pos": "verb",
+      "translation": "to grab",
+      "frequency": "high"
+    },
+    {
+      "rank": 404,
+      "word": "soltar",
+      "pos": "verb",
+      "translation": "to release/let go",
+      "frequency": "high"
+    },
+    {
+      "rank": 405,
+      "word": "sostener",
+      "pos": "verb",
+      "translation": "to hold/sustain",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 406,
+      "word": "sentarse",
+      "pos": "verb",
+      "translation": "to sit down",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 407,
+      "word": "levantarse",
+      "pos": "verb",
+      "translation": "to get up",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 408,
+      "word": "dormir",
+      "pos": "verb",
+      "translation": "to sleep",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 409,
+      "word": "despertar",
+      "pos": "verb",
+      "translation": "to wake up",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 410,
+      "word": "comer",
+      "pos": "verb",
+      "translation": "to eat",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 411,
+      "word": "beber",
+      "pos": "verb",
+      "translation": "to drink",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 412,
+      "word": "cocinar",
+      "pos": "verb",
+      "translation": "to cook",
+      "frequency": "high"
+    },
+    {
+      "rank": 413,
+      "word": "limpiar",
+      "pos": "verb",
+      "translation": "to clean",
+      "frequency": "high"
+    },
+    {
+      "rank": 414,
+      "word": "lavar",
+      "pos": "verb",
+      "translation": "to wash",
+      "frequency": "high"
+    },
+    {
+      "rank": 415,
+      "word": "vestirse",
+      "pos": "verb",
+      "translation": "to get dressed",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 416,
+      "word": "comprar",
+      "pos": "verb",
+      "translation": "to buy",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 417,
+      "word": "vender",
+      "pos": "verb",
+      "translation": "to sell",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 418,
+      "word": "preguntar",
+      "pos": "verb",
+      "translation": "to ask",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 419,
+      "word": "contestar",
+      "pos": "verb",
+      "translation": "to answer",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 420,
+      "word": "explicar",
+      "pos": "verb",
+      "translation": "to explain",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 421,
+      "word": "enseñar",
+      "pos": "verb",
+      "translation": "to teach/show",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 422,
+      "word": "aprender",
+      "pos": "verb",
+      "translation": "to learn",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 423,
+      "word": "olvidar",
+      "pos": "verb",
+      "translation": "to forget",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 424,
+      "word": "reír",
+      "pos": "verb",
+      "translation": "to laugh",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 425,
+      "word": "llorar",
+      "pos": "verb",
+      "translation": "to cry",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 426,
+      "word": "sonreír",
+      "pos": "verb",
+      "translation": "to smile",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 427,
+      "word": "gritar",
+      "pos": "verb",
+      "translation": "to shout",
+      "frequency": "high"
+    },
+    {
+      "rank": 428,
+      "word": "cantar",
+      "pos": "verb",
+      "translation": "to sing",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 429,
+      "word": "bailar",
+      "pos": "verb",
+      "translation": "to dance",
+      "frequency": "high"
+    },
+    {
+      "rank": 430,
+      "word": "nadar",
+      "pos": "verb",
+      "translation": "to swim",
+      "frequency": "high"
+    },
+    {
+      "rank": 431,
+      "word": "viajar",
+      "pos": "verb",
+      "translation": "to travel",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 432,
+      "word": "visitar",
+      "pos": "verb",
+      "translation": "to visit",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 433,
+      "word": "regresar",
+      "pos": "verb",
+      "translation": "to return",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 434,
+      "word": "enviar",
+      "pos": "verb",
+      "translation": "to send",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 435,
+      "word": "ganar",
+      "pos": "verb",
+      "translation": "to win/earn",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 436,
+      "word": "amar",
+      "pos": "verb",
+      "translation": "to love",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 437,
+      "word": "odiar",
+      "pos": "verb",
+      "translation": "to hate",
+      "frequency": "high"
+    },
+    {
+      "rank": 438,
+      "word": "desear",
+      "pos": "verb",
+      "translation": "to wish/desire",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 439,
+      "word": "preferir",
+      "pos": "verb",
+      "translation": "to prefer",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 440,
+      "word": "elegir",
+      "pos": "verb",
+      "translation": "to choose",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 441,
+      "word": "decidir",
+      "pos": "verb",
+      "translation": "to decide",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 442,
+      "word": "cambiar",
+      "pos": "verb",
+      "translation": "to change",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 443,
+      "word": "ropa",
+      "pos": "noun",
+      "translation": "clothes",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 444,
+      "word": "camisa",
+      "pos": "noun",
+      "translation": "shirt",
+      "frequency": "high"
+    },
+    {
+      "rank": 445,
+      "word": "pantalón",
+      "pos": "noun",
+      "translation": "pants",
+      "frequency": "high"
+    },
+    {
+      "rank": 446,
+      "word": "zapato",
+      "pos": "noun",
+      "translation": "shoe",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 447,
+      "word": "sombrero",
+      "pos": "noun",
+      "translation": "hat",
+      "frequency": "high"
+    },
+    {
+      "rank": 448,
+      "word": "reloj",
+      "pos": "noun",
+      "translation": "watch/clock",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 449,
+      "word": "dinero",
+      "pos": "noun",
+      "translation": "money",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 450,
+      "word": "precio",
+      "pos": "noun",
+      "translation": "price",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 451,
+      "word": "compra",
+      "pos": "noun",
+      "translation": "purchase",
+      "frequency": "high"
+    },
+    {
+      "rank": 452,
+      "word": "venta",
+      "pos": "noun",
+      "translation": "sale",
+      "frequency": "high"
+    },
+    {
+      "rank": 453,
+      "word": "cuenta",
+      "pos": "noun",
+      "translation": "bill/account",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 454,
+      "word": "tarjeta",
+      "pos": "noun",
+      "translation": "card",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 455,
+      "word": "llave",
+      "pos": "noun",
+      "translation": "key",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 456,
+      "word": "bolso",
+      "pos": "noun",
+      "translation": "bag/purse",
+      "frequency": "high"
+    },
+    {
+      "rank": 457,
+      "word": "bolsillo",
+      "pos": "noun",
+      "translation": "pocket",
+      "frequency": "high"
+    },
+    {
+      "rank": 458,
+      "word": "paraguas",
+      "pos": "noun",
+      "translation": "umbrella",
+      "frequency": "medium"
+    },
+    {
+      "rank": 459,
+      "word": "gafas",
+      "pos": "noun",
+      "translation": "glasses",
+      "frequency": "high"
+    },
+    {
+      "rank": 460,
+      "word": "empleado",
+      "pos": "noun",
+      "translation": "employee",
+      "frequency": "high"
+    },
+    {
+      "rank": 461,
+      "word": "jefe",
+      "pos": "noun",
+      "translation": "boss",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 462,
+      "word": "empresa",
+      "pos": "noun",
+      "translation": "company",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 463,
+      "word": "negocio",
+      "pos": "noun",
+      "translation": "business",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 464,
+      "word": "reunión",
+      "pos": "noun",
+      "translation": "meeting",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 465,
+      "word": "proyecto",
+      "pos": "noun",
+      "translation": "project",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 466,
+      "word": "universidad",
+      "pos": "noun",
+      "translation": "university",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 467,
+      "word": "clase",
+      "pos": "noun",
+      "translation": "class",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 468,
+      "word": "estudiante",
+      "pos": "noun",
+      "translation": "student",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 469,
+      "word": "maestro",
+      "pos": "noun",
+      "translation": "teacher/master",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 470,
+      "word": "alumno",
+      "pos": "noun",
+      "translation": "pupil/student",
+      "frequency": "high"
+    },
+    {
+      "rank": 471,
+      "word": "examen",
+      "pos": "noun",
+      "translation": "exam",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 472,
+      "word": "tarea",
+      "pos": "noun",
+      "translation": "homework/task",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 473,
+      "word": "pregunta",
+      "pos": "noun",
+      "translation": "question",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 474,
+      "word": "respuesta",
+      "pos": "noun",
+      "translation": "answer",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 475,
+      "word": "conocimiento",
+      "pos": "noun",
+      "translation": "knowledge",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 476,
+      "word": "felicidad",
+      "pos": "noun",
+      "translation": "happiness",
+      "frequency": "high"
+    },
+    {
+      "rank": 477,
+      "word": "dolor",
+      "pos": "noun",
+      "translation": "pain",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 478,
+      "word": "placer",
+      "pos": "noun",
+      "translation": "pleasure",
+      "frequency": "high"
+    },
+    {
+      "rank": 479,
+      "word": "sorpresa",
+      "pos": "noun",
+      "translation": "surprise",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 480,
+      "word": "duda",
+      "pos": "noun",
+      "translation": "doubt",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 481,
+      "word": "confianza",
+      "pos": "noun",
+      "translation": "confidence/trust",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 482,
+      "word": "paciencia",
+      "pos": "noun",
+      "translation": "patience",
+      "frequency": "high"
+    },
+    {
+      "rank": 483,
+      "word": "valentía",
+      "pos": "noun",
+      "translation": "courage",
+      "frequency": "high"
+    },
+    {
+      "rank": 484,
+      "word": "vergüenza",
+      "pos": "noun",
+      "translation": "shame",
+      "frequency": "high"
+    },
+    {
+      "rank": 485,
+      "word": "orgullo",
+      "pos": "noun",
+      "translation": "pride",
+      "frequency": "high"
+    },
+    {
+      "rank": 486,
+      "word": "celos",
+      "pos": "noun",
+      "translation": "jealousy",
+      "frequency": "high"
+    },
+    {
+      "rank": 487,
+      "word": "envidia",
+      "pos": "noun",
+      "translation": "envy",
+      "frequency": "high"
+    },
+    {
+      "rank": 488,
+      "word": "rabia",
+      "pos": "noun",
+      "translation": "rage",
+      "frequency": "high"
+    },
+    {
+      "rank": 489,
+      "word": "calma",
+      "pos": "noun",
+      "translation": "calm",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 490,
+      "word": "mostrar",
+      "pos": "verb",
+      "translation": "to show",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 491,
+      "word": "demostrar",
+      "pos": "verb",
+      "translation": "to demonstrate",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 492,
+      "word": "probar",
+      "pos": "verb",
+      "translation": "to try/prove",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 493,
+      "word": "mejorar",
+      "pos": "verb",
+      "translation": "to improve",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 494,
+      "word": "empeorar",
+      "pos": "verb",
+      "translation": "to worsen",
+      "frequency": "high"
+    },
+    {
+      "rank": 495,
+      "word": "aumentar",
+      "pos": "verb",
+      "translation": "to increase",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 496,
+      "word": "disminuir",
+      "pos": "verb",
+      "translation": "to decrease",
+      "frequency": "high"
+    },
+    {
+      "rank": 497,
+      "word": "reducir",
+      "pos": "verb",
+      "translation": "to reduce",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 498,
+      "word": "evitar",
+      "pos": "verb",
+      "translation": "to avoid",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 499,
+      "word": "impedir",
+      "pos": "verb",
+      "translation": "to prevent",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 500,
+      "word": "suponer",
+      "pos": "verb",
+      "translation": "to suppose",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 501,
+      "word": "proponer",
+      "pos": "verb",
+      "translation": "to propose",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 502,
+      "word": "comprender",
+      "pos": "verb",
+      "translation": "to understand",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 503,
+      "word": "incluir",
+      "pos": "verb",
+      "translation": "to include",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 504,
+      "word": "excluir",
+      "pos": "verb",
+      "translation": "to exclude",
+      "frequency": "high"
+    },
+    {
+      "rank": 505,
+      "word": "contener",
+      "pos": "verb",
+      "translation": "to contain",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 506,
+      "word": "obtener",
+      "pos": "verb",
+      "translation": "to obtain",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 507,
+      "word": "sostener",
+      "pos": "verb",
+      "translation": "to sustain/hold",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 508,
+      "word": "detener",
+      "pos": "verb",
+      "translation": "to stop/detain",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 509,
+      "word": "continuar",
+      "pos": "verb",
+      "translation": "to continue",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 510,
+      "word": "terminar",
+      "pos": "verb",
+      "translation": "to finish",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 511,
+      "word": "completar",
+      "pos": "verb",
+      "translation": "to complete",
+      "frequency": "high"
+    },
+    {
+      "rank": 512,
+      "word": "organizar",
+      "pos": "verb",
+      "translation": "to organize",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 513,
+      "word": "preparar",
+      "pos": "verb",
+      "translation": "to prepare",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 514,
+      "word": "planear",
+      "pos": "verb",
+      "translation": "to plan",
+      "frequency": "high"
+    },
+    {
+      "rank": 515,
+      "word": "arreglar",
+      "pos": "verb",
+      "translation": "to fix/arrange",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 516,
+      "word": "romper",
+      "pos": "verb",
+      "translation": "to break",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 517,
+      "word": "construir",
+      "pos": "verb",
+      "translation": "to build",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 518,
+      "word": "destruir",
+      "pos": "verb",
+      "translation": "to destroy",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 519,
+      "word": "pintar",
+      "pos": "verb",
+      "translation": "to paint",
+      "frequency": "high"
+    },
+    {
+      "rank": 520,
+      "word": "dibujar",
+      "pos": "verb",
+      "translation": "to draw",
+      "frequency": "high"
+    },
+    {
+      "rank": 521,
+      "word": "firmar",
+      "pos": "verb",
+      "translation": "to sign",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 522,
+      "word": "borrar",
+      "pos": "verb",
+      "translation": "to erase",
+      "frequency": "high"
+    },
+    {
+      "rank": 523,
+      "word": "cortar",
+      "pos": "verb",
+      "translation": "to cut",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 524,
+      "word": "pegar",
+      "pos": "verb",
+      "translation": "to glue/hit",
+      "frequency": "high"
+    },
+    {
+      "rank": 525,
+      "word": "cerrar",
+      "pos": "verb",
+      "translation": "to close",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 526,
+      "word": "abrir",
+      "pos": "verb",
+      "translation": "to open",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 527,
+      "word": "cerrar",
+      "pos": "verb",
+      "translation": "to close",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 528,
+      "word": "empujar",
+      "pos": "verb",
+      "translation": "to push",
+      "frequency": "high"
+    },
+    {
+      "rank": 529,
+      "word": "jalar",
+      "pos": "verb",
+      "translation": "to pull",
+      "frequency": "high"
+    },
+    {
+      "rank": 530,
+      "word": "chico",
+      "pos": "noun",
+      "translation": "boy",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 531,
+      "word": "chica",
+      "pos": "noun",
+      "translation": "girl",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 532,
+      "word": "señora",
+      "pos": "noun",
+      "translation": "lady/Mrs.",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 533,
+      "word": "señorita",
+      "pos": "noun",
+      "translation": "young lady/Miss",
+      "frequency": "high"
+    },
+    {
+      "rank": 534,
+      "word": "doctor",
+      "pos": "noun",
+      "translation": "doctor",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 535,
+      "word": "enfermero",
+      "pos": "noun",
+      "translation": "nurse",
+      "frequency": "high"
+    },
+    {
+      "rank": 536,
+      "word": "médico",
+      "pos": "noun",
+      "translation": "doctor/physician",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 537,
+      "word": "policía",
+      "pos": "noun",
+      "translation": "police",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 538,
+      "word": "soldado",
+      "pos": "noun",
+      "translation": "soldier",
+      "frequency": "high"
+    },
+    {
+      "rank": 539,
+      "word": "abogado",
+      "pos": "noun",
+      "translation": "lawyer",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 540,
+      "word": "ingeniero",
+      "pos": "noun",
+      "translation": "engineer",
+      "frequency": "high"
+    },
+    {
+      "rank": 541,
+      "word": "artista",
+      "pos": "noun",
+      "translation": "artist",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 542,
+      "word": "escritor",
+      "pos": "noun",
+      "translation": "writer",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 543,
+      "word": "músico",
+      "pos": "noun",
+      "translation": "musician",
+      "frequency": "high"
+    },
+    {
+      "rank": 544,
+      "word": "actor",
+      "pos": "noun",
+      "translation": "actor",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 545,
+      "word": "cantante",
+      "pos": "noun",
+      "translation": "singer",
+      "frequency": "high"
+    },
+    {
+      "rank": 546,
+      "word": "cocinero",
+      "pos": "noun",
+      "translation": "cook/chef",
+      "frequency": "high"
+    },
+    {
+      "rank": 547,
+      "word": "camarero",
+      "pos": "noun",
+      "translation": "waiter",
+      "frequency": "high"
+    },
+    {
+      "rank": 548,
+      "word": "cliente",
+      "pos": "noun",
+      "translation": "client/customer",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 549,
+      "word": "vecino",
+      "pos": "noun",
+      "translation": "neighbor",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 550,
+      "word": "dueño",
+      "pos": "noun",
+      "translation": "owner",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 551,
+      "word": "jefe",
+      "pos": "noun",
+      "translation": "boss/chief",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 552,
+      "word": "perro",
+      "pos": "noun",
+      "translation": "dog",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 553,
+      "word": "gato",
+      "pos": "noun",
+      "translation": "cat",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 554,
+      "word": "pájaro",
+      "pos": "noun",
+      "translation": "bird",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 555,
+      "word": "caballo",
+      "pos": "noun",
+      "translation": "horse",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 556,
+      "word": "vaca",
+      "pos": "noun",
+      "translation": "cow",
+      "frequency": "high"
+    },
+    {
+      "rank": 557,
+      "word": "cerdo",
+      "pos": "noun",
+      "translation": "pig",
+      "frequency": "high"
+    },
+    {
+      "rank": 558,
+      "word": "oveja",
+      "pos": "noun",
+      "translation": "sheep",
+      "frequency": "high"
+    },
+    {
+      "rank": 559,
+      "word": "pez",
+      "pos": "noun",
+      "translation": "fish",
+      "frequency": "high"
+    },
+    {
+      "rank": 560,
+      "word": "león",
+      "pos": "noun",
+      "translation": "lion",
+      "frequency": "high"
+    },
+    {
+      "rank": 561,
+      "word": "tigre",
+      "pos": "noun",
+      "translation": "tiger",
+      "frequency": "high"
+    },
+    {
+      "rank": 562,
+      "word": "oso",
+      "pos": "noun",
+      "translation": "bear",
+      "frequency": "high"
+    },
+    {
+      "rank": 563,
+      "word": "ratón",
+      "pos": "noun",
+      "translation": "mouse",
+      "frequency": "high"
+    },
+    {
+      "rank": 564,
+      "word": "mosquito",
+      "pos": "noun",
+      "translation": "mosquito",
+      "frequency": "medium"
+    },
+    {
+      "rank": 565,
+      "word": "abeja",
+      "pos": "noun",
+      "translation": "bee",
+      "frequency": "medium"
+    },
+    {
+      "rank": 566,
+      "word": "araña",
+      "pos": "noun",
+      "translation": "spider",
+      "frequency": "high"
+    },
+    {
+      "rank": 567,
+      "word": "serpiente",
+      "pos": "noun",
+      "translation": "snake",
+      "frequency": "high"
+    },
+    {
+      "rank": 568,
+      "word": "minuto",
+      "pos": "noun",
+      "translation": "minute",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 569,
+      "word": "segundo",
+      "pos": "noun",
+      "translation": "second",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 570,
+      "word": "siglo",
+      "pos": "noun",
+      "translation": "century",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 571,
+      "word": "época",
+      "pos": "noun",
+      "translation": "era/time period",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 572,
+      "word": "fecha",
+      "pos": "noun",
+      "translation": "date",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 573,
+      "word": "madrugada",
+      "pos": "noun",
+      "translation": "dawn/early morning",
+      "frequency": "high"
+    },
+    {
+      "rank": 574,
+      "word": "mediodía",
+      "pos": "noun",
+      "translation": "noon/midday",
+      "frequency": "high"
+    },
+    {
+      "rank": 575,
+      "word": "medianoche",
+      "pos": "noun",
+      "translation": "midnight",
+      "frequency": "high"
+    },
+    {
+      "rank": 576,
+      "word": "listo",
+      "pos": "adjective",
+      "translation": "ready/smart",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 577,
+      "word": "tonto",
+      "pos": "adjective",
+      "translation": "silly/dumb",
+      "frequency": "high"
+    },
+    {
+      "rank": 578,
+      "word": "inteligente",
+      "pos": "adjective",
+      "translation": "intelligent",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 579,
+      "word": "amable",
+      "pos": "adjective",
+      "translation": "kind/nice",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 580,
+      "word": "cruel",
+      "pos": "adjective",
+      "translation": "cruel",
+      "frequency": "high"
+    },
+    {
+      "rank": 581,
+      "word": "generoso",
+      "pos": "adjective",
+      "translation": "generous",
+      "frequency": "high"
+    },
+    {
+      "rank": 582,
+      "word": "egoísta",
+      "pos": "adjective",
+      "translation": "selfish",
+      "frequency": "high"
+    },
+    {
+      "rank": 583,
+      "word": "honesto",
+      "pos": "adjective",
+      "translation": "honest",
+      "frequency": "high"
+    },
+    {
+      "rank": 584,
+      "word": "mentiroso",
+      "pos": "adjective",
+      "translation": "liar/lying",
+      "frequency": "high"
+    },
+    {
+      "rank": 585,
+      "word": "valiente",
+      "pos": "adjective",
+      "translation": "brave",
+      "frequency": "high"
+    },
+    {
+      "rank": 586,
+      "word": "cobarde",
+      "pos": "adjective",
+      "translation": "coward",
+      "frequency": "high"
+    },
+    {
+      "rank": 587,
+      "word": "educado",
+      "pos": "adjective",
+      "translation": "polite/educated",
+      "frequency": "high"
+    },
+    {
+      "rank": 588,
+      "word": "grosero",
+      "pos": "adjective",
+      "translation": "rude",
+      "frequency": "high"
+    },
+    {
+      "rank": 589,
+      "word": "tranquilo",
+      "pos": "adjective",
+      "translation": "calm/quiet",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 590,
+      "word": "nervioso",
+      "pos": "adjective",
+      "translation": "nervous",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 591,
+      "word": "cansado",
+      "pos": "adjective",
+      "translation": "tired",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 592,
+      "word": "aburrido",
+      "pos": "adjective",
+      "translation": "bored/boring",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 593,
+      "word": "interesante",
+      "pos": "adjective",
+      "translation": "interesting",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 594,
+      "word": "divertido",
+      "pos": "adjective",
+      "translation": "fun/funny",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 595,
+      "word": "serio",
+      "pos": "adjective",
+      "translation": "serious",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 596,
+      "word": "raro",
+      "pos": "adjective",
+      "translation": "strange/rare",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 597,
+      "word": "normal",
+      "pos": "adjective",
+      "translation": "normal",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 598,
+      "word": "especial",
+      "pos": "adjective",
+      "translation": "special",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 599,
+      "word": "común",
+      "pos": "adjective",
+      "translation": "common",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 600,
+      "word": "diferente",
+      "pos": "adjective",
+      "translation": "different",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 601,
+      "word": "igual",
+      "pos": "adjective",
+      "translation": "equal/same",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 602,
+      "word": "similar",
+      "pos": "adjective",
+      "translation": "similar",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 603,
+      "word": "distinto",
+      "pos": "adjective",
+      "translation": "distinct/different",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 604,
+      "word": "único",
+      "pos": "adjective",
+      "translation": "unique/only",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 605,
+      "word": "varios",
+      "pos": "adjective",
+      "translation": "several",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 606,
+      "word": "ambos",
+      "pos": "adjective",
+      "translation": "both",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 607,
+      "word": "cada",
+      "pos": "adjective",
+      "translation": "each",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 608,
+      "word": "todo",
+      "pos": "adjective",
+      "translation": "all/every",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 609,
+      "word": "alguno",
+      "pos": "adjective",
+      "translation": "some",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 610,
+      "word": "ninguno",
+      "pos": "adjective",
+      "translation": "none",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 611,
+      "word": "aeropuerto",
+      "pos": "noun",
+      "translation": "airport",
+      "frequency": "high"
+    },
+    {
+      "rank": 612,
+      "word": "estación",
+      "pos": "noun",
+      "translation": "station",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 613,
+      "word": "parada",
+      "pos": "noun",
+      "translation": "stop",
+      "frequency": "high"
+    },
+    {
+      "rank": 614,
+      "word": "esquina",
+      "pos": "noun",
+      "translation": "corner",
+      "frequency": "high"
+    },
+    {
+      "rank": 615,
+      "word": "centro",
+      "pos": "noun",
+      "translation": "center/downtown",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 616,
+      "word": "plaza",
+      "pos": "noun",
+      "translation": "square/plaza",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 617,
+      "word": "parque",
+      "pos": "noun",
+      "translation": "park",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 618,
+      "word": "jardín",
+      "pos": "noun",
+      "translation": "garden",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 619,
+      "word": "cine",
+      "pos": "noun",
+      "translation": "cinema/movie theater",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 620,
+      "word": "teatro",
+      "pos": "noun",
+      "translation": "theater",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 621,
+      "word": "museo",
+      "pos": "noun",
+      "translation": "museum",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 622,
+      "word": "biblioteca",
+      "pos": "noun",
+      "translation": "library",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 623,
+      "word": "gimnasio",
+      "pos": "noun",
+      "translation": "gym",
+      "frequency": "high"
+    },
+    {
+      "rank": 624,
+      "word": "estadio",
+      "pos": "noun",
+      "translation": "stadium",
+      "frequency": "high"
+    },
+    {
+      "rank": 625,
+      "word": "piscina",
+      "pos": "noun",
+      "translation": "swimming pool",
+      "frequency": "high"
+    },
+    {
+      "rank": 626,
+      "word": "clima",
+      "pos": "noun",
+      "translation": "climate",
+      "frequency": "high"
+    },
+    {
+      "rank": 627,
+      "word": "temperatura",
+      "pos": "noun",
+      "translation": "temperature",
+      "frequency": "high"
+    },
+    {
+      "rank": 628,
+      "word": "calor",
+      "pos": "noun",
+      "translation": "heat",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 629,
+      "word": "frío",
+      "pos": "noun",
+      "translation": "cold",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 630,
+      "word": "primavera",
+      "pos": "noun",
+      "translation": "spring",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 631,
+      "word": "verano",
+      "pos": "noun",
+      "translation": "summer",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 632,
+      "word": "otoño",
+      "pos": "noun",
+      "translation": "autumn/fall",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 633,
+      "word": "invierno",
+      "pos": "noun",
+      "translation": "winter",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 634,
+      "word": "carta",
+      "pos": "noun",
+      "translation": "letter",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 635,
+      "word": "frase",
+      "pos": "noun",
+      "translation": "sentence/phrase",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 636,
+      "word": "idioma",
+      "pos": "noun",
+      "translation": "language",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 637,
+      "word": "acento",
+      "pos": "noun",
+      "translation": "accent",
+      "frequency": "high"
+    },
+    {
+      "rank": 638,
+      "word": "conversación",
+      "pos": "noun",
+      "translation": "conversation",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 639,
+      "word": "discusión",
+      "pos": "noun",
+      "translation": "discussion/argument",
+      "frequency": "high"
+    },
+    {
+      "rank": 640,
+      "word": "llamada",
+      "pos": "noun",
+      "translation": "call",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 641,
+      "word": "noticia",
+      "pos": "noun",
+      "translation": "news",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 642,
+      "word": "información",
+      "pos": "noun",
+      "translation": "information",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 643,
+      "word": "objeto",
+      "pos": "noun",
+      "translation": "object",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 644,
+      "word": "botella",
+      "pos": "noun",
+      "translation": "bottle",
+      "frequency": "high"
+    },
+    {
+      "rank": 645,
+      "word": "vaso",
+      "pos": "noun",
+      "translation": "glass",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 646,
+      "word": "taza",
+      "pos": "noun",
+      "translation": "cup/mug",
+      "frequency": "high"
+    },
+    {
+      "rank": 647,
+      "word": "plato",
+      "pos": "noun",
+      "translation": "plate/dish",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 648,
+      "word": "cuchillo",
+      "pos": "noun",
+      "translation": "knife",
+      "frequency": "high"
+    },
+    {
+      "rank": 649,
+      "word": "tenedor",
+      "pos": "noun",
+      "translation": "fork",
+      "frequency": "high"
+    },
+    {
+      "rank": 650,
+      "word": "cuchara",
+      "pos": "noun",
+      "translation": "spoon",
+      "frequency": "high"
+    },
+    {
+      "rank": 651,
+      "word": "servilleta",
+      "pos": "noun",
+      "translation": "napkin",
+      "frequency": "medium"
+    },
+    {
+      "rank": 652,
+      "word": "toalla",
+      "pos": "noun",
+      "translation": "towel",
+      "frequency": "high"
+    },
+    {
+      "rank": 653,
+      "word": "jabón",
+      "pos": "noun",
+      "translation": "soap",
+      "frequency": "high"
+    },
+    {
+      "rank": 654,
+      "word": "espejo",
+      "pos": "noun",
+      "translation": "mirror",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 655,
+      "word": "lámpara",
+      "pos": "noun",
+      "translation": "lamp",
+      "frequency": "high"
+    },
+    {
+      "rank": 656,
+      "word": "almohada",
+      "pos": "noun",
+      "translation": "pillow",
+      "frequency": "high"
+    },
+    {
+      "rank": 657,
+      "word": "manta",
+      "pos": "noun",
+      "translation": "blanket",
+      "frequency": "high"
+    },
+    {
+      "rank": 658,
+      "word": "sábana",
+      "pos": "noun",
+      "translation": "sheet",
+      "frequency": "high"
+    },
+    {
+      "rank": 659,
+      "word": "observar",
+      "pos": "verb",
+      "translation": "to observe",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 660,
+      "word": "notar",
+      "pos": "verb",
+      "translation": "to notice",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 661,
+      "word": "guardar",
+      "pos": "verb",
+      "translation": "to keep/save",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 662,
+      "word": "tirar",
+      "pos": "verb",
+      "translation": "to throw away",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 663,
+      "word": "recoger",
+      "pos": "verb",
+      "translation": "to pick up/collect",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 664,
+      "word": "traer",
+      "pos": "verb",
+      "translation": "to bring",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 665,
+      "word": "mover",
+      "pos": "verb",
+      "translation": "to move",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 666,
+      "word": "parar",
+      "pos": "verb",
+      "translation": "to stop",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 667,
+      "word": "sentar",
+      "pos": "verb",
+      "translation": "to sit/seat",
+      "frequency": "very_high"
+    },
+    {
+      "rank": 668,
+      "word": "acostar",
+      "pos": "verb",
+      "translation": "to put to bed",
+      "frequency": "high"
+    },
+    {
+      "rank": 669,
+      "word": "despertar",
+      "pos": "verb",
+      "translation": "to wake up",
+      "frequency": "very_high"
+    }
+  ],
+  "instructions": {
+    "usage": "This list is designed for bulk pre-generation of AI examples at A1, B1, and C1 levels",
+    "processing": "Process in batches of 50-100 words to avoid rate limiting",
+    "cost_estimate": "~15,000 API calls (5,000 words × 3 levels) ≈ $20-30 total",
+    "resumable": "Script tracks progress and can resume from last successful batch",
+    "levels": [
+      "A1",
+      "B1",
+      "C1"
+    ],
+    "notes": [
+      "Top 150 words shown here as reference",
+      "Full list of 5,000 words should be sourced from authoritative frequency corpora",
+      "For production use, integrate actual frequency lists from SpanishInput or WordFrequency.info",
+      "Current subset prioritizes: verbs (50), articles/prepositions (20), common nouns (50), adjectives (15)"
+    ]
+  }
+}

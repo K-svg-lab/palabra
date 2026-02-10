@@ -28,7 +28,6 @@ import {
 // CONFIGURATION
 // ============================================================================
 
-const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 const MODEL = 'gpt-3.5-turbo';
 const MAX_TOKENS = 80; // Optimized for single concise example (60-80 chars)
 const TEMPERATURE = 0.3; // Lower for fastest, most consistent responses
@@ -38,6 +37,9 @@ let openaiClient: OpenAI | null = null;
 
 function getOpenAIClient(): OpenAI {
   if (!openaiClient) {
+    // Read API key at runtime, not at module load time
+    const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
+    
     if (!OPENAI_API_KEY || OPENAI_API_KEY === 'your-openai-api-key-here') {
       throw new Error(
         'OpenAI API key not configured. Please set OPENAI_API_KEY in .env.local'
@@ -124,8 +126,8 @@ export async function generateExamples(
   try {
     const result = await generateWithOpenAI(options);
     
-    // 4. Cache the generated examples
-    await cacheExamples(word, level, result.examples);
+    // 4. Cache the generated examples with complete word data
+    await cacheExamples(word, level, result.examples, translation, partOfSpeech);
     
     return {
       examples: result.examples,
@@ -323,11 +325,14 @@ async function getCachedExamples(
 
 /**
  * Cache generated examples in database
+ * Now accepts optional translation and POS to populate complete entry
  */
 async function cacheExamples(
   word: string,
   level: CEFRLevel,
-  examples: ExampleSentence[]
+  examples: ExampleSentence[],
+  translation?: string,
+  partOfSpeech?: string
 ): Promise<void> {
   // Find or create VerifiedVocabulary entry
   const existing = await prisma.verifiedVocabulary.findFirst({
@@ -339,31 +344,44 @@ async function cacheExamples(
     select: {
       id: true,
       aiExamplesByLevel: true,
+      targetWord: true,
+      partOfSpeech: true,
     },
   });
 
   if (existing) {
-    // Update existing entry
+    // Update existing entry - merge AI examples by level
     const examplesByLevel = (existing.aiExamplesByLevel as unknown as Record<string, ExampleSentence[]>) || {};
     examplesByLevel[level] = examples;
 
+    const updateData: any = {
+      aiExamplesByLevel: examplesByLevel as any,
+      aiExamplesGenerated: true,
+      aiExamplesGeneratedAt: new Date(),
+    };
+
+    // Update targetWord and partOfSpeech if they're missing and we have them
+    if (translation && (!existing.targetWord || existing.targetWord === '')) {
+      updateData.targetWord = translation;
+    }
+    if (partOfSpeech && !existing.partOfSpeech) {
+      updateData.partOfSpeech = partOfSpeech;
+    }
+
     await prisma.verifiedVocabulary.update({
       where: { id: existing.id },
-      data: {
-        aiExamplesByLevel: examplesByLevel as any,
-        aiExamplesGenerated: true,
-        aiExamplesGeneratedAt: new Date(),
-      },
+      data: updateData,
     });
   } else {
-    // Create new entry (minimal - just for caching)
+    // Create new entry with complete data
     await prisma.verifiedVocabulary.create({
       data: {
         sourceWord: word,
         sourceLanguage: 'es',
         targetLanguage: 'en',
         languagePair: 'es-en',
-        targetWord: '', // Will be filled by vocabulary lookup
+        targetWord: translation || word, // Use translation if provided
+        partOfSpeech: partOfSpeech || null,
         primarySource: 'ai-generated',
         aiExamplesByLevel: { [level]: examples } as any,
         aiExamplesGenerated: true,
