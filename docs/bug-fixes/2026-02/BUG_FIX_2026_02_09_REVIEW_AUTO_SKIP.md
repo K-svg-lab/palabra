@@ -1,540 +1,169 @@
-# 🐛 BUG FIX: Review Session Auto-Skip / Completion Screen Flash
+# Bug Fix: Review Quiz Ignoring Direction Setting
 
-**Date:** February 9, 2026  
-**Severity:** 🟡 **HIGH** (Critical UX Issue)  
-**Status:** ✅ FIXED  
-**Reporter:** User (kalvin)  
-**Fixed By:** AI Agent
+**Date**: February 9, 2026  
+**Reported By**: User  
+**Severity**: Medium  
+**Status**: 🔍 Investigating
 
 ---
 
 ## 🐛 Bug Description
 
-**Critical UX bug**: Review sessions appear to "auto-skip" immediately upon loading, showing a brief flash of the "All Caught Up!" completion screen before displaying the actual flashcard, making the app feel broken and unusable.
+The review quiz appears to always operate in ES→EN (Spanish to English) direction, regardless of the user's direction selection in the "Configure Study Session" menu.
 
-### User Report
+### Expected Behavior
 
-> "when the user clicks the start review CTA the review start correctly but the first question appears for about 1 second and then automatically skips forward to the next review without the user having responded."
+When a user selects:
+- **ES → EN**: Show Spanish word, expect English translation
+- **EN → ES**: Show English word, expect Spanish translation  
+- **Mixed**: Randomly alternate between both directions per card
 
-> "This has made the problem worse I think as now several frames are skipping automatically."
+### Actual Behavior
 
-> "I have just done a hard refresh and retried starting the review but there is still autoskipping (very fast) within the first milliseconds of starting the review."
-
-> "It is too fast for me to see which card it is exactly. I am only able to see the screen jump to the next card as soon as I access the quiz."
-
-> "the first frame seems to be an informational message of sorts because it has stars in it but not a flashcard as it doesn't fit the layout."
-
-### Visual Symptoms
-- ✨ **Stars icon screen** ("All Caught Up!") flashes briefly
-- Progress bar shows "1/0" momentarily
-- First review card appears after ~500ms-1s delay
-- Creates perception of cards "auto-skipping" or being broken
+The quiz always shows Spanish word and expects English translation (ES→EN), even when EN→ES or Mixed is selected in configuration.
 
 ---
 
-## 🔍 Root Cause Analysis
+## 📊 User Impact
 
-### Investigation Timeline
+- **Affected Users**: Any user attempting to practice English→Spanish (productive recall)
+- **Workaround**: None currently available
+- **Severity Justification**: Medium - Blocks a core feature (bidirectional practice) but doesn't break the app
 
-#### Initial Hypothesis: Accidental Keyboard Input ❌
-**Suspected:** User accidentally pressing Space/Enter/1-4 keys during page load, triggering card flips or ratings.
+---
 
-**Fix Attempted:**
-- Added 500ms `keyboardEnabled` delay to all review method components
-- Blocked keyboard shortcuts until timer completes
+## 🔍 Investigation Findings
 
-**Result:** User reported issue worsened ("several frames skipping")
+### Code Analysis
 
-#### Second Hypothesis: Missing Keyboard Protection ❌
-**Suspected:** Audio Recognition and Context Selection methods not protected.
+**Configuration Saving** ✅ WORKING
+- `session-config.tsx` lines 43, 134-145: Direction is correctly saved to config
+- `use-review-preferences.ts`: Direction persists to localStorage
 
-**Fix Attempted:**
-- Added 500ms keyboard delay to remaining methods
+**Configuration Passing** ✅ WORKING  
+- `review/page.tsx`: Config is passed to `ReviewSessionVaried` component
+- `review-session-varied.tsx` line 75-77: Direction is read from config
 
-**Result:** Issue persisted ("still autoskipping within first milliseconds")
+**Direction Application** ✅ WORKING (in code)
+- `review-session-varied.tsx` lines 453, 465, 478, 500: Direction is passed to all review methods
+- All review method components accept and use `direction` prop
 
-#### Third Hypothesis: Non-Deterministic Method Selection ✅ (Partial)
-**Discovery:** Console logs showed `selectReviewMethod` returning different methods for the same word during a single render cycle due to internal randomness.
+**Potential Issues** 🔍 Need Testing:
 
-**Fix Applied:**
-- Implemented `selectedMethodsMap` cache in `review-session-varied.tsx`
-- Ensured method selection stable across re-renders
+1. **Audio Recognition Exception**: `AudioRecognitionReview` doesn't receive direction prop (line 490) - this is intentional as audio is always Spanish listening comprehension
 
-**Result:** Method selection stabilized, but "All Caught Up!" flash remained
+2. **Mixed Mode Logic**: Lines 150-155 randomize direction for each card in mixed mode - verify this is working
 
-#### Fourth Hypothesis: Double Randomization ✅ (Partial)
-**Discovery:** Parent component (Task 18.1.5 Interleaving) carefully orders words, but child component re-randomized them using `Math.random()` in `useMemo`, causing instability across React's development mode re-renders.
+3. **Default Config Override**: `DEFAULT_SESSION_CONFIG` sets `direction: 'spanish-to-english'` - could be overriding user selection if preferences aren't loading properly
 
-**Fix Applied:**
-- Removed `Math.random()` sorting in `review-session-varied.tsx`
-- Let child component use parent's pre-ordered word array
+---
 
-**Result:** Word order stabilized, but completion screen flash persisted
+## 🧪 Reproduction Steps
 
-#### **FINAL ROOT CAUSE:** Race Condition in State Initialization ✅
+1. Navigate to Review page
+2. Click "Configure & Start Session"
+3. Select **EN → ES** (English to Spanish)
+4. Click "Start Session"
+5. **Expected**: First card shows English word, expects Spanish answer
+6. **Actual**: First card shows Spanish word, expects English answer (ES→EN)
 
-**Discovery:** Through comprehensive console logging, identified that:
+---
 
-1. **`dueCount` initializes to `0`** (default state)
-2. **Async `loadDueWords()` takes ~500ms** to calculate actual count
-3. **During this gap**, render condition `!isInSession && dueCount === 0` evaluates to `true`
-4. **"All Caught Up!" screen renders** briefly
-5. **Then `dueCount` updates to `162`**, triggering auto-start
-6. **Session loads**, replacing completion screen with flashcard
+## 🔬 Testing Checklist
 
-**The Bug:**
+To diagnose the exact issue:
+
+- [ ] **Test 1**: Add console.log in `review-session-varied.tsx` line 76 to verify config.direction value
+- [ ] **Test 2**: Add console.log in each review method component to verify received direction prop
+- [ ] **Test 3**: Check localStorage in browser DevTools for saved preferences
+- [ ] **Test 4**: Test all three directions (ES→EN, EN→ES, Mixed)
+- [ ] **Test 5**: Test across all 5 review methods (Traditional, Fill-Blank, Multiple Choice, Audio, Context Selection)
+- [ ] **Test 6**: Verify Mixed mode randomizes correctly
+
+---
+
+## 🛠️ Proposed Solution
+
+### Option A: Fix Preferences Loading (if that's the issue)
+
 ```typescript
-// BEFORE (❌ Buggy)
-const [dueCount, setDueCount] = useState<number>(0); // 0 is ambiguous!
-
-// Render logic
-if (!isInSession && dueCount === 0) {
-  return <AllCaughtUpScreen />; // ❌ Shows during loading!
-}
+// In review/page.tsx, add logging to verify preferences loading:
+console.log('[Review Page] Loaded preferences:', preferences);
+console.log('[Review Page] Session config:', sessionConfig);
 ```
 
-**Why it happened:**
-- `dueCount` state initialized to `0` (meaning "not calculated" AND "zero cards due")
-- No way to distinguish between "loading" vs "actually zero"
-- React rendered multiple times during state initialization
-- Completion screen flashed whenever `dueCount === 0` during loading
+### Option B: Add Visual Direction Indicator
 
----
+While fixing the bug, also improve UX by adding a direction indicator in the session header:
 
-## ✅ Fix Implementation
-
-### 1. Sentinel Value for Uninitialized State
-
-**File:** `app/(dashboard)/review/page.tsx:55`
-
-**Change:**
-```typescript
-// BEFORE: Ambiguous zero
-const [dueCount, setDueCount] = useState<number>(0);
-
-// AFTER: -1 means "not calculated yet"
-const [dueCount, setDueCount] = useState<number>(-1); // -1 = not calculated, 0 = calculated and none due
+```tsx
+{/* In review-session-varied.tsx header section */}
+<div className="flex items-center gap-2 text-sm text-text-secondary">
+  <span className="hidden sm:inline">
+    {currentDirection === 'spanish-to-english' ? 'ES → EN' : 'EN → ES'}
+  </span>
+  <span className="font-semibold text-accent">
+    {results.length + 1} / {processedWords.length}
+  </span>
+</div>
 ```
 
-**Rationale:**
-- `-1` is a sentinel value meaning "calculation in progress"
-- `0` now unambiguously means "calculated and truly zero cards"
-- Enables proper loading state handling
+### Option C: Add Quick Direction Toggle
 
-### 2. Extended Loading State
+For power users, add a quick toggle button in the main review screen (not just config):
 
-**File:** `app/(dashboard)/review/page.tsx:540-550`
-
-**Change:**
-```typescript
-// BEFORE: Only checked isLoading
-if (isLoading) {
-  return <LoadingSpinner />;
-}
-
-// AFTER: Also check dueCount sentinel
-if (isLoading || dueCount === -1) {
-  return <LoadingSpinner message="Loading your vocabulary..." />;
-}
-```
-
-**Rationale:**
-- Prevents rendering any content until `dueCount` is calculated
-- Eliminates race condition window
-- Shows continuous loading state
-
-### 3. Additional Guard Conditions
-
-**File:** `app/(dashboard)/review/page.tsx:607-613`
-
-**Change:**
-```typescript
-// BEFORE: Only checked dueCount === 0
-if (!isInSession && dueCount === 0) {
-  return <AllCaughtUpScreen />;
-}
-
-// AFTER: Multiple guard conditions
-if (!isInSession && dueCount === 0 && sessionWords.length === 0 && !autoStartTriggered && prefsLoaded) {
-  return <AllCaughtUpScreen />;
-}
-```
-
-**Guard Conditions:**
-1. `!isInSession` - Not currently in a review session
-2. `dueCount === 0` - Truly zero cards due (not -1)
-3. `sessionWords.length === 0` - No session data loaded
-4. `!autoStartTriggered` - Auto-start hasn't been triggered
-5. `prefsLoaded` - User preferences are loaded (not initial render)
-
-**Rationale:**
-- Defense-in-depth approach
-- Each condition prevents a specific edge case
-- Ensures "All Caught Up!" only shows when truly appropriate
-
-### 4. Enhanced Debug Logging
-
-Added comprehensive logging throughout:
-- `[loadDueWords]` - Track due count calculation
-- `[AUTO-START EFFECT]` - Track auto-start triggers
-- `[ReviewPage RENDER]` - Track render conditions
-- `[isInSession CHANGED]` - Track session state changes
-- `[processedWords]` - Track word processing
-- Component lifecycle logs (mount/unmount)
-
----
-
-## 🧪 Testing
-
-### Browser Testing (Cursor IDE Browser)
-
-**Test 1: Auto-Start Flow**
-1. Navigate to `http://localhost:3000/review`
-2. Wait for auto-start
-3. ✅ **Result**: Review card loads directly without "All Caught Up!" flash
-4. ✅ **Console**: `dueCount === -1` during loading, then updates to `162`
-
-**Test 2: Component Stability**
-1. Start review session
-2. Wait 5 seconds without interaction
-3. ✅ **Result**: Card stays on screen (Fill-Blank: "mandíbula", Traditional: "escarpado", etc.)
-4. ✅ **Console**: Components mount successfully, no auto-submit
-
-**Test 3: Method Variation**
-1. Multiple test runs showed different methods
-2. ✅ **Observed**: Fill-Blank, Traditional, Context Selection, Multiple Choice all working
-3. ✅ **Console**: Method selection stable (CACHED logs), no rapid switching
-
-**Test 4: Interleaving Preservation**
-1. Checked first word in session logs
-2. ✅ **Result**: Parent's interleaved order preserved
-3. ✅ **Console**: `processedWords` shows consistent first word across renders
-
-### Console Log Validation
-
-**Before Fix:**
-```
-[AUTO-START] Starting session with 161 due cards
-[ReviewPage RENDER] ✨ Showing "All Caught Up!" screen - isInSession: false dueCount: 0
-(flash occurs)
-[Review card finally loads]
-```
-
-**After Fix:**
-```
-[loadDueWords] Starting, allWords: 932
-[loadDueWords] ✅ Setting dueCount to: 162
-[AUTO-START] Starting session with 162 due cards
-[startSession] ✅ Session started successfully
-[Review card loads immediately - no flash]
+```tsx
+{/* Quick direction switcher (outside session) */}
+<button 
+  onClick={() => {/* toggle direction */}}
+  className="..."
+>
+  🔄 {direction === 'spanish-to-english' ? 'ES→EN' : 'EN→ES'}
+</button>
 ```
 
 ---
 
-## 📝 Files Modified
+## 📝 Related Issues
 
-### Files Modified (3 files)
-
-1. **`app/(dashboard)/review/page.tsx`**
-   - Changed `dueCount` initial state: `0` → `-1`
-   - Extended loading condition to check `dueCount === -1`
-   - Added guard conditions to "All Caught Up!" screen
-   - Added debug logging for state transitions
-   - **Lines Changed:** ~15 lines
-
-2. **`components/features/review-session-varied.tsx`**
-   - Removed double-randomization in `processedWords` useMemo
-   - Child now respects parent's interleaved word order (Task 18.1.5)
-   - Added comprehensive debug logging
-   - Added method selection caching (from previous fix)
-   - **Lines Changed:** ~25 lines
-
-3. **`components/features/review-methods/traditional.tsx`**
-   - Added mount/unmount lifecycle logging
-   - Added rating submission logging
-   - (Similar changes to fill-blank, multiple-choice, context-selection, audio-recognition)
-   - **Lines Changed:** ~10 lines per component × 5 = ~50 lines
-
-**Total Lines Changed:** ~90 lines  
-**Files Modified:** 8  
-**Files Created:** 1 (this document)
+- Phase 8 introduced bidirectional flashcards (documented as working)
+- Phase 18.1.4 implemented varied review methods (should respect direction)
+- `PHASE8_DIRECTIONAL_ACCURACY.md` documents direction-aware accuracy tracking
 
 ---
 
-## 🎓 Lessons Learned
+## ✅ Acceptance Criteria for Fix
 
-### What Went Wrong
-
-1. **Ambiguous Initial State**: Using `0` to mean both "not calculated" and "zero cards" created confusion
-2. **Insufficient Loading States**: Not showing loading UI during async calculations
-3. **React Development Mode Confusion**: Double-mounting and concurrent rendering amplified timing issues
-4. **Non-Deterministic Functions in Render**: `Math.random()` in `useMemo` caused instability
-5. **Task 18.1.5 Integration Oversight**: Child component didn't respect parent's interleaving algorithm
-
-### Prevention Strategies
-
-1. ✅ **Sentinel Values**: Use `-1`, `null`, or `undefined` for "not loaded yet" states
-2. ✅ **Loading State First**: Always handle loading before empty states
-3. ✅ **Respect Parent Data**: Don't re-process data that parent already handled
-4. ✅ **Deterministic Rendering**: Avoid `Math.random()` in render-time computations
-5. ✅ **Comprehensive Logging**: Add debug logs early when investigating timing issues
-6. ✅ **Read Implementation Docs**: Phase 18 roadmap contained crucial context about interleaving
-
-### React Best Practices Reinforced
-
-1. **Initial State Should Be Explicit**: Use sentinel values for "not loaded"
-2. **Respect Strict Mode**: Components must handle double-mounting gracefully
-3. **useMemo Dependencies**: Non-deterministic functions cause issues in concurrent mode
-4. **Guard Conditions**: Multiple conditions better than single check for edge cases
-5. **Loading → Empty → Content**: Proper state progression order
+- [ ] EN→ES direction shows English word first
+- [ ] Mixed mode randomizes direction per card
+- [ ] Direction preference persists across sessions
+- [ ] All 5 review methods respect direction setting
+- [ ] Visual indicator shows current direction during session
+- [ ] User can see/change direction without navigating away from review page
 
 ---
 
-## 🔗 Related Issues
+## 📚 Documentation Updates Needed
 
-### Fixed Issues
-1. ✅ **Method Selection Instability** - Fixed via `selectedMethodsMap` cache
-2. ✅ **Double Randomization** - Removed child's re-randomization
-3. ✅ **Keyboard Input Protection** - 500ms delay (kept as defense-in-depth)
-4. ✅ **Completion Screen Flash** - This fix
-
-### Phase 18 Integration
-- **Task 18.1.4**: Retrieval Practice Variation (5 methods) - Working correctly
-- **Task 18.1.5**: Interleaved Practice Optimization - Now properly respected by child component
-- **Task 18.1.6**: Hybrid SM-2 Integration - No conflicts
+- [ ] Update Phase 18 task completion docs if direction wasn't tested
+- [ ] Add direction indicators to review flow screenshots
+- [ ] Document direction behavior for each review method (especially Audio)
 
 ---
 
-## 📊 Impact Assessment
+## 🔗 Related Files
 
-### User Experience Impact
-
-**Before Fix:**
-- ❌ Review sessions feel broken and glitchy
-- ❌ Users see confusing "All Caught Up!" flash
-- ❌ Progress shows "1/0" momentarily
-- ❌ Creates impression of app instability
-- ❌ Users may abandon reviews thinking app is buggy
-
-**After Fix:**
-- ✅ Smooth loading directly to review card
-- ✅ No visual artifacts or flashes
-- ✅ Correct progress from start (e.g., "1/20")
-- ✅ Professional, polished experience
-- ✅ Aligns with Phase 17 UX principles (Zero Perceived Complexity)
-
-### Performance Impact
-- **Minimal**: Added 1-2 extra guard conditions (negligible CPU cost)
-- **Loading Time**: Unchanged (already waiting for data)
-- **Memory**: Negligible (+1 state variable)
-
-### Compatibility
-- ✅ **Backward Compatible**: No breaking changes
-- ✅ **Phase 18 Features**: All working correctly
-- ✅ **Mobile**: No impact on mobile experience
-- ✅ **Guest Mode**: Works for both guests and authenticated users
+- `components/features/review-session-varied.tsx` - Main session orchestrator
+- `components/features/session-config.tsx` - Configuration UI
+- `lib/hooks/use-review-preferences.ts` - Preference persistence
+- `lib/types/review.ts` - DEFAULT_SESSION_CONFIG
+- `components/features/review-methods/*.tsx` - All 5 review methods
 
 ---
 
-## 🧪 Validation Results
-
-### Browser Testing (Validated Feb 9, 2026)
-
-| Test Case | Expected | Actual | Status |
-|-----------|----------|--------|--------|
-| Auto-start from home | Load directly to card | ✅ Direct load | ✅ PASS |
-| Traditional method | Card stays on screen | ✅ Stable | ✅ PASS |
-| Fill-Blank method | Card stays on screen | ✅ Stable | ✅ PASS |
-| Multiple-Choice method | Card stays on screen | ✅ Stable | ✅ PASS |
-| Context Selection method | Card stays on screen | ✅ Stable | ✅ PASS |
-| Audio Recognition method | Card stays on screen | ✅ Stable | ✅ PASS |
-| Progress counter | Shows "1/20" from start | ✅ Correct | ✅ PASS |
-| No completion flash | No "All Caught Up!" flash | ✅ No flash | ✅ PASS |
-| Wait 5s without input | Card remains | ✅ Stable | ✅ PASS |
-
-### Console Log Validation
-
-**Key Success Indicators:**
-```
-[loadDueWords] ✅ Setting dueCount to: 162
-[AUTO-START] Starting session with 162 due cards
-[startSession] ✅ Session started successfully: {wordsCount: 162}
-[Method Selector] Word 1/20: "escarpado" → Method: traditional (CACHED)
-[TraditionalReview] 🎴 MOUNTED for word: escarpado
-(No completion or auto-skip logs)
-```
-
----
-
-## 🔧 Technical Details
-
-### State Management Fix
-
-**The Problem:**
-```typescript
-// Initial render cycle
-dueCount = 0 (initial state)
-isInSession = false
-↓
-Condition: !isInSession && dueCount === 0 → TRUE
-↓
-Render: "All Caught Up!" screen ⚠️ FLASH
-↓
-After 500ms: dueCount updates to 162
-↓
-Auto-start triggers
-↓
-isInSession = true
-↓
-Render: ReviewSessionVaried ✅
-```
-
-**The Solution:**
-```typescript
-// New render cycle
-dueCount = -1 (not calculated yet)
-isLoading = false
-↓
-Condition: dueCount === -1 → TRUE
-↓
-Render: Loading screen ✅ SMOOTH
-↓
-After 500ms: dueCount updates to 162
-↓
-Condition: dueCount === -1 → FALSE
-↓
-Auto-start triggers
-↓
-Render: ReviewSessionVaried ✅ NO FLASH
-```
-
-### React 18 Strict Mode Considerations
-
-**Challenge:** React 18 development mode double-mounts components, causing:
-- useEffect cleanup → remount cycle
-- useMemo recalculations with `Math.random()` returning different values
-- State initialization happening twice
-
-**Solution:**
-- Used stable sentinel value (`-1`)
-- Removed non-deterministic functions from render path
-- Added state caching for random selections
-
-### Task 18.1.5 Integration
-
-**Interleaving Algorithm (Phase 18.1.5):**
-- Parent component applies sophisticated interleaving:
-  - Mix by part of speech (noun → verb → adjective)
-  - Mix by age (new → mature → young)
-  - Mix by difficulty (easy → hard → medium)
-  - Max 2 consecutive words of same category
-
-**Child Component Fix:**
-```typescript
-// BEFORE: Double randomization ❌
-const processedWords = useMemo(() => {
-  let filtered = [...words];
-  filtered = filtered.slice(0, config.sessionSize);
-  if (config.randomize) {
-    filtered = filtered.sort(() => Math.random() - 0.5); // ❌ Destroys parent's careful ordering!
-  }
-  return filtered;
-}, [words, config]);
-
-// AFTER: Respect parent's order ✅
-const processedWords = useMemo(() => {
-  // Parent already handled filtering, interleaving, randomization
-  return words.slice(0, config.sessionSize);
-}, [words, config.sessionSize]);
-```
-
----
-
-## 🚀 Deployment Notes
-
-### Pre-Deployment Checklist
-- [x] Sentinel value implemented (`dueCount = -1`)
-- [x] Loading condition updated
-- [x] Guard conditions strengthened
-- [x] Double randomization removed
-- [x] Method selection stabilized
-- [x] Browser testing completed (5+ test runs)
-- [x] Console validation passed
-- [x] All review methods tested
-
-### Post-Deployment Verification
-- [ ] Test on production (Vercel)
-- [ ] Test with real user account
-- [ ] Verify on mobile devices
-- [ ] Monitor for edge cases
-- [ ] User acceptance testing
-
-### Rollback Plan
-If issues arise:
-1. Revert `dueCount` to `0` initial state
-2. Remove extended guard conditions
-3. Keep method selection cache (beneficial)
-4. Keep double-randomization removal (architectural improvement)
-
----
-
-## 🎯 Performance Impact
-
-### Before Fix
-- **Loading Time**: 0-500ms (but with visual flash)
-- **Perceived Loading**: ~1-2 seconds (due to flash confusing users)
-- **User Frustration**: High (app feels broken)
-
-### After Fix
-- **Loading Time**: 0-500ms (unchanged)
-- **Perceived Loading**: 0-500ms (smooth, professional)
-- **User Frustration**: None (seamless experience)
-
-### Metrics
-- **Time to Interactive**: Unchanged
-- **First Contentful Paint**: Improved (no double-render)
-- **Cumulative Layout Shift**: Reduced (fewer intermediate states)
-
----
-
-## 📋 Related Documentation
-
-- **Phase 18.1.4**: Retrieval Practice Variation (5 methods)
-- **Phase 18.1.5**: Interleaved Practice Optimization
-- **Phase 17**: UX/UI Design Principles (Zero Perceived Complexity)
-- **Task 18.1.6**: Hybrid SM-2 Integration
-
----
-
-## ✅ Resolution
-
-**Status:** ✅ FIXED  
-**Date:** February 9, 2026  
-**Verified By:** Browser testing (Cursor IDE Browser) + User testing  
-**Sign-Off:** Ready for production deployment
-
-### Verification Evidence
-- ✅ Multiple browser test runs show no flash
-- ✅ Console logs confirm clean state initialization
-- ✅ All 5 review methods working correctly
-- ✅ Progress counter accurate from start
-- ✅ User reported issue resolved: "Great, this has resolved the issue."
-
----
-
-## 🔮 Future Improvements
-
-### Potential Enhancements
-1. **Prefetch Due Count**: Calculate `dueCount` before navigating to review page
-2. **Optimistic UI**: Show previous session's word count during loading
-3. **Loading Skeleton**: Show card skeleton instead of generic spinner
-4. **Service Worker Cache**: Pre-cache first card data for instant display
-
-### Monitoring
-- Monitor `dueCount` calculation time in production
-- Track completion screen impressions (should be near zero)
-- Monitor session start time (should remain <500ms)
-
----
-
-**End of Report**
+**Next Steps:**
+1. Run reproduction steps with console logging
+2. Identify root cause (preferences loading? config passing? component logic?)
+3. Implement fix
+4. Add automated tests to prevent regression
+5. Consider UX improvements (visual indicator, quick toggle)
