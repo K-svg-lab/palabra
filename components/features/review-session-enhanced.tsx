@@ -246,8 +246,9 @@ export function ReviewSessionEnhanced({
   // Handle keyboard navigation
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      const mode = config.mode || 'recognition';
       // Recognition mode: number keys for rating (only when card is flipped)
-      if (config.mode === 'recognition' && isFlipped) {
+      if (mode === 'recognition' && isFlipped) {
         if (e.key === "1") {
           e.preventDefault();
           handleRating("forgot");
@@ -270,7 +271,7 @@ export function ReviewSessionEnhanced({
       // Navigation keys
       if (e.key === "ArrowLeft") {
         handlePrevious();
-      } else if (e.key === "ArrowRight" && (isFlipped || config.mode !== 'recognition')) {
+      } else if (e.key === "ArrowRight" && (isFlipped || mode !== 'recognition')) {
         handleNext();
       } else if (e.key === "Escape") {
         handleCancel();
@@ -434,7 +435,7 @@ export function ReviewSessionEnhanced({
             
             {/* Mode and direction - center (smaller and less prominent) */}
             <div className="hidden sm:flex items-center gap-1.5 text-[10px] text-text-tertiary">
-              <span>{config.mode === 'recognition' ? '👁️' : config.mode === 'recall' ? '⌨️' : '🎧'}</span>
+              <span>{(config.mode || 'recognition') === 'recognition' ? '👁️' : (config.mode || 'recognition') === 'recall' ? '⌨️' : '🎧'}</span>
               <span>{currentDirection === 'spanish-to-english' ? 'ES→EN' : 'EN→ES'}</span>
             </div>
             
@@ -466,7 +467,7 @@ export function ReviewSessionEnhanced({
         className="flex-1 flex items-center justify-center px-3 py-2 md:px-4 md:py-3 overflow-hidden min-h-0"
         onClick={() => {
           // On mobile, clicking anywhere flips the card
-          if (window.innerWidth < 768 && config.mode === 'recognition') {
+          if (window.innerWidth < 768 && (config.mode || 'recognition') === 'recognition') {
             handleFlip();
           }
         }}
@@ -474,23 +475,23 @@ export function ReviewSessionEnhanced({
         <FlashcardEnhanced
           word={currentWord}
           direction={currentDirection}
-          mode={config.mode}
+          mode={config.mode || 'recognition'}
           isFlipped={isFlipped}
           onFlip={handleFlip}
           onAnswerSubmit={handleAnswerSubmit}
           onAudioPlay={handleAudioPlay}
           onContinue={handleContinue}
           cardNumber={`Card ${currentIndex + 1} of ${processedWords.length}`}
-          onRate={config.mode === 'recognition' && isFlipped ? handleRating : undefined}
+          onRate={(config.mode || 'recognition') === 'recognition' && isFlipped ? handleRating : undefined}
         />
       </div>
 
       {/* Keyboard Hints - Below divider */}
       <div className="px-3 pt-2 pb-16 md:px-4 md:pt-3 md:pb-20 border-t border-separator flex-shrink-0">
         <div className="flex flex-wrap justify-center gap-3 text-[11px] text-text-tertiary">
-          {config.mode === 'recognition' && !isFlipped && <span className="px-2 py-0.5 rounded-md bg-black/5 dark:bg-white/5">Space/Enter Flip</span>}
-          {config.mode === 'recognition' && isFlipped && <span className="px-2 py-0.5 rounded-md bg-black/5 dark:bg-white/5">Tap or press Enter to reveal</span>}
-          {!(config.mode === 'recognition' && isFlipped) && (
+          {(config.mode || 'recognition') === 'recognition' && !isFlipped && <span className="px-2 py-0.5 rounded-md bg-black/5 dark:bg-white/5">Space/Enter Flip</span>}
+          {(config.mode || 'recognition') === 'recognition' && isFlipped && <span className="px-2 py-0.5 rounded-md bg-black/5 dark:bg-white/5">Tap or press Enter to reveal</span>}
+          {!((config.mode || 'recognition') === 'recognition' && isFlipped) && (
             <>
               <span className="px-2 py-0.5 rounded-md bg-black/5 dark:bg-white/5">← → Navigate</span>
               <span className="px-2 py-0.5 rounded-md bg-black/5 dark:bg-white/5">Esc Exit</span>
