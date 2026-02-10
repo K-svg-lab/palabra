@@ -12,7 +12,7 @@
  * @module deep-learning
  */
 
-import { prisma } from '@/lib/backend/prisma/client';
+import { prisma } from '@/lib/backend/db';
 import OpenAI from 'openai';
 import { trackAICost } from './ai-cost-control';
 

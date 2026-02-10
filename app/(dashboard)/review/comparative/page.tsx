@@ -9,9 +9,8 @@
 
 import { Metadata } from 'next';
 import { redirect } from 'next/navigation';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth/config';
-import { prisma } from '@/lib/backend/prisma/client';
+import { getSession } from '@/lib/backend/auth';
+import { prisma } from '@/lib/backend/db';
 import { ComparativeReview } from '@/components/features/comparative-review';
 import { recordComparativeReview } from '@/lib/services/interference-detection';
 import type { ComparativeReviewResult } from '@/lib/services/interference-detection';
@@ -34,14 +33,14 @@ export default async function ComparativeReviewPage({
   searchParams,
 }: PageProps) {
   // Require authentication
-  const session = await getServerSession(authOptions);
-  if (!session?.user?.email) {
+  const session = await getSession();
+  if (!session?.userId) {
     redirect('/auth/signin?callbackUrl=/review/comparative');
   }
 
   // Get user
   const user = await prisma.user.findUnique({
-    where: { email: session.user.email },
+    where: { id: session.userId },
   });
 
   if (!user) {
@@ -129,11 +128,11 @@ export default async function ComparativeReviewPage({
   const handleComplete = async (result: ComparativeReviewResult) => {
     'use server';
     
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.email) return;
+    const session = await getSession();
+    if (!session?.userId) return;
 
     const user = await prisma.user.findUnique({
-      where: { email: session.user.email },
+      where: { id: session.userId },
     });
 
     if (!user) return;

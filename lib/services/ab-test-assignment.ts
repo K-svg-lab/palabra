@@ -13,7 +13,7 @@
  * @module ab-test-assignment
  */
 
-import { prisma } from '@/lib/backend/prisma/client';
+import { prisma } from '@/lib/backend/db';
 import {
   getActiveTest,
   DEFAULT_FEATURES,

@@ -12,7 +12,7 @@
  * @module interference-detection
  */
 
-import { prisma } from '@/lib/backend/prisma/client';
+import { prisma } from '@/lib/backend/db';
 import type { VocabularyItem } from '@prisma/client';
 
 // ============================================================================

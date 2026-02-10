@@ -8,9 +8,8 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth/config';
-import { prisma } from '@/lib/backend/prisma/client';
+import { getSession } from '@/lib/backend/auth';
+import { prisma } from '@/lib/backend/db';
 import { ACTIVE_AB_TESTS, getTestById, type ABTest } from '@/lib/config/ab-tests';
 
 // ============================================================================
@@ -59,9 +58,9 @@ interface ABTestResults {
 export async function GET(request: NextRequest) {
   try {
     // Check authentication and admin status
-    const session = await getServerSession(authOptions);
+    const session = await getSession();
 
-    if (!session?.user?.email) {
+    if (!session?.userId) {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
@@ -69,7 +68,7 @@ export async function GET(request: NextRequest) {
     }
 
     const user = await prisma.user.findUnique({
-      where: { email: session.user.email },
+      where: { id: session.userId },
     });
 
     // TODO: Add isAdmin field to User model
