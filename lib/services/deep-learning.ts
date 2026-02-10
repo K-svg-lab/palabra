@@ -174,14 +174,12 @@ Generate ONE engaging question now. Just the question, no explanation.`;
   
   // Track cost
   const tokensUsed = response.usage?.total_tokens || 0;
-  const cost = (tokensUsed / 1000) * 0.0015; // GPT-3.5-turbo pricing
   
-  await trackAICost({
+  await recordAICost({
     service: 'openai',
     model: 'gpt-3.5-turbo',
     endpoint: 'chat/completions',
     tokensUsed,
-    cost,
     success: true,
     metadata: {
       feature: 'deep-learning',
