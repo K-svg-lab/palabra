@@ -94,10 +94,11 @@ export function SessionConfig({
     const config: StudySessionConfig = {
       sessionSize,
       direction: 'mixed',  // Phase 18.2: Algorithm varies direction per card
-      mode: 'varied',  // Phase 18.2: Algorithm selects optimal method per card
+      // Phase 18.2: mode removed - algorithm selects optimal method per card automatically
       tagFilter: tagFilter.length > 0 ? tagFilter : undefined,
       practiceMode: practiceMode || undefined,
       // Phase 18.2: Removed redundant settings - algorithm handles these automatically:
+      // - mode: Algorithm selects optimal review method (traditional, fill-blank, multiple-choice, audio, context-selection)
       // - statusFilter: Algorithm prioritizes due words
       // - weakWordsOnly: Algorithm weights weaknesses (70% toward struggling methods)
       // - weakWordsThreshold: Algorithm calculates dynamically
