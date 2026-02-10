@@ -4,6 +4,11 @@
  * User selects the correct translation from 4 options
  * Easiest method - focuses on recognition rather than recall
  * 
+ * Directionality Preserved (Translation Recognition):
+ * - ES→EN: Spanish word → Choose English translation
+ * - EN→ES: English word → Choose Spanish translation
+ * - Tests direct translation knowledge, not contextual comprehension
+ * 
  * Features:
  * - 4 answer options (1 correct + 3 distractors)
  * - Intelligent distractor generation (similar words from vocabulary)
@@ -327,18 +332,25 @@ function generateOptions(
     });
   }
   
+  // Preserve directionality for translation recognition
+  // ES→EN: Spanish word → English options (receptive)
+  // EN→ES: English word → Spanish options (productive)
   const correctAnswer = direction === 'spanish-to-english'
     ? word.englishTranslation
     : word.spanishWord;
   
   if (process.env.NODE_ENV === 'development') {
-    console.log('🔍 [Multiple Choice] correctAnswer should be:', correctAnswer, '(', direction === 'spanish-to-english' ? 'English' : 'Spanish', ')');
+    console.log('🔍 [Multiple Choice] Translation recognition:', {
+      direction,
+      correctAnswer,
+      language: direction === 'spanish-to-english' ? 'English' : 'Spanish',
+    });
   }
 
   // Filter out current word and get potential distractors
   const otherWords = allWords.filter(w => w.id !== word.id);
 
-  // Get 3 random distractors
+  // Get 3 random distractors in target language
   const distractors: string[] = [];
   const shuffled = [...otherWords].sort(() => Math.random() - 0.5);
 
