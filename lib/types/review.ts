@@ -52,7 +52,7 @@ export interface StudySessionConfig {
  */
 export const DEFAULT_SESSION_CONFIG: StudySessionConfig = {
   sessionSize: 20,
-  direction: 'spanish-to-english',
+  direction: 'mixed',  // Phase 18.2: Mixed mode for balanced ES→EN and EN→ES practice
   mode: 'recognition',
   randomize: true,
 };

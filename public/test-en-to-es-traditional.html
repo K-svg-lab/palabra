@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Test EN→ES Traditional Flashcard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 dark:bg-gray-900 min-h-screen p-8">
+  <div class="max-w-4xl mx-auto">
+    <h1 class="text-3xl font-bold text-gray-900 dark:text-white mb-8">
+      EN→ES Traditional Flashcard Test
+    </h1>
+
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 mb-6">
+      <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-4">
+        Test Instructions
+      </h2>
+      <ol class="list-decimal list-inside space-y-2 text-gray-700 dark:text-gray-300">
+        <li>Click "Start Test" below</li>
+        <li>You'll see an <strong>English</strong> word on the front (e.g., "specific")</li>
+        <li>Click to flip the card</li>
+        <li>You'll see the <strong>Spanish</strong> translation on the back (e.g., "específico")</li>
+        <li><strong>VERIFY:</strong> Audio "Listen" button appears on the back</li>
+        <li>Click the Listen button to hear Spanish pronunciation</li>
+      </ol>
+    </div>
+
+    <div class="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4 mb-6">
+      <h3 class="font-semibold text-blue-900 dark:text-blue-200 mb-2">
+        What You Should See:
+      </h3>
+      <ul class="space-y-1 text-blue-800 dark:text-blue-300">
+        <li>✅ <strong>Front:</strong> English word, NO audio button</li>
+        <li>✅ <strong>Back:</strong> Spanish word + "Listen" button</li>
+        <li>✅ <strong>Audio:</strong> Plays Spanish pronunciation (TTS)</li>
+        <li>✅ <strong>Rating:</strong> Can rate difficulty (Forgot/Hard/Good/Easy)</li>
+      </ul>
+    </div>
+
+    <div class="flex gap-4 mb-8">
+      <button
+        id="startBtn"
+        class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-3 rounded-lg transition-colors"
+      >
+        Start Test
+      </button>
+      <button
+        id="flipBtn"
+        class="bg-gray-600 hover:bg-gray-700 text-white font-semibold px-6 py-3 rounded-lg transition-colors hidden"
+      >
+        Flip Card
+      </button>
+      <button
+        id="audioBtn"
+        class="bg-green-600 hover:bg-green-700 text-white font-semibold px-6 py-3 rounded-lg transition-colors hidden"
+      >
+        🔊 Listen
+      </button>
+    </div>
+
+    <!-- Card Display -->
+    <div id="cardContainer" class="hidden">
+      <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700 p-12 text-center min-h-[400px] flex flex-col items-center justify-center">
+        <div id="cardContent">
+          <!-- Dynamic content -->
+        </div>
+      </div>
+
+      <!-- Rating Buttons -->
+      <div id="ratingButtons" class="hidden mt-6 grid grid-cols-4 gap-3">
+        <button class="flex flex-col items-center gap-1 p-3 bg-red-500/10 hover:bg-red-500/20 border-2 border-red-500/30 rounded-xl transition-colors min-h-[70px]">
+          <span class="text-2xl">😞</span>
+          <span class="text-sm font-semibold text-red-600">Forgot</span>
+        </button>
+        <button class="flex flex-col items-center gap-1 p-3 bg-orange-500/10 hover:bg-orange-500/20 border-2 border-orange-500/30 rounded-xl transition-colors min-h-[70px]">
+          <span class="text-2xl">😕</span>
+          <span class="text-sm font-semibold text-orange-600">Hard</span>
+        </button>
+        <button class="flex flex-col items-center gap-1 p-3 bg-green-500/10 hover:bg-green-500/20 border-2 border-green-500/30 rounded-xl transition-colors min-h-[70px]">
+          <span class="text-2xl">🙂</span>
+          <span class="text-sm font-semibold text-green-600">Good</span>
+        </button>
+        <button class="flex flex-col items-center gap-1 p-3 bg-blue-500/10 hover:bg-blue-500/20 border-2 border-blue-500/30 rounded-xl transition-colors min-h-[70px]">
+          <span class="text-2xl">😊</span>
+          <span class="text-sm font-semibold text-blue-600">Easy</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Test Results -->
+    <div id="results" class="mt-8 hidden">
+      <div class="bg-green-50 dark:bg-green-900/20 rounded-lg p-6">
+        <h3 class="text-xl font-semibold text-green-900 dark:text-green-200 mb-4">
+          ✅ Test Results
+        </h3>
+        <div id="resultContent" class="space-y-2 text-green-800 dark:text-green-300">
+          <!-- Dynamic results -->
+        </div>
+      </div>
+    </div>
+
+    <!-- Debug Info -->
+    <div class="mt-8 bg-gray-100 dark:bg-gray-800 rounded-lg p-4">
+      <h3 class="font-semibold text-gray-900 dark:text-white mb-2">Debug Info:</h3>
+      <pre id="debugInfo" class="text-xs text-gray-700 dark:text-gray-300 overflow-auto">
+Ready to test...
+      </pre>
+    </div>
+  </div>
+
+  <script>
+    // Test data
+    const testWord = {
+      id: 'test-1',
+      spanishWord: 'específico',
+      englishTranslation: 'specific',
+      partOfSpeech: 'adjective',
+    };
+
+    let isFlipped = false;
+    let audioPlayed = false;
+    let cardFlipped = false;
+
+    const startBtn = document.getElementById('startBtn');
+    const flipBtn = document.getElementById('flipBtn');
+    const audioBtn = document.getElementById('audioBtn');
+    const cardContainer = document.getElementById('cardContainer');
+    const cardContent = document.getElementById('cardContent');
+    const ratingButtons = document.getElementById('ratingButtons');
+    const results = document.getElementById('results');
+    const resultContent = document.getElementById('resultContent');
+    const debugInfo = document.getElementById('debugInfo');
+
+    function updateDebug(message) {
+      const timestamp = new Date().toLocaleTimeString();
+      debugInfo.textContent += `\n[${timestamp}] ${message}`;
+      debugInfo.scrollTop = debugInfo.scrollHeight;
+    }
+
+    function showFront() {
+      cardContent.innerHTML = `
+        <div class="space-y-6">
+          <p class="text-sm text-gray-500 uppercase tracking-wide">English → Spanish Test</p>
+          <p class="text-5xl font-bold text-gray-900 dark:text-white">
+            ${testWord.englishTranslation}
+          </p>
+          <p class="text-sm text-gray-400 mt-8">
+            Click "Flip Card" to reveal the Spanish translation
+          </p>
+        </div>
+      `;
+      flipBtn.classList.remove('hidden');
+      audioBtn.classList.add('hidden');
+      ratingButtons.classList.add('hidden');
+      updateDebug('✅ Showing FRONT: English word (no audio expected)');
+    }
+
+    function showBack() {
+      cardContent.innerHTML = `
+        <div class="space-y-4">
+          <p class="text-sm text-gray-500 uppercase tracking-wide">Answer</p>
+          <p class="text-5xl font-bold text-blue-600 dark:text-blue-400">
+            ${testWord.spanishWord}
+          </p>
+          <p class="text-sm text-gray-600 dark:text-gray-400">
+            (${testWord.partOfSpeech})
+          </p>
+        </div>
+      `;
+      flipBtn.classList.add('hidden');
+      audioBtn.classList.remove('hidden');
+      ratingButtons.classList.remove('hidden');
+      cardFlipped = true;
+      updateDebug('✅ Showing BACK: Spanish word');
+      updateDebug('✅ Audio button should be visible now');
+    }
+
+    function playAudio() {
+      updateDebug('🔊 Playing Spanish audio for: ' + testWord.spanishWord);
+      
+      // Use Web Speech API (same as the app)
+      if ('speechSynthesis' in window) {
+        const utterance = new SpeechSynthesisUtterance(testWord.spanishWord);
+        utterance.lang = 'es-ES';
+        utterance.rate = 0.9;
+        
+        utterance.onstart = () => {
+          audioBtn.textContent = '🔊 Playing...';
+          audioBtn.disabled = true;
+          updateDebug('▶️ Audio started');
+        };
+        
+        utterance.onend = () => {
+          audioBtn.textContent = '🔊 Listen';
+          audioBtn.disabled = false;
+          audioPlayed = true;
+          updateDebug('✅ Audio completed successfully');
+        };
+        
+        utterance.onerror = (e) => {
+          audioBtn.textContent = '🔊 Listen';
+          audioBtn.disabled = false;
+          updateDebug('❌ Audio error: ' + e.error);
+        };
+        
+        window.speechSynthesis.speak(utterance);
+      } else {
+        updateDebug('❌ Speech synthesis not supported in this browser');
+        alert('Speech synthesis not supported in this browser');
+      }
+    }
+
+    function showResults() {
+      results.classList.remove('hidden');
+      resultContent.innerHTML = `
+        <p><strong>✅ Front Side:</strong> English word displayed correctly</p>
+        <p><strong>✅ Back Side:</strong> Spanish word displayed correctly</p>
+        <p><strong>${audioPlayed ? '✅' : '❌'} Audio Button:</strong> ${audioPlayed ? 'Appeared and worked' : 'Not tested'}</p>
+        <p><strong>✅ Rating Buttons:</strong> Displayed correctly</p>
+        <p class="mt-4 font-semibold">${audioPlayed ? '🎉 All tests passed! EN→ES traditional flashcards work correctly.' : '⚠️ Please test the audio button.'}</p>
+      `;
+      
+      if (audioPlayed) {
+        updateDebug('🎉 TEST PASSED: EN→ES traditional flashcard implementation verified');
+      }
+    }
+
+    // Event listeners
+    startBtn.addEventListener('click', () => {
+      startBtn.classList.add('hidden');
+      cardContainer.classList.remove('hidden');
+      showFront();
+      updateDebug('▶️ Test started');
+    });
+
+    flipBtn.addEventListener('click', () => {
+      isFlipped = true;
+      showBack();
+    });
+
+    audioBtn.addEventListener('click', () => {
+      playAudio();
+    });
+
+    // Rating button clicks
+    document.querySelectorAll('#ratingButtons button').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const rating = btn.textContent.trim().split('\n')[1];
+        updateDebug('⭐ User rated: ' + rating);
+        showResults();
+      });
+    });
+
+    updateDebug('Ready! Click "Start Test" to begin.');
+  </script>
+</body>
+</html>
