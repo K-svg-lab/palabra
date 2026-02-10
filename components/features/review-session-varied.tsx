@@ -400,12 +400,13 @@ export function ReviewSessionVaried({
 
             <div className="flex items-center gap-3 text-sm text-text-secondary">
               {/* Phase 18 UX Fix: Direction indicator */}
+              {/* Audio Recognition is ALWAYS ES→EN (Spanish audio only) */}
               <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full ${
-                currentDirection === 'spanish-to-english'
+                (selectedMethod === 'audio-recognition' || currentDirection === 'spanish-to-english')
                   ? 'bg-blue-50 dark:bg-blue-900/20'
                   : 'bg-purple-50 dark:bg-purple-900/20'
               }`}>
-                {currentDirection === 'spanish-to-english' ? (
+                {(selectedMethod === 'audio-recognition' || currentDirection === 'spanish-to-english') ? (
                   <>
                     <span className="text-xs font-medium text-blue-700 dark:text-blue-300">ES</span>
                     <ArrowRight className="w-3 h-3 text-blue-600 dark:text-blue-400" />
