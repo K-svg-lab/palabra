@@ -25,8 +25,8 @@ export interface StudySessionConfig {
   /** Review direction */
   direction: ReviewDirection;
   
-  /** Review mode */
-  mode: ReviewMode;
+  /** Review mode - Phase 18.2: Optional, algorithm selects if not provided */
+  mode?: ReviewMode;
   
   /** Filter by vocabulary status */
   statusFilter?: ('new' | 'learning' | 'mastered')[];
@@ -40,8 +40,8 @@ export interface StudySessionConfig {
   /** Weak word accuracy threshold (0-100) */
   weakWordsThreshold?: number;
   
-  /** Randomize card order */
-  randomize: boolean;
+  /** Randomize card order - Phase 18.2: Optional, algorithm uses intelligent interleaving if not provided */
+  randomize?: boolean;
   
   /** Practice mode: include cards that aren't due yet */
   practiceMode?: boolean;
