@@ -76,7 +76,8 @@ export default function HomePage() {
     if (params.get('sessionComplete') === 'true') {
       setShowProcessing(true);
       
-      // Hide after 3 seconds (background processing should be done by then)
+      // Phase 18 Sync Fix: Extended to 5 seconds to ensure cloud sync completes
+      // Background processing now awaits sync completion (see review/page.tsx)
       const timer = setTimeout(() => {
         setShowProcessing(false);
         
@@ -84,7 +85,7 @@ export default function HomePage() {
         const url = new URL(window.location.href);
         url.searchParams.delete('sessionComplete');
         window.history.replaceState({}, '', url.toString());
-      }, 3000);
+      }, 5000); // Extended from 3s to 5s for sync completion
       
       return () => clearTimeout(timer);
     }

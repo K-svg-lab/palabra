@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Plus } from "lucide-react";
@@ -61,10 +61,31 @@ export default function ReviewPage() {
   const [autoStartTriggered, setAutoStartTriggered] = useState(false);
   const [showMidSessionConfig, setShowMidSessionConfig] = useState(false);
   
+  // Phase 18 Sync Fix: Track sync status to prevent data loss
+  const syncInProgressRef = useRef(false);
+  
   // Track isInSession changes
   useEffect(() => {
     console.log('[isInSession CHANGED]', isInSession, 'Stack:', new Error().stack?.split('\n')[2]);
   }, [isInSession]);
+
+  /**
+   * Phase 18 Sync Fix: Prevent navigation while sync is in progress
+   * This ensures review data is fully synced before user can refresh/navigate
+   */
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (syncInProgressRef.current) {
+        // Browser will show a generic message
+        e.preventDefault();
+        e.returnValue = ''; // Chrome requires returnValue to be set
+        console.log('[beforeunload] ⚠️ Sync in progress - warning user');
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, []);
 
   /**
    * Load user's proficiency level for method selection
@@ -335,6 +356,8 @@ export default function ReviewPage() {
     currentSessionData: ReviewSessionType | null
   ): Promise<void> => {
     try {
+      // Phase 18 Sync Fix: Mark sync as in progress
+      syncInProgressRef.current = true;
       console.log('[Background] Processing', results.length, 'results in parallel');
       
       // Process all results in PARALLEL (not sequential!)
@@ -452,27 +475,47 @@ export default function ReviewPage() {
       // Update badge (non-critical)
       updateBadge().catch(console.error);
       
-      // Sync to cloud (non-blocking)
+      // Sync to cloud - CRITICAL: Must await to prevent data loss
+      // Phase 18 Fix: Ensure sync completes before user can navigate away
       if (navigator.onLine) {
-        getSyncService()
-          .sync('incremental')
-          .then(() => console.log('[Background] ✅ Synced to cloud'))
-          .catch(error => {
-            console.error('[Background] Sync failed, queueing:', error);
-            getOfflineQueueService()
-              .enqueue('submit_review', results)
-              .catch(console.error);
-          });
+        try {
+          console.log('[Background] 🔄 Starting cloud sync (critical)...');
+          const syncResult = await getSyncService().sync('incremental');
+          
+          if (syncResult.status === 'success') {
+            console.log('[Background] ✅ Cloud sync complete:', syncResult.uploaded, 'items uploaded');
+          } else {
+            console.warn('[Background] ⚠️ Sync failed:', syncResult.status);
+            // Queue for retry
+            await getOfflineQueueService().enqueue('submit_review', results);
+            console.log('[Background] 📥 Queued for retry');
+          }
+        } catch (error) {
+          console.error('[Background] ❌ Sync error, queueing for retry:', error);
+          try {
+            await getOfflineQueueService().enqueue('submit_review', results);
+            console.log('[Background] 📥 Queued for retry');
+          } catch (queueError) {
+            console.error('[Background] ❌ Failed to queue:', queueError);
+          }
+        }
       } else {
-        console.log('[Background] Offline - queueing reviews');
-        getOfflineQueueService()
-          .enqueue('submit_review', results)
-          .catch(console.error);
+        console.log('[Background] 📴 Offline - queueing reviews');
+        try {
+          await getOfflineQueueService().enqueue('submit_review', results);
+          console.log('[Background] 📥 Queued for sync when online');
+        } catch (error) {
+          console.error('[Background] ❌ Failed to queue:', error);
+        }
       }
       
-      console.log('[Background] ✅ All background tasks complete');
+      console.log('[Background] ✅ All background tasks complete (including sync)');
     } catch (error) {
       console.error('[Background] Processing failed:', error);
+    } finally {
+      // Phase 18 Sync Fix: Mark sync as complete (even on error)
+      syncInProgressRef.current = false;
+      console.log('[Background] Sync status: complete');
     }
   };
 
