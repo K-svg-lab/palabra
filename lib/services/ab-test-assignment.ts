@@ -140,7 +140,7 @@ export async function getUserFeatureFlags(
     });
   }
 
-  return (cohort?.featureFlags as FeatureFlags) || DEFAULT_FEATURES;
+  return (cohort?.featureFlags as unknown as FeatureFlags) || DEFAULT_FEATURES;
 }
 
 /**
