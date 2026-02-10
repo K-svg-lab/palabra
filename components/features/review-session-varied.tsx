@@ -235,7 +235,7 @@ export function ReviewSessionVaried({
     const result: ExtendedReviewResult = {
       vocabularyId: currentWord.id,
       rating: methodResult.rating,
-      mode: config.mode,
+      mode: config.mode || 'recognition',  // Phase 18.2: Default for backward compatibility, actual method in reviewMethod
       direction: currentDirection,
       reviewedAt: new Date(),
       timeSpent: methodResult.timeSpent,

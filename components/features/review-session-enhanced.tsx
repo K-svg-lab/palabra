@@ -57,7 +57,7 @@ export function ReviewSessionEnhanced({
     filtered = filtered.slice(0, config.sessionSize);
     
     // Randomize if configured
-    if (config.randomize) {
+    if (config.randomize !== false) {  // Phase 18.2: Default to true for backward compatibility
       filtered = filtered.sort(() => Math.random() - 0.5);
     }
     
@@ -98,7 +98,7 @@ export function ReviewSessionEnhanced({
     const result: ExtendedReviewResult = {
       vocabularyId: currentWord.id,
       rating,
-      mode: config.mode,
+      mode: config.mode || 'recognition',  // Phase 18.2: Default to recognition if algorithm hasn't set mode
       direction: currentDirection,
       reviewedAt: new Date(),
       timeSpent,
@@ -143,7 +143,7 @@ export function ReviewSessionEnhanced({
     const result: ExtendedReviewResult = {
       vocabularyId: currentWord.id,
       rating,
-      mode: config.mode,
+      mode: config.mode || 'recognition',  // Phase 18.2: Default to recognition if algorithm hasn't set mode
       direction: currentDirection,
       reviewedAt: new Date(),
       timeSpent,
