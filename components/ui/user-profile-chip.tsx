@@ -88,14 +88,6 @@ export function UserProfileChip({ transparent = false }: UserProfileChipProps) {
 
   const menuItems = [
     {
-      icon: User,
-      label: "Profile",
-      onClick: () => {
-        setIsOpen(false);
-        // Navigate to profile page when implemented
-      },
-    },
-    {
       icon: Settings,
       label: "Settings",
       onClick: () => {
