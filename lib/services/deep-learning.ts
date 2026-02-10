@@ -14,7 +14,7 @@
 
 import { prisma } from '@/lib/backend/db';
 import OpenAI from 'openai';
-import { trackAICost } from './ai-cost-control';
+import { recordAICost } from './ai-cost-control';
 
 // Initialize OpenAI (only if API key is available)
 const openai = process.env.OPENAI_API_KEY

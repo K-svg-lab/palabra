@@ -3,7 +3,7 @@
 **Date:** February 10, 2026  
 **Severity:** Critical (Blocks deployment)  
 **Status:** ✅ Fixed  
-**Commits:** 84af07a, 908b420
+**Commits:** 84af07a, 908b420, cac6d3d
 
 ---
 
@@ -15,6 +15,7 @@ The initial Phase 18.2 deployment to Vercel failed with multiple errors related 
 2. **Prisma client path** - Wrong import path used
 3. **Missing Button component** - Referenced but never created
 4. **TypeScript JSX error** - File with JSX had `.ts` extension instead of `.tsx`
+5. **Type casting error** - Prisma JSON type requires casting through `unknown`
 
 ---
 
@@ -191,22 +192,22 @@ Button.displayName = 'Button';
 
 ## Files Changed
 
-### Modified (7 files)
+### Modified (8 files)
 
-1. **app/(dashboard)/review/comparative/page.tsx**
+1. **lib/services/ab-test-assignment.ts**
+   - Fix type casting: add `as unknown as` for Prisma JSON → FeatureFlags
+
+2. **app/(dashboard)/review/comparative/page.tsx**
    - Replace `getServerSession()` with `getSession()`
    - Fix session property access (`userId` vs `user.email`)
    - Fix prisma import path
 
-2. **app/api/user/feature-flags/route.ts**
+3. **app/api/user/feature-flags/route.ts**
    - Replace next-auth with custom auth
    - Fix prisma import path
 
-3. **app/api/analytics/ab-test-results/route.ts**
+4. **app/api/analytics/ab-test-results/route.ts**
    - Replace next-auth with custom auth
-   - Fix prisma import path
-
-4. **lib/services/ab-test-assignment.ts**
    - Fix prisma import path
 
 5. **lib/services/interference-detection.ts**
@@ -222,6 +223,9 @@ Button.displayName = 'Button';
 
 1. **components/ui/button.tsx**
    - New reusable Button component
+
+8. **components/features/comparative-review.tsx**
+   - Now imports Button from correct path
 
 ### Renamed (1 file)
 
@@ -315,17 +319,55 @@ git mv lib/hooks/use-feature-flags.ts lib/hooks/use-feature-flags.tsx
 
 TypeScript imports work without extensions, so no other files needed updating.
 
+### 5. Prisma JSON Type Casting (Strict Mode)
+
+**Problem:** Direct type assertion from Prisma JSON to custom type:
+```typescript
+// lib/services/ab-test-assignment.ts
+return (cohort?.featureFlags as FeatureFlags) || DEFAULT_FEATURES;
+```
+
+**Why it failed:**
+- Prisma returns `JsonValue` type for JSON fields (`string | number | boolean | JsonObject | JsonArray | null`)
+- TypeScript strict mode rejects direct casting to unrelated custom types
+- Need to cast through `unknown` first for type safety
+
+**Error message:**
+```
+Type error: Conversion of type 'string | number | boolean | JsonObject | JsonArray | null | undefined' 
+to type 'FeatureFlags' may be a mistake because neither type sufficiently overlaps with the other.
+Type 'JsonValue[]' is missing the following properties from type 'FeatureFlags': 
+aiExamples, retrievalVariation, interleavedPractice, interferenceDetection, deepLearningMode
+
+  141 |   }
+  142 |
+> 143 |   return (cohort?.featureFlags as FeatureFlags) || DEFAULT_FEATURES;
+      |           ^
+  144 | }
+```
+
+**Solution:**
+```typescript
+// Cast through 'unknown' for type safety
+return (cohort?.featureFlags as unknown as FeatureFlags) || DEFAULT_FEATURES;
+```
+
+This is the standard TypeScript pattern for converting between unrelated types when you know the runtime value matches.
+
 ---
 
 ## Deployment Status
 
 - **First Fix (84af07a):** Auth & Prisma imports, Button component
-  - **Result:** ✅ Build succeeded, but TypeScript check failed
+  - **Result:** ✅ Compilation succeeded, ❌ TypeScript check failed (JSX type error)
   
 - **Second Fix (908b420):** File extension for JSX
-  - **Pushed:** February 10, 2026 16:20 UTC
+  - **Result:** ✅ Compilation succeeded, ❌ TypeScript check failed (JSON type casting)
+  
+- **Third Fix (cac6d3d):** Prisma JSON type casting
+  - **Pushed:** February 10, 2026 16:23 UTC
   - **Vercel Build:** Triggered automatically
-  - **Expected:** Full build success, auto-deployment to production
+  - **Expected:** Full build success with TypeScript validation, auto-deployment to production
 
 ---
 
