@@ -475,6 +475,17 @@ Systematic testing of all 5 review methods confirmed correct implementation:
 
 *Context Selection uses immersion approach (always Spanish options) - pedagogically correct
 
+### **Phase 18 design principle: question vs options language**
+
+For any review method that shows a **question (prompt)** and **answer options** (e.g. Multiple Choice):
+
+- **The question and the options must never be in the same language.**
+- **ES→EN:** Question in Spanish → options in English.
+- **EN→ES:** Question in English → options in Spanish.
+- **Never:** EN question + EN options, or ES question + ES options (no EN/EN or ES/ES).
+
+This applies to Multiple Choice; Context Selection follows its own immersion rule (Spanish sentence + Spanish options, with optional English prompt for EN→ES). Implementation must preserve this invariant (including placeholder options when there are not enough words).
+
 ---
 
 ## 🛠️ Implementation Details

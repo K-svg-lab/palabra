@@ -393,5 +393,18 @@ Debug session is successful when:
 
 ---
 
-**Last Updated**: February 5, 2026  
+## 🔐 **Related: Localhost login "Invalid email or password"** (Feb 10, 2026)
+
+**Symptom:** Credentials work on the deployed site but localhost:3000 returns "Invalid email or password".
+
+**Causes & fixes:**
+1. **Different database** – Local uses a different `DATABASE_URL`; the user exists only in production. **Fix:** Set `DATABASE_URL` in `.env.local` to the same value as production (e.g. from Vercel env vars), then restart `npm run dev`.
+2. **Email casing** – Lookup was case-sensitive. **Fix (in code):** Sign-in now normalizes email (lowercase) and falls back to original; sign-up stores normalized email. Dev-only logs indicate "User not found" vs "Password mismatch" in the terminal.
+
+**Full details:**  
+📄 [BUG_FIX_LOCALHOST_LOGIN_CREDENTIALS.md](../../bug-fixes/2026-02/BUG_FIX_LOCALHOST_LOGIN_CREDENTIALS.md)
+
+---
+
+**Last Updated**: February 10, 2026  
 **Status**: Documented, ready for systematic debugging

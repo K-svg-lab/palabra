@@ -58,6 +58,11 @@ interface ReviewSessionVariedProps {
   userLevel?: string;
   /** Callback when user wants to change settings mid-session */
   onConfigChange?: () => void;
+  /**
+   * Full vocabulary list for method components that need it (e.g. multiple-choice, context-selection).
+   * When provided, same as test interface: better distractor generation. Falls back to session words.
+   */
+  allWords?: VocabularyWord[];
 }
 
 export function ReviewSessionVaried({
@@ -67,6 +72,7 @@ export function ReviewSessionVaried({
   onCancel,
   userLevel,
   onConfigChange,
+  allWords: allWordsProp,
 }: ReviewSessionVariedProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [results, setResults] = useState<ExtendedReviewResult[]>([]);
@@ -146,11 +152,11 @@ export function ReviewSessionVaried({
   }, [currentWord, methodHistory, methodPerformance, userLevel, currentIndex, processedWords.length, selectedMethodsMap]);
 
   // Reset state when moving to next card
+  // Align with test interface: mixed = alternating ES→EN, EN→ES per card (same as /review/test)
   useEffect(() => {
     console.log('[Direction Effect] Triggered for currentIndex:', currentIndex, 'currentWord:', currentWord?.spanishWord);
-    // For mixed mode, randomly choose direction for each card
     if (config.direction === 'mixed') {
-      setCurrentDirection(Math.random() > 0.5 ? 'spanish-to-english' : 'english-to-spanish');
+      setCurrentDirection(currentIndex % 2 === 0 ? 'spanish-to-english' : 'english-to-spanish');
     }
   }, [currentIndex, config.direction, currentWord]);
 
@@ -384,6 +390,9 @@ export function ReviewSessionVaried({
   // Current method metadata for display
   const methodMetadata = REVIEW_METHOD_METADATA[selectedMethod];
 
+  // Use full vocabulary for methods that need allWords (same as test interface)
+  const wordsForMethods = allWordsProp && allWordsProp.length > 0 ? allWordsProp : processedWords;
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950 pb-20">
       {/* Header */}
@@ -513,7 +522,7 @@ export function ReviewSessionVaried({
                   {console.log('[Rendering] Multiple-Choice component for:', currentWord.spanishWord)}
                   <MultipleChoiceReview
                     word={currentWord}
-                    allWords={processedWords}
+                    allWords={wordsForMethods}
                     direction={currentDirection}
                     cardNumber={`${results.length + 1} of ${processedWords.length}`}
                     onComplete={handleMethodComplete}
@@ -537,7 +546,7 @@ export function ReviewSessionVaried({
                   {console.log('[Rendering] Context-Selection component for:', currentWord.spanishWord)}
                   <ContextSelectionReview
                     word={currentWord}
-                    allWords={processedWords}
+                    allWords={wordsForMethods}
                     direction={currentDirection}
                     cardNumber={`${results.length + 1} of ${processedWords.length}`}
                     onComplete={handleMethodComplete}

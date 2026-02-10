@@ -486,10 +486,10 @@ export class CloudSyncService implements SyncService {
         endTime,
         duration: endTime.getTime() - startTime.getTime(),
         uploaded: operations.vocabulary.length + operations.reviews.length + operations.stats.length,
-        downloaded: vocabResult.operations.length + reviewsResult.reviews.length + statsResult.stats.length,
-        conflicts: vocabResult.conflicts.length,
+        downloaded: (vocabResult.operations?.length || 0) + (reviewsResult.reviews?.length || 0) + (statsResult.stats?.length || 0),
+        conflicts: vocabResult.conflicts?.length || 0,
         errors: 0,
-        conflictDetails: vocabResult.conflicts,
+        conflictDetails: vocabResult.conflicts || [],
         deviceId: this.deviceId,
         deviceName: this.getDeviceName(),
       };

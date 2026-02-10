@@ -93,34 +93,51 @@ export default function HomePage() {
 
   // Check authentication status and proficiency onboarding
   // Guest Mode (Feb 8, 2026): Allow unauthenticated users to use app with local data
+  // Phase 18.2 fix: Timeout so /api/auth/me never blocks forever (prevents endless Loading)
   useEffect(() => {
+    let cancelled = false;
+    const timeoutMs = 8000; // 8s max wait for auth response
+
     async function checkAuth() {
       try {
-        const response = await fetch('/api/auth/me');
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+        const response = await fetch('/api/auth/me', { signal: controller.signal });
+        clearTimeout(timeoutId);
+
+        if (cancelled) return;
         if (response.ok) {
           const data = await response.json();
           setUser(data.user);
           setIsAuthenticated(true);
-          
+
           // Phase 18.1: Check if user needs proficiency onboarding
           if (data.user && !data.user.languageLevel && !hasCompletedProficiencyOnboarding()) {
             setShowProficiencyOnboarding(true);
           }
         } else {
-          // Not authenticated - GUEST MODE (works with local IndexedDB)
           setIsAuthenticated(false);
           setUser(null);
         }
       } catch (error) {
-        // Network error or not authenticated - GUEST MODE
-        console.log('Not authenticated - using guest mode');
+        if (cancelled) return;
+        // Timeout, network error, or not authenticated - GUEST MODE
+        if (error instanceof Error && error.name === 'AbortError') {
+          console.warn('[Home] Auth check timed out - using guest mode');
+        } else {
+          console.log('Not authenticated - using guest mode');
+        }
         setIsAuthenticated(false);
         setUser(null);
       } finally {
-        setUserLoading(false);
+        if (!cancelled) setUserLoading(false);
       }
     }
+
     checkAuth();
+    return () => {
+      cancelled = true;
+    };
   }, [router]);
 
   // Check if user needs onboarding (only on mount)

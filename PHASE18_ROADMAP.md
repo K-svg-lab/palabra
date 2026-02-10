@@ -26,7 +26,21 @@ TOTAL PROGRESS:                     [█████░░░░░] 10/17 tasks
 
 ## 🔥 **Recent Updates**
 
-### **Feb 10, 2026 (Latest): All Deployment Errors Fixed** 🔧 **BUILD IN PROGRESS**
+### **Feb 10, 2026 (Latest): Localhost login fix** ✅ **LOGGED**
+
+**Issue:** Login worked on deployed site but localhost:3000 returned "Invalid email or password".
+
+**Fixes applied:**
+- Email normalization on sign-in (lowercase + fallback for mixed-case) and sign-up (store lowercase).
+- Dev-only logs: terminal shows "User not found" vs "Password mismatch" for debugging.
+- **Likely cause:** Different `DATABASE_URL` locally → user not in local DB. Using production `DATABASE_URL` in `.env.local` resolves it.
+
+**Documentation:** `docs/bug-fixes/2026-02/BUG_FIX_LOCALHOST_LOGIN_CREDENTIALS.md`  
+**Debug/troubleshooting:** `docs/guides/troubleshooting/LOCALHOST_HANG_DEBUG_GUIDE.md` (Related section)
+
+---
+
+### **Feb 10, 2026: All Deployment Errors Fixed** 🔧 **BUILD IN PROGRESS**
 
 **Issue:** Phase 18.2 deployment failed with multiple TypeScript and module errors across 5 build attempts.
 
@@ -1706,6 +1720,7 @@ _Document any deviations from original plan_
 - [BUG_FIX_2026_02_10_SYNC_DATA_LOSS.md](docs/bug-fixes/2026-02/BUG_FIX_2026_02_10_SYNC_DATA_LOSS.md) - Cloud sync fix
 - [BUG_FIX_2026_02_10_REVIEW_UX_IMPROVEMENTS.md](docs/bug-fixes/2026-02/BUG_FIX_2026_02_10_REVIEW_UX_IMPROVEMENTS.md) - Settings simplification + modal rename
 - [BUG_FIX_2026_02_10_REVIEW_DIRECTIONALITY.md](docs/bug-fixes/2026-02/BUG_FIX_2026_02_10_REVIEW_DIRECTIONALITY.md) - Directionality + quality fixes
+- [BUG_FIX_LOCALHOST_LOGIN_CREDENTIALS.md](docs/bug-fixes/2026-02/BUG_FIX_LOCALHOST_LOGIN_CREDENTIALS.md) - Localhost login (email normalization + DATABASE_URL)
 
 **Other Documentation:**
 - [PHASE18_GUEST_MODE.md](PHASE18_GUEST_MODE.md) - Guest Mode Implementation

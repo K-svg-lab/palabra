@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Settings, Zap } from "lucide-react";
+import Link from "next/link";
+import { Settings, Zap, FlaskConical } from "lucide-react";
 import type { StudySessionConfig } from "@/lib/types/review";
 import type { VocabularyWord } from "@/lib/types/vocabulary";
 import { getAllReviews, getDueReviews } from "@/lib/db/reviews";
@@ -249,6 +250,17 @@ export function SessionConfig({
         >
           Apply
         </button>
+      </div>
+
+      {/* Test question types (no practice session) */}
+      <div className="pt-3 mt-2 border-t border-black/5 dark:border-white/5">
+        <Link
+          href="/review/test"
+          className="inline-flex items-center gap-2 text-xs text-text-tertiary hover:text-accent transition-colors"
+        >
+          <FlaskConical className="w-3.5 h-3.5" />
+          Test question types
+        </Link>
       </div>
     </div>
   );

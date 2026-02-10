@@ -37,10 +37,11 @@ async function handler(request: NextRequest) {
   }
   
   const { name, email, password } = body;
-  
+  const emailNormalized = email.trim().toLowerCase();
+
   // Validate email format
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  if (!emailRegex.test(email)) {
+  if (!emailRegex.test(emailNormalized)) {
     return apiError('Invalid email format', 400);
   }
   
@@ -50,23 +51,23 @@ async function handler(request: NextRequest) {
   }
   
   try {
-    // Check if user already exists
+    // Check if user already exists (by normalized email)
     const existingUser = await prisma.user.findUnique({
-      where: { email },
+      where: { email: emailNormalized },
     });
-    
+
     if (existingUser) {
       return apiError('User with this email already exists', 409);
     }
-    
+
     // Hash password
     const hashedPassword = await hashPassword(password);
-    
-    // Create user
+
+    // Create user (store normalized email for consistent lookups)
     const user = await prisma.user.create({
       data: {
         name,
-        email,
+        email: emailNormalized,
         password: hashedPassword,
       },
       select: {

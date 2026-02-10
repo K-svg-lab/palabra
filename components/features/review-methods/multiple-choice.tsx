@@ -64,7 +64,7 @@ export function MultipleChoiceReview({
     generateOptions(word, allWords, direction)
   );
 
-  // Get question and correct answer based on direction
+  // Phase 18 design: question and options must be in different languages (no EN/EN or ES/ES).
   const question = direction === 'spanish-to-english'
     ? word.spanishWord
     : word.englishTranslation;
@@ -367,9 +367,11 @@ function generateOptions(
     if (distractors.length >= 3) break;
   }
 
-  // If we don't have enough words, generate placeholder distractors
+  // Placeholder distractors must be in the SAME language as correctAnswer (never same language as question).
+  // Phase 18 design: question and options must be in different languages (no EN/EN or ES/ES).
+  const placeholderPrefix = direction === 'spanish-to-english' ? 'Option' : 'Opción';
   while (distractors.length < 3) {
-    distractors.push(`Option ${distractors.length + 1}`);
+    distractors.push(`${placeholderPrefix} ${distractors.length + 1}`);
   }
 
   // Create options array

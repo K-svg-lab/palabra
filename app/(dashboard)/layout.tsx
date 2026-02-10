@@ -48,21 +48,31 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const hideFloatingUser = pagesWithHeaderUser.includes(pathname);
 
   useEffect(() => {
-    // Check authentication status
+    // Check authentication status (with timeout so we never block layout)
+    let cancelled = false;
+    const timeoutMs = 8000;
+
     async function checkAuth() {
       try {
-        const response = await fetch('/api/auth/me');
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+        const response = await fetch('/api/auth/me', { signal: controller.signal });
+        clearTimeout(timeoutId);
+        if (cancelled) return;
         if (response.ok) {
           const data = await response.json();
           setUser(data.user);
         }
       } catch (error) {
-        console.log('Not authenticated');
+        if (!cancelled) console.log('Not authenticated');
       } finally {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       }
     }
     checkAuth();
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   return (

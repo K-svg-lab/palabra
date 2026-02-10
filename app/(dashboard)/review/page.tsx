@@ -670,6 +670,7 @@ export default function ReviewPage() {
         onCancel={handleSessionCancel}
         userLevel={userLevel}
         onConfigChange={() => setShowMidSessionConfig(true)}
+        allWords={allWords || []}
       />
     </div>
   );
