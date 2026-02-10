@@ -1,19 +1,24 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Settings, ArrowRight, ArrowLeftRight, Headphones, Eye, Keyboard, Zap } from "lucide-react";
-import type { StudySessionConfig, ReviewDirection, ReviewMode } from "@/lib/types/review";
-import type { VocabularyStatus, VocabularyWord } from "@/lib/types/vocabulary";
+import { Settings, Zap } from "lucide-react";
+import type { StudySessionConfig } from "@/lib/types/review";
+import type { VocabularyWord } from "@/lib/types/vocabulary";
 import { getAllReviews, getDueReviews } from "@/lib/db/reviews";
 
 /**
- * Session Configuration Component - Phase 8
+ * Session Configuration Component - Phase 18.2
  * 
- * Allows users to customize their study session:
- * - Session size (number of cards)
- * - Review direction (Spanish→English, English→Spanish, Mixed)
- * - Review mode (Recognition, Recall, Listening)
- * - Filters (status, tags, weak words)
+ * Simplified session preferences aligned with intelligent algorithm:
+ * - Session size (time management)
+ * - Topic filter (thematic study)
+ * - Practice mode (review any words, not just due)
+ * 
+ * Algorithm automatically handles:
+ * - Method selection (5 varied methods)
+ * - Direction variation (balanced ES→EN and EN→ES)
+ * - Weakness targeting (70% weight toward struggling areas)
+ * - Intelligent interleaving (spaced similar words)
  */
 
 interface SessionConfigProps {
@@ -40,15 +45,12 @@ export function SessionConfig({
   onCancel,
 }: SessionConfigProps) {
   const [sessionSize, setSessionSize] = useState(defaultConfig.sessionSize || 20);
-  const [direction, setDirection] = useState<ReviewDirection>(defaultConfig.direction || 'spanish-to-english');
-  const [mode, setMode] = useState<ReviewMode>(defaultConfig.mode || 'recognition');
-  const [statusFilter, setStatusFilter] = useState<VocabularyStatus[]>(defaultConfig.statusFilter || []);
   const [tagFilter, setTagFilter] = useState<string[]>(defaultConfig.tagFilter || []);
-  const [weakWordsOnly, setWeakWordsOnly] = useState(defaultConfig.weakWordsOnly || false);
-  const [weakWordsThreshold, setWeakWordsThreshold] = useState(defaultConfig.weakWordsThreshold || 70);
-  const [randomize, setRandomize] = useState(defaultConfig.randomize ?? true);
   const [practiceMode, setPracticeMode] = useState(defaultConfig.practiceMode || false);
   const [actualAvailable, setActualAvailable] = useState(totalAvailable);
+  
+  // Phase 18.2: Removed redundant settings (mode, direction, statusFilter, weakWordsOnly, weakWordsThreshold, randomize)
+  // Algorithm now handles method selection, weakness targeting, and intelligent ordering automatically
 
   // Calculate actual available cards based on current filters
   useEffect(() => {
@@ -71,53 +73,11 @@ export function SessionConfig({
               return !hasReview || isDue;
             });
 
-        // Apply status filter if configured
-        if (statusFilter.length > 0) {
-          wordsToReview = wordsToReview.filter(word => 
-            statusFilter.includes(word.status)
-          );
-        }
-
         // Apply tag filter if configured
         if (tagFilter.length > 0) {
           wordsToReview = wordsToReview.filter(word =>
             word.tags?.some((tag: string) => tagFilter.includes(tag))
           );
-        }
-
-        // Apply weak words filter if configured
-        if (weakWordsOnly) {
-          const threshold = weakWordsThreshold / 100;
-          
-          wordsToReview = wordsToReview.filter(word => {
-            const review = reviewMap.get(word.id);
-            if (!review || review.totalReviews === 0) return true; // Include new words
-            
-            // Phase 8 Enhancement: Use directional accuracy based on current direction
-            let accuracy: number;
-            if (direction === 'english-to-spanish') {
-              // EN→ES direction: use productive accuracy (typically harder)
-              if (review.enToEsTotal > 0) {
-                accuracy = review.enToEsCorrect / review.enToEsTotal;
-              } else {
-                // Never tested in this direction = needs practice (treat as 0% accuracy)
-                accuracy = 0;
-              }
-            } else if (direction === 'spanish-to-english') {
-              // ES→EN direction: use receptive accuracy
-              if (review.esToEnTotal > 0) {
-                accuracy = review.esToEnCorrect / review.esToEnTotal;
-              } else {
-                // Never tested in this direction = needs practice (treat as 0% accuracy)
-                accuracy = 0;
-              }
-            } else {
-              // Mixed direction: use overall accuracy
-              accuracy = review.correctCount / review.totalReviews;
-            }
-            
-            return accuracy < threshold;
-          });
         }
 
         setActualAvailable(wordsToReview.length);
@@ -128,29 +88,22 @@ export function SessionConfig({
     }
 
     calculateAvailable();
-  }, [allWords, practiceMode, statusFilter, tagFilter, weakWordsOnly, weakWordsThreshold, totalAvailable, direction]);
+  }, [allWords, practiceMode, tagFilter, totalAvailable]);
 
   const handleStart = () => {
     const config: StudySessionConfig = {
       sessionSize,
-      direction,
-      mode,
-      statusFilter: statusFilter.length > 0 ? statusFilter : undefined,
+      direction: 'mixed',  // Phase 18.2: Algorithm varies direction per card
+      mode: 'varied',  // Phase 18.2: Algorithm selects optimal method per card
       tagFilter: tagFilter.length > 0 ? tagFilter : undefined,
-      weakWordsOnly: weakWordsOnly || undefined,
-      weakWordsThreshold: weakWordsOnly ? weakWordsThreshold : undefined,
-      randomize,
       practiceMode: practiceMode || undefined,
+      // Phase 18.2: Removed redundant settings - algorithm handles these automatically:
+      // - statusFilter: Algorithm prioritizes due words
+      // - weakWordsOnly: Algorithm weights weaknesses (70% toward struggling methods)
+      // - weakWordsThreshold: Algorithm calculates dynamically
+      // - randomize: Algorithm uses intelligent interleaving
     };
     onStart(config);
-  };
-
-  const toggleStatus = (status: VocabularyStatus) => {
-    setStatusFilter(prev =>
-      prev.includes(status)
-        ? prev.filter(s => s !== status)
-        : [...prev, status]
-    );
   };
 
   const toggleTag = (tag: string) => {
@@ -171,10 +124,10 @@ export function SessionConfig({
           <Settings className="w-5 h-5" />
         </div>
         <h2 className="text-xl sm:text-2xl font-semibold text-text">
-          Configure Study Session
+          Review Preferences
         </h2>
         <p className="text-xs sm:text-sm text-text-secondary">
-          Customize your learning experience
+          Adjust your current session
         </p>
       </div>
 
@@ -199,149 +152,38 @@ export function SessionConfig({
         </div>
       </div>
 
-      {/* Review Direction */}
-      <div className="space-y-2">
-        <label className="block text-sm font-medium text-text">
-          Review Direction
-        </label>
-        <div className="grid grid-cols-3 gap-1.5 sm:gap-2">
-          <button
-            onClick={() => setDirection('spanish-to-english')}
-            className={`p-2 sm:p-4 rounded-lg sm:rounded-xl border-2 transition-all ${
-              direction === 'spanish-to-english'
-                ? 'border-accent bg-accent/10 text-accent'
-                : 'border-separator hover:border-accent/50'
-            }`}
-          >
-            <div className="flex flex-col items-center gap-0.5 sm:gap-2">
-              <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5" />
-              <span className="text-xs sm:text-sm font-medium">ES → EN</span>
-              <span className="text-[10px] sm:text-xs text-text-secondary hidden sm:block">Spanish to English</span>
-            </div>
-          </button>
-          <button
-            onClick={() => setDirection('english-to-spanish')}
-            className={`p-2 sm:p-4 rounded-lg sm:rounded-xl border-2 transition-all ${
-              direction === 'english-to-spanish'
-                ? 'border-accent bg-accent/10 text-accent'
-                : 'border-separator hover:border-accent/50'
-            }`}
-          >
-            <div className="flex flex-col items-center gap-0.5 sm:gap-2">
-              <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 rotate-180" />
-              <span className="text-xs sm:text-sm font-medium">EN → ES</span>
-              <span className="text-[10px] sm:text-xs text-text-secondary hidden sm:block">English to Spanish</span>
-            </div>
-          </button>
-          <button
-            onClick={() => setDirection('mixed')}
-            className={`p-2 sm:p-4 rounded-lg sm:rounded-xl border-2 transition-all ${
-              direction === 'mixed'
-                ? 'border-accent bg-accent/10 text-accent'
-                : 'border-separator hover:border-accent/50'
-            }`}
-          >
-            <div className="flex flex-col items-center gap-0.5 sm:gap-2">
-              <ArrowLeftRight className="w-4 h-4 sm:w-5 sm:h-5" />
-              <span className="text-xs sm:text-sm font-medium">Mixed</span>
-              <span className="text-[10px] sm:text-xs text-text-secondary hidden sm:block">Both directions</span>
-            </div>
-          </button>
-        </div>
+      {/* Essential Settings */}
+      
+      {/* Algorithm Info */}
+      <div className="p-4 bg-accent/10 rounded-xl border border-accent/20">
+        <p className="text-sm text-text-secondary text-center">
+          ✨ <strong className="text-accent">Smart Algorithm Active</strong>
+          <br />
+          <span className="text-xs">
+            Palabra automatically varies review methods, targets your weaknesses, 
+            and optimizes for retention. Just focus on learning!
+          </span>
+        </p>
       </div>
 
-      {/* Review Mode */}
-      <div className="space-y-2">
-        <label className="block text-sm font-medium text-text">
-          Review Mode
-        </label>
-        <div className="grid grid-cols-3 gap-1.5 sm:gap-2">
-          <button
-            onClick={() => setMode('recognition')}
-            className={`p-2 sm:p-4 rounded-lg sm:rounded-xl border-2 transition-all ${
-              mode === 'recognition'
-                ? 'border-accent bg-accent/10 text-accent'
-                : 'border-separator hover:border-accent/50'
-            }`}
-          >
-            <div className="flex flex-col items-center gap-0.5 sm:gap-2">
-              <Eye className="w-4 h-4 sm:w-5 sm:h-5" />
-              <span className="text-xs sm:text-sm font-medium">Recognition</span>
-              <span className="text-[10px] sm:text-xs text-text-secondary hidden sm:block">Flip cards</span>
-            </div>
-          </button>
-          <button
-            onClick={() => setMode('recall')}
-            className={`p-2 sm:p-4 rounded-lg sm:rounded-xl border-2 transition-all ${
-              mode === 'recall'
-                ? 'border-accent bg-accent/10 text-accent'
-                : 'border-separator hover:border-accent/50'
-            }`}
-          >
-            <div className="flex flex-col items-center gap-0.5 sm:gap-2">
-              <Keyboard className="w-4 h-4 sm:w-5 sm:h-5" />
-              <span className="text-xs sm:text-sm font-medium">Recall</span>
-              <span className="text-[10px] sm:text-xs text-text-secondary hidden sm:block">Type answer</span>
-            </div>
-          </button>
-          <button
-            onClick={() => setMode('listening')}
-            className={`p-2 sm:p-4 rounded-lg sm:rounded-xl border-2 transition-all ${
-              mode === 'listening'
-                ? 'border-accent bg-accent/10 text-accent'
-                : 'border-separator hover:border-accent/50'
-            }`}
-          >
-            <div className="flex flex-col items-center gap-0.5 sm:gap-2">
-              <Headphones className="w-4 h-4 sm:w-5 sm:h-5" />
-              <span className="text-xs sm:text-sm font-medium">Listening</span>
-              <span className="text-[10px] sm:text-xs text-text-secondary hidden sm:block">Audio first</span>
-            </div>
-          </button>
-        </div>
-      </div>
+      {/* Advanced Options - Collapsible */}
+      <div className="space-y-3">
 
-      {/* Advanced Options - Compact Layout */}
-      <div className="space-y-2 p-3 rounded-xl bg-black/5 dark:bg-white/5">
-        {/* Status Filter */}
-        <div className="space-y-2">
-          <label className="block text-xs font-medium text-text">
-            Filter by Status <span className="text-text-tertiary">(optional)</span>
-          </label>
-          <div className="flex flex-wrap gap-1.5">
-            {(['new', 'learning', 'mastered'] as VocabularyStatus[]).map((status) => (
-              <button
-                key={status}
-                onClick={() => toggleStatus(status)}
-                className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
-                  statusFilter.includes(status)
-                    ? 'bg-accent text-white'
-                    : 'bg-black/5 dark:bg-white/5 text-text-secondary hover:bg-black/10 dark:hover:bg-white/10'
-                }`}
-              >
-                {status === 'new' && '🆕 New'}
-                {status === 'learning' && '📚 Learning'}
-                {status === 'mastered' && '✅ Mastered'}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Tag Filter */}
+        {/* Tag Filter - Keep for thematic study */}
         {availableTags.length > 0 && (
-          <div className="space-y-2 pt-2 border-t border-separator">
-            <label className="block text-xs font-medium text-text">
-              Filter by Tags <span className="text-text-tertiary">(optional)</span>
+          <div className="space-y-2">
+            <label className="block text-sm font-medium text-text">
+              🏷️ Filter by Topic <span className="text-text-tertiary">(optional)</span>
             </label>
-            <div className="flex flex-wrap gap-1.5">
+            <div className="flex flex-wrap gap-2">
               {availableTags.map((tag) => (
                 <button
                   key={tag}
                   onClick={() => toggleTag(tag)}
-                  className={`px-2.5 py-1 rounded-full text-xs font-medium transition-all ${
+                  className={`px-3 py-2 rounded-lg text-sm font-medium transition-all ${
                     tagFilter.includes(tag)
                       ? 'bg-accent text-white'
-                      : 'bg-black/5 dark:bg-white/5 text-text-secondary hover:bg-black/10 dark:hover:bg-white/10'
+                      : 'bg-black/5 dark:bg-white/5 text-text hover:bg-black/10 dark:hover:bg-white/10'
                   }`}
                 >
                   {tag}
@@ -351,79 +193,29 @@ export function SessionConfig({
           </div>
         )}
 
-        {/* Weak Words & Practice Mode - Compact Toggles */}
-        <div className="space-y-2 pt-2 border-t border-separator">
+        {/* Practice Mode - Keep for flexibility */}
+        <div className="space-y-2">
           <div className="flex items-center justify-between">
-            <label className="text-xs font-medium text-text flex items-center gap-1.5">
-              <Zap className="w-3.5 h-3.5 text-accent" />
-              Weak Words Only
+            <label className="text-sm font-medium text-text flex items-center gap-2">
+              <Zap className="w-4 h-4 text-orange-500" />
+              Practice Mode
             </label>
             <button
-              onClick={() => setWeakWordsOnly(!weakWordsOnly)}
-              className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${
-                weakWordsOnly ? 'bg-accent' : 'bg-black/10 dark:bg-white/10'
+              onClick={() => setPracticeMode(!practiceMode)}
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                practiceMode ? 'bg-orange-500' : 'bg-black/10 dark:bg-white/10'
               }`}
             >
               <span
-                className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${
-                  weakWordsOnly ? 'translate-x-5' : 'translate-x-0.5'
+                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                  practiceMode ? 'translate-x-6' : 'translate-x-1'
                 }`}
               />
             </button>
           </div>
-          {weakWordsOnly && (
-            <div className="space-y-1 pl-5">
-              <label className="block text-xs text-text-secondary">
-                Threshold: {weakWordsThreshold}%
-              </label>
-              <input
-                type="range"
-                min="50"
-                max="90"
-                step="5"
-                value={weakWordsThreshold}
-                onChange={(e) => setWeakWordsThreshold(Number(e.target.value))}
-                className="w-full"
-              />
-            </div>
-          )}
-        </div>
-
-        <div className="flex items-center justify-between pt-2 border-t border-separator">
-          <label className="text-xs font-medium text-text flex items-center gap-1.5">
-            <Zap className="w-3.5 h-3.5 text-orange-500" />
-            Practice Mode
-          </label>
-          <button
-            onClick={() => setPracticeMode(!practiceMode)}
-            className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${
-              practiceMode ? 'bg-orange-500' : 'bg-black/10 dark:bg-white/10'
-            }`}
-          >
-            <span
-              className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${
-                practiceMode ? 'translate-x-5' : 'translate-x-0.5'
-              }`}
-            />
-          </button>
-        </div>
-
-        <div className="flex items-center justify-between pt-2 border-t border-separator">
-          <label className="text-xs font-medium text-text">
-            Randomize Order
-          </label>
-          <button
-            onClick={() => setRandomize(!randomize)}
-            className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${
-              randomize ? 'bg-accent' : 'bg-black/10 dark:bg-white/10'
-            }`}
-          >
-            <span
-              className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${
-                randomize ? 'translate-x-5' : 'translate-x-0.5'
-              }`}
-            />
-          </button>
+          <p className="text-xs text-text-tertiary">
+            Review any words, not just due cards
+          </p>
         </div>
       </div>
 
@@ -431,13 +223,12 @@ export function SessionConfig({
       <div className={`p-3 rounded-xl border ${actualAvailable === 0 ? 'bg-orange-50 dark:bg-orange-900/20 border-orange-200 dark:border-orange-800' : 'bg-accent/10 border-accent/20'}`}>
         <p className={`text-xs sm:text-sm text-center ${actualAvailable === 0 ? 'text-orange-800 dark:text-orange-200' : 'text-text-secondary'}`}>
           <span className={`font-semibold ${actualAvailable === 0 ? 'text-orange-600 dark:text-orange-400' : 'text-accent'}`}>{effectiveSessionSize}</span> cards available
-          {statusFilter.length > 0 && ` • ${statusFilter.join(', ')}`}
-          {tagFilter.length > 0 && ` • Tags: ${tagFilter.join(', ')}`}
-          {weakWordsOnly && ` • Weak words only`}
+          {tagFilter.length > 0 && ` • Topics: ${tagFilter.join(', ')}`}
+          {practiceMode && ` • Practice mode`}
         </p>
-        {actualAvailable === 0 && weakWordsOnly && (
+        {actualAvailable === 0 && tagFilter.length > 0 && (
           <p className="text-xs text-center text-orange-700 dark:text-orange-300 mt-2">
-            No words found below {weakWordsThreshold}% accuracy. Try lowering the threshold or disable "Weak Words Only".
+            No words found with selected topics. Try removing some filters.
           </p>
         )}
       </div>
@@ -455,7 +246,7 @@ export function SessionConfig({
           disabled={actualAvailable === 0}
           className="flex-1 py-2.5 sm:py-3 px-4 sm:px-6 rounded-xl text-sm font-medium bg-accent text-white hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          Start Session
+          Apply
         </button>
       </div>
     </div>

@@ -64,12 +64,12 @@ export function ContextSelectionReview({
   // Generate options and blank sentence
   const [question] = useState(() => {
     if (!example) {
-      // Fallback: simple definition sentence
-      // ES→EN: Spanish word translates to ______ (English options)
-      // EN→ES: Spanish sentence with ______ (Spanish options)
+      // Fallback: simple definition sentence (Phase 18.2: Always Spanish options)
+      // ES→EN: Spanish sentence with ______ (Spanish options, meaning shown after)
+      // EN→ES: Spanish sentence with ______ (Spanish options, English prompt)
       if (direction === 'spanish-to-english') {
         return {
-          sentence: `"${word.spanishWord}" se traduce a ______`,
+          sentence: `¿Qué palabra completa la frase? "_______" se relaciona con "${word.englishTranslation}"`,
           englishPrompt: null,
           options: generateOptions(word, allWords, direction),
           correctIndex: 0,
@@ -106,7 +106,7 @@ export function ContextSelectionReview({
         direction,
         spanishSentence,
         englishPrompt,
-        optionsLanguage: direction === 'spanish-to-english' ? 'English' : 'Spanish',
+        optionsLanguage: 'Spanish (both modes - full immersion)',
       });
     }
 
@@ -328,6 +328,18 @@ export function ContextSelectionReview({
                 <p className="text-base sm:text-lg font-semibold text-green-600 dark:text-green-400">
                   ✓ Correct!
                 </p>
+                {/* Phase 18.2: Show English meaning for ES→EN mode */}
+                {direction === 'spanish-to-english' && (
+                  <p className="text-xs sm:text-sm text-text-secondary mt-2">
+                    <span className="font-bold text-accent">{word.spanishWord}</span> means "<span className="italic">{word.englishTranslation}</span>" in English
+                  </p>
+                )}
+                {/* Phase 18.2: Show confirmation for EN→ES mode */}
+                {direction === 'english-to-spanish' && (
+                  <p className="text-xs sm:text-sm text-text-secondary mt-2">
+                    You found the Spanish word for "<span className="italic">{word.englishTranslation}</span>"!
+                  </p>
+                )}
               </div>
             ) : (
               <div className="text-center p-3 sm:p-4 bg-red-500/10 rounded-xl border-2 border-red-500/30">
@@ -338,6 +350,10 @@ export function ContextSelectionReview({
                   Correct: <span className="font-bold text-accent">
                     {shuffledOptions.options[shuffledOptions.correctIndex]}
                   </span>
+                </p>
+                {/* Phase 18.2: Show English meaning for both modes */}
+                <p className="text-xs sm:text-sm text-text-secondary mt-1">
+                  <span className="font-bold text-accent">{word.spanishWord}</span> means "<span className="italic">{word.englishTranslation}</span>" in English
                 </p>
               </div>
             )}
@@ -397,28 +413,27 @@ export function ContextSelectionReview({
 
 /**
  * Generate 4 word options (1 correct + 3 similar distractors)
- * Phase 18 UX Fix: Corrected logic for language learning
+ * Phase 18.2 UX Fix: Full Spanish Immersion - ALWAYS use Spanish options
  * 
- * ES→EN: User sees Spanish sentence, selects English translation
+ * ES→EN: User sees Spanish sentence, selects Spanish word (then shown English meaning)
  * EN→ES: User sees Spanish sentence, selects Spanish word (with English prompt)
+ * 
+ * Both modes use Spanish options for true immersion and authentic comprehension
  */
 function generateOptions(
   word: VocabularyWord,
   allWords: VocabularyWord[],
   direction: 'spanish-to-english' | 'english-to-spanish'
 ): string[] {
-  // Phase 18 UX Fix: Options are in TARGET language (what user must produce/identify)
-  // ES→EN: Spanish sentence → English options (translate)
-  // EN→ES: Spanish sentence → Spanish options (identify/produce)
-  const correctWord = direction === 'spanish-to-english'
-    ? word.englishTranslation  // ES→EN: Show English options
-    : word.spanishWord;        // EN→ES: Show Spanish options
+  // Phase 18.2 UX Fix: ALWAYS use Spanish options for full immersion
+  // Both ES→EN and EN→ES modes test Spanish word knowledge in context
+  const correctWord = word.spanishWord;  // Always Spanish for immersion
 
   if (process.env.NODE_ENV === 'development') {
     console.log('🔍 [Context Selection] generateOptions:', {
       direction,
       correctWord,
-      language: direction === 'spanish-to-english' ? 'English' : 'Spanish',
+      language: 'Spanish (both modes - full immersion)',
     });
   }
 
@@ -432,14 +447,12 @@ function generateOptions(
     ? samePartOfSpeech 
     : allWords.filter(w => w.id !== word.id);
 
-  // Get 3 random distractors in TARGET language
+  // Get 3 random Spanish distractors
   const distractors: string[] = [];
   const shuffled = [...distractorPool].sort(() => Math.random() - 0.5);
 
   for (const w of shuffled) {
-    const distractor = direction === 'spanish-to-english'
-      ? w.englishTranslation  // ES→EN: English distractors
-      : w.spanishWord;        // EN→ES: Spanish distractors
+    const distractor = w.spanishWord;  // Always Spanish distractors
 
     if (distractor !== correctWord && !distractors.includes(distractor)) {
       distractors.push(distractor);
@@ -450,7 +463,7 @@ function generateOptions(
 
   // Fill with placeholders if needed
   while (distractors.length < 3) {
-    distractors.push(`Option ${distractors.length + 1}`);
+    distractors.push(`Opción ${distractors.length + 1}`);
   }
 
   // Return with correct word first (will be shuffled later)
