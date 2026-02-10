@@ -269,6 +269,22 @@ export function TraditionalReview({
                 </p>
               </div>
 
+              {/* Audio button for EN→ES (Spanish on back) */}
+              {direction === 'english-to-spanish' && !ratingSubmitted && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleAudioPlay();
+                  }}
+                  disabled={isPlaying}
+                  className="inline-flex items-center gap-2 px-4 py-2 bg-accent/10 text-accent rounded-lg hover:bg-accent/20 transition-colors disabled:opacity-50 mt-2"
+                  aria-label="Play pronunciation"
+                >
+                  <Volume2 className={`w-5 h-5 ${isPlaying ? 'animate-pulse' : ''}`} />
+                  <span className="text-sm font-medium">Listen</span>
+                </button>
+              )}
+
               {ratingSubmitted && (
                 <p className="text-sm text-text-secondary animate-pulse mt-4">
                   Moving to next card...
