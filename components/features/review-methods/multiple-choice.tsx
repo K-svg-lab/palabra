@@ -22,7 +22,7 @@
 
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { Check, X } from 'lucide-react';
 import type { VocabularyWord, DifficultyRating } from '@/lib/types/vocabulary';
 import type { ReviewMethodResult, MultipleChoiceOption } from '@/lib/types/review-methods';
@@ -59,10 +59,13 @@ export function MultipleChoiceReview({
   const [keyboardEnabled, setKeyboardEnabled] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // Generate options
-  const [options] = useState<MultipleChoiceOption[]>(() => 
-    generateOptions(word, allWords, direction)
-  );
+  // Phase 18 Critical Fix: Regenerate options when direction changes (mixed mode)
+  // Bug: useState only initializes once, so options stayed in wrong language when direction alternated
+  // Fix: useMemo regenerates when word or direction changes
+  const options = useMemo(() => {
+    console.log('[MultipleChoiceReview] Generating options for:', word.spanishWord, 'direction:', direction);
+    return generateOptions(word, allWords, direction);
+  }, [word.id, direction, allWords]);
 
   // Phase 18 design: question and options must be in different languages (no EN/EN or ES/ES).
   const question = direction === 'spanish-to-english'

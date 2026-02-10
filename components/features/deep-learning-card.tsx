@@ -19,7 +19,7 @@ import { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { Sparkles, Clock, ArrowRight, SkipForward } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import type { ElaborativePrompt } from '@/lib/services/deep-learning';
+import type { ElaborativePrompt } from '@/lib/utils/deep-learning-client';
 
 // ============================================================================
 // TYPES
@@ -50,18 +50,20 @@ export function DeepLearningCard({
   const [response, setResponse] = useState('');
   const [timer, setTimer] = useState(3);
   const [hasInteracted, setHasInteracted] = useState(false);
+  const [shouldAutoSkip, setShouldAutoSkip] = useState(false);
   const startTimeRef = useRef(Date.now());
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const hasCompletedRef = useRef(false);
 
-  // Auto-skip after 3 seconds if user doesn't interact
+  // Auto-skip countdown (ticks every second)
   useEffect(() => {
-    if (hasInteracted) return;
+    if (hasInteracted || hasCompletedRef.current) return;
 
     const interval = setInterval(() => {
       setTimer(prev => {
         if (prev <= 1) {
-          // Auto-skip
-          handleComplete(true, '');
+          // Signal auto-skip (don't call onComplete here - setState during render error)
+          setShouldAutoSkip(true);
           return 0;
         }
         return prev - 1;
@@ -70,6 +72,22 @@ export function DeepLearningCard({
 
     return () => clearInterval(interval);
   }, [hasInteracted]);
+
+  // Handle auto-skip in separate effect (deferred from timer)
+  useEffect(() => {
+    if (shouldAutoSkip && !hasCompletedRef.current) {
+      hasCompletedRef.current = true;
+      // Defer to next tick to avoid setState-during-render
+      setTimeout(() => {
+        const responseTime = Date.now() - startTimeRef.current;
+        onComplete({
+          skipped: true,
+          userResponse: undefined,
+          responseTime,
+        });
+      }, 0);
+    }
+  }, [shouldAutoSkip, onComplete]);
 
   const handleInteraction = () => {
     if (!hasInteracted) {
@@ -84,6 +102,9 @@ export function DeepLearningCard({
   };
 
   const handleComplete = (skipped: boolean, userResponse: string) => {
+    if (hasCompletedRef.current) return; // Prevent double-call
+    hasCompletedRef.current = true;
+    
     const responseTime = Date.now() - startTimeRef.current;
     onComplete({
       skipped,

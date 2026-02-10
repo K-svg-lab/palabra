@@ -44,6 +44,10 @@ import {
   AudioRecognitionReview,
   ContextSelectionReview,
 } from '@/components/features/review-methods';
+import { useReviewPreferences } from '@/lib/hooks/use-review-preferences';
+import { DeepLearningCard } from '@/components/features/deep-learning-card';
+import { generateTemplatePrompt } from '@/lib/utils/deep-learning-client';
+import type { ElaborativePrompt } from '@/lib/utils/deep-learning-client';
 
 interface ReviewSessionVariedProps {
   /** Array of vocabulary words to review */
@@ -84,6 +88,14 @@ export function ReviewSessionVaried({
   const [showCompletionDialog, setShowCompletionDialog] = useState(false);
   const [sessionStartTime] = useState(Date.now());
   const [showSettingsHint, setShowSettingsHint] = useState(false);
+  // Phase 18.2.2: Deep Learning Mode - show elaborative prompt every N cards
+  const [showDeepLearningCard, setShowDeepLearningCard] = useState(false);
+  const [deepLearningWord, setDeepLearningWord] = useState<VocabularyWord | null>(null);
+  const [deepLearningPrompt, setDeepLearningPrompt] = useState<ElaborativePrompt | null>(null);
+
+  const { preferences } = useReviewPreferences();
+  const deepLearningEnabled = preferences.deepLearningEnabled === true;
+  const deepLearningFrequency = preferences.deepLearningFrequency ?? 12;
 
   // Scroll to top when component mounts
   useEffect(() => {
@@ -173,6 +185,25 @@ export function ReviewSessionVaried({
       });
     }
   }, [config.direction, currentDirection, currentIndex, currentWord]);
+
+  // Phase 18.2.2: Generate elaborative prompt when deep learning card is shown
+  // Uses client-safe template generation (no server dependencies)
+  useEffect(() => {
+    if (!showDeepLearningCard || !deepLearningWord || deepLearningPrompt !== null) return;
+
+    console.log('[Deep Learning] Generating template prompt for:', deepLearningWord.spanishWord);
+    
+    // Generate template-based prompt (instant, no async needed)
+    const wordForPrompt = {
+      id: deepLearningWord.id,
+      spanish: deepLearningWord.spanishWord,
+      english: deepLearningWord.englishTranslation,
+      partOfSpeech: deepLearningWord.partOfSpeech ?? undefined,
+    };
+
+    const prompt = generateTemplatePrompt(wordForPrompt);
+    setDeepLearningPrompt(prompt);
+  }, [showDeepLearningCard, deepLearningWord, deepLearningPrompt]);
 
   /**
    * Handle method completion
@@ -264,11 +295,40 @@ export function ReviewSessionVaried({
     const newResults = [...results, result];
     setResults(newResults);
 
-    // Move to next card or complete session
-    if (currentIndex < processedWords.length - 1) {
-      setCurrentIndex(currentIndex + 1);
+    // Phase 18.2.2: Check if should show deep learning card (every N cards)
+    // Defensive: wrap in try-catch so errors don't block advancement
+    let shouldShowDeepLearning = false;
+    try {
+      shouldShowDeepLearning = 
+        deepLearningEnabled === true && 
+        typeof deepLearningFrequency === 'number' &&
+        deepLearningFrequency > 0 &&
+        newResults.length % deepLearningFrequency === 0 && 
+        newResults.length > 0 &&
+        currentIndex < processedWords.length - 1;
+      
+      if (shouldShowDeepLearning) {
+        console.log(`[Deep Learning] ✨ Showing card after ${newResults.length} cards (frequency: ${deepLearningFrequency})`);
+      }
+    } catch (error) {
+      console.error('[Deep Learning] Error checking trigger condition:', error);
+      shouldShowDeepLearning = false; // Fail gracefully - don't block advancement
+    }
+
+    if (shouldShowDeepLearning) {
+      // Show deep learning card for the word we just reviewed
+      setDeepLearningWord(currentWord);
+      setShowDeepLearningCard(true);
+      // Don't advance index yet - will advance after deep learning card completes
     } else {
-      setShowCompletionDialog(true);
+      // Normal flow: advance to next card or complete session
+      if (currentIndex < processedWords.length - 1) {
+        console.log(`[handleMethodComplete] ➡️ Advancing from card ${currentIndex + 1} to ${currentIndex + 2}`);
+        setCurrentIndex(currentIndex + 1);
+      } else {
+        console.log('[handleMethodComplete] 🎉 Session complete, showing dialog');
+        setShowCompletionDialog(true);
+      }
     }
   };
 
@@ -294,6 +354,34 @@ export function ReviewSessionVaried({
     } else {
       console.log('[handleCancel] No results yet - calling onCancel()');
       onCancel();
+    }
+  };
+
+  /**
+   * Handle deep learning card completion (Phase 18.2.2)
+   * User has dismissed the deep learning prompt - continue to next card
+   */
+  const handleDeepLearningComplete = (response: {
+    skipped: boolean;
+    userResponse?: string;
+    responseTime: number;
+  }) => {
+    console.log('[Deep Learning] Card completed:', { skipped: response.skipped, responseTime: response.responseTime });
+    
+    // Optional: Record response to database (requires userId)
+    // For now, we just log engagement locally
+    // TODO: Call recordElaborativeResponse when userId is available
+    
+    // Clear deep learning state
+    setShowDeepLearningCard(false);
+    setDeepLearningWord(null);
+    setDeepLearningPrompt(null);
+    
+    // Now advance to next card or complete session
+    if (currentIndex < processedWords.length - 1) {
+      setCurrentIndex(currentIndex + 1);
+    } else {
+      setShowCompletionDialog(true);
     }
   };
 
@@ -475,9 +563,39 @@ export function ReviewSessionVaried({
         </div>
       </div>
 
-      {/* Method component */}
+      {/* Phase 18.2.2: Deep Learning Card or Method component */}
       <div className="max-w-4xl mx-auto">
         {(() => {
+          // Deep Learning Card takes precedence when active
+          if (showDeepLearningCard && deepLearningWord) {
+            console.log('[Render Decision] Showing Deep Learning Card for:', deepLearningWord.spanishWord);
+            
+            // Wait for prompt to generate (should be instant with templates)
+            if (!deepLearningPrompt) {
+              return (
+                <div className="flex items-center justify-center min-h-screen">
+                  <div className="text-center space-y-4">
+                    <div className="text-6xl animate-pulse">🧠</div>
+                    <p className="text-lg text-text">Preparing deep learning moment...</p>
+                  </div>
+                </div>
+              );
+            }
+            
+            // Render Deep Learning Card
+            return (
+              <DeepLearningCard
+                word={{
+                  spanish: deepLearningWord.spanishWord,
+                  english: deepLearningWord.englishTranslation,
+                }}
+                prompt={deepLearningPrompt}
+                onComplete={handleDeepLearningComplete}
+              />
+            );
+          }
+          
+          // Normal flow: render method component
           console.log('[Render Decision] currentWord:', currentWord?.spanishWord, 'selectedMethod:', selectedMethod);
           
           if (!currentWord) {
