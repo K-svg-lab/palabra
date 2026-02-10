@@ -318,6 +318,75 @@ export function AccountSettings({ onAuthChanged }: AccountSettingsProps) {
             </div>
           </div>
         </div>
+        
+        {/* Phase 18.2.2: Deep Learning Mode */}
+        <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-3 sm:p-4 mt-4">
+          {/* Deep Learning Toggle */}
+          <div className="flex items-start justify-between gap-4">
+            <div className="flex-1">
+              <label className="block text-sm font-medium text-gray-900 dark:text-gray-100 mb-1">
+                Deep Learning Mode
+                <span className="ml-2 text-xs font-normal text-gray-500 dark:text-gray-400">(Optional)</span>
+              </label>
+              <p className="text-xs text-gray-600 dark:text-gray-400">
+                Occasionally asks "why/how" questions to encourage deeper thinking (every 12 cards)
+              </p>
+            </div>
+            
+            <button
+              onClick={() => setPreferences({ deepLearningEnabled: !preferences.deepLearningEnabled })}
+              className={`
+                relative inline-flex h-7 w-12 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent 
+                transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2
+                ${preferences.deepLearningEnabled ? 'bg-purple-600' : 'bg-gray-200 dark:bg-gray-700'}
+              `}
+              role="switch"
+              aria-checked={preferences.deepLearningEnabled}
+              aria-label="Toggle deep learning mode"
+            >
+              <span
+                className={`
+                  pointer-events-none inline-block h-6 w-6 transform rounded-full bg-white shadow ring-0 
+                  transition duration-200 ease-in-out
+                  ${preferences.deepLearningEnabled ? 'translate-x-5' : 'translate-x-0'}
+                `}
+              />
+            </button>
+          </div>
+          
+          {/* Frequency Selector (only when enabled) */}
+          {preferences.deepLearningEnabled && (
+            <div className="mt-3 sm:mt-4 pt-3 sm:pt-4 border-t border-gray-200 dark:border-gray-800">
+              <label className="block text-sm font-medium text-gray-900 dark:text-gray-100 mb-2">
+                Frequency
+              </label>
+              <select
+                value={preferences.deepLearningFrequency || 12}
+                onChange={(e) => setPreferences({ deepLearningFrequency: parseInt(e.target.value) })}
+                className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+              >
+                <option value={10}>Every 10 cards</option>
+                <option value={12}>Every 12 cards (recommended)</option>
+                <option value={15}>Every 15 cards</option>
+                <option value={20}>Every 20 cards</option>
+              </select>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                How often to pause for deeper reflection
+              </p>
+            </div>
+          )}
+          
+          {/* Info Box */}
+          <div className="mt-3 sm:mt-4 pt-3 sm:pt-4 border-t border-gray-200 dark:border-gray-800">
+            <div className="flex items-start gap-2">
+              <div className="text-purple-600 dark:text-purple-400 text-sm flex-shrink-0">✨</div>
+              <p className="text-xs text-gray-600 dark:text-gray-400">
+                <strong>Research-backed:</strong> Elaborative interrogation (asking "why/how" questions) improves retention with a medium-large effect size (d = 0.71). 
+                Completely optional and auto-skips after 3 seconds if you're busy.
+              </p>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Cloud Sync Benefits */}

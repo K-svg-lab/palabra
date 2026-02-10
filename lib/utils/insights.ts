@@ -5,6 +5,9 @@
  * Generates smart insights based on user learning data
  */
 
+// Phase 18.2.1: Import confusion detection service
+import { getTopConfusion, shouldShowComparativeReview } from '@/lib/services/interference-detection';
+
 export interface Insight {
   id: string;
   type: 'success' | 'motivation' | 'tip' | 'milestone' | 'celebration';
@@ -54,6 +57,15 @@ export interface LearningStats {
     reason: string;
     confidence: number;
   };
+  
+  // Phase 18.2.1: Top confusion for user (pre-computed)
+  confusionInsight?: {
+    word1: string;
+    word2: string;
+    word1Id: string;
+    word2Id: string;
+    occurrences: number;
+  };
 }
 
 /**
@@ -61,6 +73,21 @@ export interface LearningStats {
  */
 export function generateInsights(stats: LearningStats): Insight[] {
   const insights: Insight[] = [];
+  
+  // Phase 18.2.1: Confusion detection insights (if pre-computed)
+  if (stats.confusionInsight) {
+    const { word1, word2, word1Id, word2Id, occurrences } = stats.confusionInsight;
+    
+    insights.push({
+      id: 'confusion-detected',
+      type: 'tip',
+      icon: '⚠️',
+      title: `You often confuse "${word1}" and "${word2}"`,
+      description: `You've mixed these up ${occurrences} times. Let's review them side-by-side.`,
+      gradient: { from: '#FF8C00', to: '#FF6B6B' },
+      priority: 95, // High priority - critical for learning
+    });
+  }
   
   // Phase 18.1: Proficiency assessment insights (if pre-computed on server)
   if (stats.proficiencyInsight) {

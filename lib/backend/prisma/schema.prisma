@@ -53,6 +53,12 @@ model User {
   reviewAttempts ReviewAttempt[]
   reviewSessions ReviewSession[]
   userCohort     UserCohort?
+  
+  // Phase 18.2.1: Interference detection
+  confusionPairs ConfusionPair[]
+  
+  // Phase 18.2.2: Deep learning mode
+  elaborativeResponses ElaborativeResponse[]
 
   @@index([email])
 }
@@ -133,6 +139,11 @@ model VocabularyItem {
   // Tracks accuracy and count for each review method
   // Format: { "traditional": { "accuracy": 0.85, "count": 20 }, "fill_blank": { "accuracy": 0.90, "count": 15 }, ... }
   methodPerformance Json? @db.JsonB
+  
+  // Phase 18.2.1: Confusion tracking
+  confusionPartners Json?     @db.JsonB // ["perro", "pelo"] - words user confuses this with
+  confusionScore    Float?    // 0-1, how often confused
+  lastComparative   DateTime? // Last comparative review
 
   // Metadata
   source    String? // Where the word came from
@@ -914,4 +925,96 @@ model UserCohort {
   @@index([day90Active], name: "idx_cohort_day90")
   @@index([lastActiveAt], name: "idx_cohort_last_active")
   @@index([experimentGroup], name: "idx_cohort_experiment")
+}
+
+// ============================================================================
+// INTERFERENCE DETECTION (Phase 18.2.1)
+// Track confused word pairs and comparative review effectiveness
+// ============================================================================
+
+model ConfusionPair {
+  id        String   @id @default(cuid())
+  userId    String
+  word1Id   String
+  word2Id   String
+  
+  // Tracking
+  confusionCount   Int      @default(1)
+  lastConfusion    DateTime
+  comparativeCount Int      @default(0) // How many comparative reviews done
+  lastComparative  DateTime?
+  resolved         Boolean  @default(false)
+  resolvedAt       DateTime?
+  
+  // Performance after intervention
+  word1Accuracy    Float?   // Accuracy after comparative review
+  word2Accuracy    Float?
+  
+  // Metadata
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  
+  // Relations
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@unique([userId, word1Id, word2Id])
+  @@index([userId])
+  @@index([resolved])
+  @@index([confusionCount])
+  @@index([lastConfusion])
+}
+
+// ============================================================================
+// DEEP LEARNING MODE (Phase 18.2.2)
+// Elaborative interrogation prompts for deeper processing
+// ============================================================================
+
+model ElaborativePromptCache {
+  id            String   @id @default(cuid())
+  word          String
+  level         String   // CEFR level: A1, A2, B1, B2, C1, C2
+  
+  // Prompt content
+  promptType    String   // 'etymology' | 'connection' | 'usage' | 'comparison' | 'personal'
+  question      String   @db.Text
+  hints         Json?    @db.JsonB // string[] - optional hints
+  idealAnswer   String?  @db.Text  // optional ideal answer
+  
+  // Usage tracking
+  useCount      Int      @default(0)
+  
+  // Metadata
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  @@unique([word, level])
+  @@index([word])
+  @@index([level])
+  @@index([useCount])
+}
+
+model ElaborativeResponse {
+  id            String   @id @default(cuid())
+  userId        String
+  wordId        String
+  
+  // Prompt details
+  promptType    String   // 'etymology' | 'connection' | 'usage' | 'comparison' | 'personal'
+  question      String   @db.Text
+  
+  // Response tracking
+  userResponse  String?  @db.Text  // null if skipped
+  skipped       Boolean  @default(false)
+  responseTime  Int      // milliseconds
+  
+  // Metadata
+  createdAt     DateTime @default(now())
+  
+  // Relations
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([userId])
+  @@index([wordId])
+  @@index([skipped])
+  @@index([createdAt])
 }

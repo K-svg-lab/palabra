@@ -27,6 +27,8 @@ interface ReviewPreferences {
   randomize: boolean;
   tagFilter: string[];
   interleavingEnabled: boolean; // Phase 18.1.5: Interleaved Practice
+  deepLearningEnabled?: boolean; // Phase 18.2.2: Deep Learning Mode (optional)
+  deepLearningFrequency?: number; // Phase 18.2.2: How often to show prompts (default: 12)
   lastUpdated: number;
 }
 
@@ -44,6 +46,8 @@ const DEFAULT_PREFERENCES: ReviewPreferences = {
   randomize: true,
   tagFilter: [],
   interleavingEnabled: true, // Phase 18.1.5: ON by default for optimal learning
+  deepLearningEnabled: false, // Phase 18.2.2: OFF by default (opt-in)
+  deepLearningFrequency: 12, // Phase 18.2.2: Every 12 cards
   lastUpdated: Date.now(),
 };
 
