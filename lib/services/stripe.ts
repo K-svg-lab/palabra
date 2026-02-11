@@ -68,17 +68,17 @@ export async function createCheckoutSession(
   const session = await stripe.checkout.sessions.create({
     customer: customerId,
     mode,
-    payment_method_types: ['card'],
-    line_items: [
+    paymentMethodTypes: ['card'],
+    lineItems: [
       {
         price: priceId,
         quantity: 1,
       },
     ],
-    success_url: successUrl,
-    cancel_url: cancelUrl,
-    allow_promotion_codes: true,
-    billing_address_collection: 'auto',
+    successUrl: successUrl,
+    cancelUrl: cancelUrl,
+    allowPromotionCodes: true,
+    billingAddressCollection: 'auto',
     metadata: {
       userId,
       priceId,
@@ -110,7 +110,7 @@ export async function createCustomerPortalSession(
 
   const session = await stripe.billingPortal.sessions.create({
     customer: user.stripeCustomerId,
-    return_url: returnUrl,
+    returnUrl: returnUrl,
   });
 
   return session.url;
@@ -211,7 +211,7 @@ async function handleLifetimePurchase(
   session: Stripe.Checkout.Session,
   userId: string
 ): Promise<void> {
-  const amount = (session.amount_total || 0) / 100; // Convert cents to dollars
+  const amount = (session.amountTotal || 0) / 100; // Convert cents to dollars
 
   await prisma.user.update({
     where: { id: userId },
@@ -228,7 +228,7 @@ async function handleLifetimePurchase(
   await prisma.payment.create({
     data: {
       userId,
-      stripePaymentIntentId: session.payment_intent as string,
+      stripePaymentIntentId: session.paymentIntent as string,
       amount,
       type: 'lifetime',
       status: 'succeeded',
@@ -267,8 +267,8 @@ async function handleSubscriptionUpdate(
     return;
   }
 
-  const periodEnd = new Date(subscription.current_period_end * 1000);
-  const periodStart = new Date(subscription.current_period_start * 1000);
+  const periodEnd = new Date(subscription.currentPeriodEnd * 1000);
+  const periodStart = new Date(subscription.currentPeriodStart * 1000);
   const price = subscription.items.data[0].price;
 
   // Update or create subscription record
@@ -282,7 +282,7 @@ async function handleSubscriptionUpdate(
       stripeCurrentPeriodEnd: periodEnd,
       status: subscription.status,
       tier: 'premium',
-      amount: (price.unit_amount || 0) / 100,
+      amount: (price.unitAmount || 0) / 100,
       currency: subscription.currency,
       interval: price.recurring?.interval || 'month',
     },
@@ -291,9 +291,9 @@ async function handleSubscriptionUpdate(
       stripeCurrentPeriodStart: periodStart,
       stripeCurrentPeriodEnd: periodEnd,
       stripePriceId: price.id,
-      amount: (price.unit_amount || 0) / 100,
-      canceledAt: subscription.canceled_at ? new Date(subscription.canceled_at * 1000) : null,
-      cancelAtEnd: subscription.cancel_at_period_end,
+      amount: (price.unitAmount || 0) / 100,
+      canceledAt: subscription.canceledAt ? new Date(subscription.canceledAt * 1000) : null,
+      cancelAtEnd: subscription.cancelAtPeriodEnd,
     },
   });
 
@@ -385,16 +385,16 @@ async function handlePaymentSucceeded(invoice: Stripe.Invoice): Promise<void> {
   await prisma.payment.create({
     data: {
       userId: subscription.userId,
-      stripePaymentIntentId: invoice.payment_intent as string,
+      stripePaymentIntentId: invoice.paymentIntent as string,
       stripeInvoiceId: invoice.id,
       stripeChargeId: invoice.charge as string,
-      amount: invoice.amount_paid / 100,
+      amount: invoice.amountPaid / 100,
       currency: invoice.currency,
       type: 'subscription',
       status: 'succeeded',
       subscriptionId: subscription.id,
       description: `Subscription payment - ${subscription.interval}`,
-      receiptUrl: invoice.hosted_invoice_url || undefined,
+      receiptUrl: invoice.hostedInvoiceUrl || undefined,
       paidAt: new Date(),
     },
   });
@@ -422,9 +422,9 @@ async function handlePaymentFailed(invoice: Stripe.Invoice): Promise<void> {
   await prisma.payment.create({
     data: {
       userId: subscription.userId,
-      stripePaymentIntentId: invoice.payment_intent as string,
+      stripePaymentIntentId: invoice.paymentIntent as string,
       stripeInvoiceId: invoice.id,
-      amount: invoice.amount_due / 100,
+      amount: invoice.amountDue / 100,
       currency: invoice.currency,
       type: 'subscription',
       status: 'failed',
