@@ -8,7 +8,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { verifyAuth } from '@/lib/auth/jwt';
+import { requireAuth } from '@/lib/backend/api-utils';
 import { 
   getRetentionTrends,
   getMethodPerformance,
@@ -27,18 +27,17 @@ import { prisma } from '@/lib/backend/db';
 export async function GET(request: NextRequest) {
   try {
     // Verify authentication
-    const auth = await verifyAuth(request);
-    if (!auth) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
+    const authResult = await requireAuth();
+    if (authResult instanceof Response) {
+      return authResult;
     }
+
+    const { userId } = authResult;
 
     // Check admin permission
     const adminEmail = process.env.ADMIN_EMAIL || process.env.NEXT_PUBLIC_ADMIN_EMAIL;
     const user = await prisma.user.findUnique({
-      where: { id: auth.userId },
+      where: { id: userId },
       select: { email: true },
     });
 
