@@ -357,8 +357,8 @@ export function FillBlankReview({
               </div>
             )}
 
-            {/* Rating buttons - Progressive disclosure */}
-            {!ratingSubmitted && (
+            {/* Rating buttons - Always show after submission until rated */}
+            {isSubmitted && !ratingSubmitted && (
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3 mt-3 sm:mt-4">
                 <button
                   onClick={() => handleRating('forgot')}
@@ -398,7 +398,7 @@ export function FillBlankReview({
               </div>
             )}
 
-            {ratingSubmitted && (
+            {isSubmitted && ratingSubmitted && (
               <p className="text-center text-sm text-text-secondary animate-pulse">
                 Moving to next card...
               </p>
