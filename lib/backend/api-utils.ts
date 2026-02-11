@@ -190,7 +190,7 @@ export async function checkApiRateLimit(
  * Get authenticated user from request
  * Returns user object or null if not authenticated
  */
-export async function getAuthUser(request: NextRequest): Promise<{ id: string; email: string } | null> {
+export async function getAuthUser(request: NextRequest): Promise<{ id: string } | null> {
   try {
     const session = await getSession();
     
@@ -200,7 +200,6 @@ export async function getAuthUser(request: NextRequest): Promise<{ id: string; e
     
     return {
       id: session.userId,
-      email: session.email || '',
     };
   } catch (error) {
     console.error('Error getting auth user:', error);
