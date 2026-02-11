@@ -1,0 +1,181 @@
+{
+  "timestamp": "2026-02-11T12:52:19.469Z",
+  "wordListPath": "/Users/kalvinbrookes/Library/CloudStorage/GoogleDrive-kbrookes2507@gmail.com/My Drive/01_Kalvin/02_Education/07_AI_Cursor_Projects/Spanish_Vocab/scripts/common-words-5000.json",
+  "validation": {
+    "valid": true,
+    "errors": [
+      {
+        "type": "pos",
+        "word": "al",
+        "rank": 65,
+        "severity": "error",
+        "message": "Invalid POS tag: \"contraction\". Valid tags: verb, noun, adjective, adverb, pronoun, preposition, conjunction, article, determiner, interjection.",
+        "suggestion": "Use one of the standard POS tags."
+      },
+      {
+        "type": "pos",
+        "word": "del",
+        "rank": 69,
+        "severity": "error",
+        "message": "Invalid POS tag: \"contraction\". Valid tags: verb, noun, adjective, adverb, pronoun, preposition, conjunction, article, determiner, interjection.",
+        "suggestion": "Use one of the standard POS tags."
+      },
+      {
+        "type": "pos",
+        "word": "uno",
+        "rank": 338,
+        "severity": "error",
+        "message": "Invalid POS tag: \"number\". Valid tags: verb, noun, adjective, adverb, pronoun, preposition, conjunction, article, determiner, interjection.",
+        "suggestion": "Use one of the standard POS tags."
+      },
+      {
+        "type": "pos",
+        "word": "dos",
+        "rank": 339,
+        "severity": "error",
+        "message": "Invalid POS tag: \"number\". Valid tags: verb, noun, adjective, adverb, pronoun, preposition, conjunction, article, determiner, interjection.",
+        "suggestion": "Use one of the standard POS tags."
+      },
+      {
+        "type": "pos",
+        "word": "tres",
+        "rank": 340,
+        "severity": "error",
+        "message": "Invalid POS tag: \"number\". Valid tags: verb, noun, adjective, adverb, pronoun, preposition, conjunction, article, determiner, interjection.",
+        "suggestion": "Use one of the standard POS tags."
+      },
+      {
+        "type": "pos",
+        "word": "cuatro",
+        "rank": 341,
+        "severity": "error",
+        "message": "Invalid POS tag: \"number\". Valid tags: verb, noun, adjective, adverb, pronoun, preposition, conjunction, article, determiner, interjection.",
+        "suggestion": "Use one of the standard POS tags."
+      },
+      {
+        "type": "pos",
+        "word": "cinco",
+        "rank": 342,
+        "severity": "error",
+        "message": "Invalid POS tag: \"number\". Valid tags: verb, noun, adjective, adverb, pronoun, preposition, conjunction, article, determiner, interjection.",
+        "suggestion": "Use one of the standard POS tags."
+      },
+      {
+        "type": "pos",
+        "word": "seis",
+        "rank": 343,
+        "severity": "error",
+        "message": "Invalid POS tag: \"number\". Valid tags: verb, noun, adjective, adverb, pronoun, preposition, conjunction, article, determiner, interjection.",
+        "suggestion": "Use one of the standard POS tags."
+      },
+      {
+        "type": "pos",
+        "word": "siete",
+        "rank": 344,
+        "severity": "error",
+        "message": "Invalid POS tag: \"number\". Valid tags: verb, noun, adjective, adverb, pronoun, preposition, conjunction, article, determiner, interjection.",
+        "suggestion": "Use one of the standard POS tags."
+      },
+      {
+        "type": "pos",
+        "word": "ocho",
+        "rank": 345,
+        "severity": "error",
+        "message": "Invalid POS tag: \"number\". Valid tags: verb, noun, adjective, adverb, pronoun, preposition, conjunction, article, determiner, interjection.",
+        "suggestion": "Use one of the standard POS tags."
+      },
+      {
+        "type": "pos",
+        "word": "nueve",
+        "rank": 346,
+        "severity": "error",
+        "message": "Invalid POS tag: \"number\". Valid tags: verb, noun, adjective, adverb, pronoun, preposition, conjunction, article, determiner, interjection.",
+        "suggestion": "Use one of the standard POS tags."
+      },
+      {
+        "type": "pos",
+        "word": "diez",
+        "rank": 347,
+        "severity": "error",
+        "message": "Invalid POS tag: \"number\". Valid tags: verb, noun, adjective, adverb, pronoun, preposition, conjunction, article, determiner, interjection.",
+        "suggestion": "Use one of the standard POS tags."
+      },
+      {
+        "type": "pos",
+        "word": "veinte",
+        "rank": 348,
+        "severity": "error",
+        "message": "Invalid POS tag: \"number\". Valid tags: verb, noun, adjective, adverb, pronoun, preposition, conjunction, article, determiner, interjection.",
+        "suggestion": "Use one of the standard POS tags."
+      },
+      {
+        "type": "pos",
+        "word": "treinta",
+        "rank": 349,
+        "severity": "error",
+        "message": "Invalid POS tag: \"number\". Valid tags: verb, noun, adjective, adverb, pronoun, preposition, conjunction, article, determiner, interjection.",
+        "suggestion": "Use one of the standard POS tags."
+      },
+      {
+        "type": "pos",
+        "word": "cien",
+        "rank": 350,
+        "severity": "error",
+        "message": "Invalid POS tag: \"number\". Valid tags: verb, noun, adjective, adverb, pronoun, preposition, conjunction, article, determiner, interjection.",
+        "suggestion": "Use one of the standard POS tags."
+      },
+      {
+        "type": "pos",
+        "word": "mil",
+        "rank": 351,
+        "severity": "error",
+        "message": "Invalid POS tag: \"number\". Valid tags: verb, noun, adjective, adverb, pronoun, preposition, conjunction, article, determiner, interjection.",
+        "suggestion": "Use one of the standard POS tags."
+      },
+      {
+        "type": "pos",
+        "word": "tanto",
+        "rank": 743,
+        "severity": "error",
+        "message": "Invalid POS tag: \"adjective/adverb\". Valid tags: verb, noun, adjective, adverb, pronoun, preposition, conjunction, article, determiner, interjection.",
+        "suggestion": "Use one of the standard POS tags."
+      }
+    ],
+    "warnings": [
+      {
+        "type": "length",
+        "word": "y",
+        "rank": 55,
+        "severity": "warning",
+        "message": "Word is unusually short (1 chars). May be an abbreviation or error."
+      },
+      {
+        "type": "length",
+        "word": "a",
+        "rank": 56,
+        "severity": "warning",
+        "message": "Word is unusually short (1 chars). May be an abbreviation or error."
+      },
+      {
+        "type": "length",
+        "word": "o",
+        "rank": 705,
+        "severity": "warning",
+        "message": "Word is unusually short (1 chars). May be an abbreviation or error."
+      },
+      {
+        "type": "length",
+        "word": "e",
+        "rank": 734,
+        "severity": "warning",
+        "message": "Word is unusually short (1 chars). May be an abbreviation or error."
+      }
+    ],
+    "summary": {
+      "totalWords": 789,
+      "criticalErrors": 0,
+      "errors": 17,
+      "warnings": 4
+    }
+  }
+}

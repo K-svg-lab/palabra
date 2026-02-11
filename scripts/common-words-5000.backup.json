@@ -4,10 +4,10 @@
     "created": "2026-02-09",
     "source": "Based on frequency analysis from multiple corpora (movie subtitles, RAE CREA, news)",
     "description": "5,000 most common Spanish words for pre-generation of AI examples",
-    "totalWords": 1031,
+    "totalWords": 814,
     "coverage": "~90% of spoken Spanish",
     "notes": "Words ordered by frequency (most common first). Includes verbs in infinitive form.",
-    "lastUpdated": "2026-02-11T13:35:21.843Z"
+    "lastUpdated": "2026-02-11T09:52:27.565Z"
   },
   "words": [
     {
@@ -4926,2305 +4926,786 @@
     },
     {
       "rank": 703,
+      "word": "es",
+      "pos": "verb",
+      "translation": "is",
+      "frequency": "medium"
+    },
+    {
+      "rank": 704,
+      "word": "fue",
+      "pos": "verb",
+      "translation": "was/went",
+      "frequency": "medium"
+    },
+    {
+      "rank": 705,
+      "word": "ha",
+      "pos": "verb",
+      "translation": "has (third person singular present of the verb 'haber')",
+      "frequency": "medium"
+    },
+    {
+      "rank": 706,
       "word": "sus",
       "pos": "pronoun",
       "translation": "his/her/its",
       "frequency": "medium"
     },
     {
-      "rank": 704,
+      "rank": 707,
       "word": "este",
       "pos": "adjective",
       "translation": "this",
       "frequency": "medium"
     },
     {
-      "rank": 705,
+      "rank": 708,
       "word": "o",
       "pos": "conjunction",
       "translation": "or",
       "frequency": "medium"
     },
     {
-      "rank": 706,
+      "rank": 709,
       "word": "años",
       "pos": "noun",
       "translation": "years",
       "frequency": "medium"
     },
     {
-      "rank": 707,
+      "rank": 710,
       "word": "esta",
       "pos": "adjective",
       "translation": "this",
       "frequency": "medium"
     },
     {
-      "rank": 708,
+      "rank": 711,
       "word": "entre",
       "pos": "preposition",
       "translation": "between",
       "frequency": "medium"
     },
     {
-      "rank": 709,
+      "rank": 712,
       "word": "le",
       "pos": "pronoun",
       "translation": "him/her/it",
       "frequency": "medium"
     },
     {
-      "rank": 710,
+      "rank": 713,
+      "word": "está",
+      "pos": "verb",
+      "translation": "is",
+      "frequency": "medium"
+    },
+    {
+      "rank": 714,
       "word": "ya",
       "pos": "adverb",
       "translation": "already / now / soon",
       "frequency": "medium"
     },
     {
-      "rank": 711,
+      "rank": 715,
+      "word": "han",
+      "pos": "verb",
+      "translation": "have",
+      "frequency": "medium"
+    },
+    {
+      "rank": 716,
       "word": "sobre",
       "pos": "preposition",
       "translation": "on, about, above",
       "frequency": "medium"
     },
     {
-      "rank": 712,
+      "rank": 717,
       "word": "desde",
       "pos": "preposition",
       "translation": "from",
       "frequency": "medium"
     },
     {
-      "rank": 713,
+      "rank": 718,
       "word": "son",
       "pos": "noun",
       "translation": "sound",
       "frequency": "medium"
     },
     {
-      "rank": 714,
+      "rank": 719,
       "word": "hasta",
       "pos": "preposition",
       "translation": "until",
       "frequency": "medium"
     },
     {
-      "rank": 715,
+      "rank": 720,
       "word": "muy",
       "pos": "adverb",
       "translation": "very",
       "frequency": "medium"
     },
     {
-      "rank": 716,
+      "rank": 721,
       "word": "era",
       "pos": "noun",
       "translation": "era",
       "frequency": "medium"
     },
     {
-      "rank": 717,
+      "rank": 722,
+      "word": "tiene",
+      "pos": "verb",
+      "translation": "he/she/it has",
+      "frequency": "medium"
+    },
+    {
+      "rank": 723,
       "word": "sin",
       "pos": "preposition",
       "translation": "without",
       "frequency": "medium"
     },
     {
-      "rank": 718,
+      "rank": 724,
       "word": "si",
       "pos": "conjunction",
       "translation": "if",
       "frequency": "medium"
     },
     {
-      "rank": 719,
+      "rank": 725,
       "word": "personas",
       "pos": "noun",
       "translation": "people",
       "frequency": "medium"
     },
     {
-      "rank": 720,
+      "rank": 726,
       "word": "cuando",
       "pos": "conjunction",
       "translation": "when",
       "frequency": "medium"
     },
     {
-      "rank": 721,
+      "rank": 727,
       "word": "donde",
       "pos": "adverb",
       "translation": "where",
       "frequency": "medium"
     },
     {
-      "rank": 722,
+      "rank": 728,
+      "word": "dijo",
+      "pos": "verb",
+      "translation": "said",
+      "frequency": "medium"
+    },
+    {
+      "rank": 729,
       "word": "porque",
       "pos": "conjunction",
       "translation": "because",
       "frequency": "medium"
     },
     {
-      "rank": 723,
+      "rank": 730,
       "word": "durante",
       "pos": "preposition",
       "translation": "during",
       "frequency": "medium"
     },
     {
-      "rank": 724,
+      "rank": 731,
+      "word": "puede",
+      "pos": "verb",
+      "translation": "can",
+      "frequency": "medium"
+    },
+    {
+      "rank": 732,
+      "word": "había",
+      "pos": "verb",
+      "translation": "there was / there were",
+      "frequency": "medium"
+    },
+    {
+      "rank": 733,
+      "word": "fueron",
+      "pos": "verb",
+      "translation": "they were / you were / we were",
+      "frequency": "medium"
+    },
+    {
+      "rank": 734,
       "word": "contra",
       "pos": "preposition",
       "translation": "against",
       "frequency": "medium"
     },
     {
-      "rank": 725,
+      "rank": 735,
       "word": "primera",
       "pos": "adjective",
       "translation": "first",
       "frequency": "medium"
     },
     {
-      "rank": 726,
+      "rank": 736,
       "word": "millones",
       "pos": "noun",
       "translation": "millions",
       "frequency": "medium"
     },
     {
-      "rank": 727,
+      "rank": 737,
+      "word": "están",
+      "pos": "verb",
+      "translation": "are",
+      "frequency": "medium"
+    },
+    {
+      "rank": 738,
       "word": "nos",
       "pos": "pronoun",
       "translation": "us",
       "frequency": "medium"
     },
     {
-      "rank": 728,
+      "rank": 739,
       "word": "ese",
       "pos": "pronoun",
       "translation": "that",
       "frequency": "medium"
     },
     {
-      "rank": 729,
+      "rank": 740,
       "word": "gran",
       "pos": "adjective",
       "translation": "great",
       "frequency": "medium"
     },
     {
-      "rank": 730,
+      "rank": 741,
+      "word": "sido",
+      "pos": "verb",
+      "translation": "been",
+      "frequency": "medium"
+    },
+    {
+      "rank": 742,
       "word": "otros",
       "pos": "adjective",
       "translation": "other",
       "frequency": "medium"
     },
     {
-      "rank": 731,
+      "rank": 743,
       "word": "primer",
       "pos": "adjective",
       "translation": "first",
       "frequency": "medium"
     },
     {
-      "rank": 732,
+      "rank": 744,
+      "word": "hace",
+      "pos": "verb",
+      "translation": "to do/make (in reference to time)",
+      "frequency": "medium"
+    },
+    {
+      "rank": 745,
       "word": "días",
       "pos": "noun",
       "translation": "days",
       "frequency": "medium"
     },
     {
-      "rank": 733,
+      "rank": 746,
       "word": "así",
       "pos": "adverb",
       "translation": "like that, thus",
       "frequency": "medium"
     },
     {
-      "rank": 734,
+      "rank": 747,
       "word": "e",
       "pos": "conjunction",
       "translation": "and",
       "frequency": "medium"
     },
     {
-      "rank": 735,
+      "rank": 748,
       "word": "presidente",
       "pos": "noun",
       "translation": "president",
       "frequency": "medium"
     },
     {
-      "rank": 736,
+      "rank": 749,
       "word": "pasado",
       "pos": "adjective",
       "translation": "past",
       "frequency": "medium"
     },
     {
-      "rank": 737,
+      "rank": 750,
       "word": "él",
       "pos": "pronoun",
       "translation": "he",
       "frequency": "medium"
     },
     {
-      "rank": 738,
+      "rank": 751,
       "word": "tras",
       "pos": "preposition",
       "translation": "behind",
       "frequency": "medium"
     },
     {
-      "rank": 739,
+      "rank": 752,
       "word": "ante",
       "pos": "preposition",
       "translation": "before",
       "frequency": "medium"
     },
     {
-      "rank": 740,
+      "rank": 753,
       "word": "eso",
       "pos": "pronoun",
       "translation": "that",
       "frequency": "medium"
     },
     {
-      "rank": 741,
+      "rank": 754,
       "word": "quien",
       "pos": "pronoun",
       "translation": "who",
       "frequency": "medium"
     },
     {
-      "rank": 742,
+      "rank": 755,
       "word": "mayor",
       "pos": "adjective",
       "translation": "older; greater; major",
       "frequency": "medium"
     },
     {
-      "rank": 743,
+      "rank": 756,
       "word": "tanto",
       "pos": "adjective/adverb",
       "translation": "so much",
       "frequency": "medium"
     },
     {
-      "rank": 744,
+      "rank": 757,
       "word": "hecho",
       "pos": "noun",
       "translation": "fact",
       "frequency": "medium"
     },
     {
-      "rank": 745,
+      "rank": 758,
       "word": "horas",
       "pos": "noun",
       "translation": "hours",
       "frequency": "medium"
     },
     {
-      "rank": 746,
+      "rank": 759,
       "word": "menos",
       "pos": "adverb",
       "translation": "less",
       "frequency": "medium"
     },
     {
-      "rank": 747,
+      "rank": 760,
       "word": "estos",
       "pos": "pronoun",
       "translation": "these",
       "frequency": "medium"
     },
     {
-      "rank": 748,
+      "rank": 761,
       "word": "esa",
       "pos": "pronoun",
       "translation": "that (feminine)",
       "frequency": "medium"
     },
     {
-      "rank": 749,
+      "rank": 762,
       "word": "cual",
       "pos": "pronoun",
       "translation": "which",
       "frequency": "medium"
     },
     {
-      "rank": 750,
+      "rank": 763,
       "word": "equipo",
       "pos": "noun",
       "translation": "team",
       "frequency": "medium"
     },
     {
-      "rank": 751,
+      "rank": 764,
+      "word": "será",
+      "pos": "verb",
+      "translation": "will be",
+      "frequency": "medium"
+    },
+    {
+      "rank": 765,
       "word": "mientras",
       "pos": "conjunction",
       "translation": "while",
       "frequency": "medium"
     },
     {
-      "rank": 752,
+      "rank": 766,
       "word": "según",
       "pos": "preposition",
       "translation": "according to",
       "frequency": "medium"
     },
     {
-      "rank": 753,
+      "rank": 767,
       "word": "ella",
       "pos": "pronoun",
       "translation": "she",
       "frequency": "medium"
     },
     {
-      "rank": 754,
+      "rank": 768,
+      "word": "pueden",
+      "pos": "verb",
+      "translation": "they can / you all can",
+      "frequency": "medium"
+    },
+    {
+      "rank": 769,
       "word": "aunque",
       "pos": "conjunction",
       "translation": "although",
       "frequency": "medium"
     },
     {
-      "rank": 755,
+      "rank": 770,
       "word": "mi",
       "pos": "pronoun",
       "translation": "my",
       "frequency": "medium"
     },
     {
-      "rank": 756,
+      "rank": 771,
+      "word": "tienen",
+      "pos": "verb",
+      "translation": "they have",
+      "frequency": "medium"
+    },
+    {
+      "rank": 772,
+      "word": "estaba",
+      "pos": "verb",
+      "translation": "was",
+      "frequency": "medium"
+    },
+    {
+      "rank": 773,
       "word": "partido",
       "pos": "noun",
       "translation": "match/game/party",
       "frequency": "medium"
     },
     {
-      "rank": 757,
+      "rank": 774,
       "word": "acuerdo",
       "pos": "noun",
       "translation": "agreement",
       "frequency": "medium"
     },
     {
-      "rank": 758,
+      "rank": 775,
       "word": "otras",
       "pos": "adjective",
       "translation": "other",
       "frequency": "medium"
     },
     {
-      "rank": 759,
+      "rank": 776,
       "word": "hacia",
       "pos": "preposition",
       "translation": "towards",
       "frequency": "medium"
     },
     {
-      "rank": 760,
+      "rank": 777,
       "word": "través",
       "pos": "noun",
       "translation": "across",
       "frequency": "medium"
     },
     {
-      "rank": 761,
+      "rank": 778,
+      "word": "encuentra",
+      "pos": "verb",
+      "translation": "find",
+      "frequency": "medium"
+    },
+    {
+      "rank": 779,
       "word": "estado",
       "pos": "noun",
       "translation": "state",
       "frequency": "medium"
     },
     {
-      "rank": 762,
+      "rank": 780,
       "word": "qué",
       "pos": "pronoun",
       "translation": "what",
       "frequency": "medium"
     },
     {
-      "rank": 763,
+      "rank": 781,
       "word": "te",
       "pos": "pronoun",
       "translation": "you",
       "frequency": "medium"
     },
     {
-      "rank": 764,
+      "rank": 782,
       "word": "situación",
       "pos": "noun",
       "translation": "situation",
       "frequency": "medium"
     },
     {
-      "rank": 765,
+      "rank": 783,
       "word": "algunos",
       "pos": "adjective",
       "translation": "some",
       "frequency": "medium"
     },
     {
-      "rank": 766,
+      "rank": 784,
       "word": "esto",
       "pos": "pronoun",
       "translation": "this",
       "frequency": "medium"
     },
     {
-      "rank": 767,
+      "rank": 785,
       "word": "serie",
       "pos": "noun",
       "translation": "series",
       "frequency": "medium"
     },
     {
-      "rank": 768,
+      "rank": 786,
       "word": "final",
       "pos": "adjective",
       "translation": "final",
       "frequency": "medium"
     },
     {
-      "rank": 769,
+      "rank": 787,
+      "word": "tuvo",
+      "pos": "verb",
+      "translation": "he/she/it had",
+      "frequency": "medium"
+    },
+    {
+      "rank": 788,
       "word": "meses",
       "pos": "noun",
       "translation": "months",
       "frequency": "medium"
     },
     {
-      "rank": 770,
+      "rank": 789,
       "word": "nueva",
       "pos": "adjective",
       "translation": "new",
       "frequency": "medium"
     },
     {
-      "rank": 771,
+      "rank": 790,
       "word": "ellos",
       "pos": "pronoun",
       "translation": "they",
       "frequency": "medium"
     },
     {
-      "rank": 772,
+      "rank": 791,
       "word": "debido",
       "pos": "adjective",
       "translation": "due",
       "frequency": "medium"
     },
     {
-      "rank": 773,
+      "rank": 792,
       "word": "otra",
       "pos": "pronoun",
       "translation": "another",
       "frequency": "medium"
     },
     {
-      "rank": 774,
+      "rank": 793,
       "word": "algo",
       "pos": "pronoun",
       "translation": "something",
       "frequency": "medium"
     },
     {
-      "rank": 775,
+      "rank": 794,
+      "word": "siendo",
+      "pos": "verb",
+      "translation": "being",
+      "frequency": "medium"
+    },
+    {
+      "rank": 795,
       "word": "entonces",
       "pos": "adverb",
       "translation": "then",
       "frequency": "medium"
     },
     {
-      "rank": 776,
+      "rank": 796,
       "word": "todas",
       "pos": "adjective",
       "translation": "all",
       "frequency": "medium"
     },
     {
-      "rank": 777,
+      "rank": 797,
       "word": "junto",
       "pos": "adverb",
       "translation": "together",
       "frequency": "medium"
     },
     {
-      "rank": 778,
+      "rank": 798,
       "word": "unos",
       "pos": "article",
       "translation": "some",
       "frequency": "medium"
     },
     {
-      "rank": 779,
+      "rank": 799,
       "word": "sea",
       "pos": "noun",
       "translation": "sea",
       "frequency": "medium"
     },
     {
-      "rank": 780,
+      "rank": 800,
       "word": "general",
       "pos": "adjective",
       "translation": "general",
       "frequency": "medium"
     },
     {
-      "rank": 781,
+      "rank": 801,
       "word": "población",
       "pos": "noun",
       "translation": "population",
       "frequency": "medium"
     },
     {
-      "rank": 782,
+      "rank": 802,
+      "word": "estas",
+      "pos": "verb",
+      "translation": "you are (2nd person singular informal)",
+      "frequency": "medium"
+    },
+    {
+      "rank": 803,
       "word": "medio",
       "pos": "noun",
       "translation": "middle",
       "frequency": "medium"
     },
     {
-      "rank": 783,
+      "rank": 804,
+      "word": "eran",
+      "pos": "verb",
+      "translation": "were",
+      "frequency": "medium"
+    },
+    {
+      "rank": 805,
+      "word": "tenía",
+      "pos": "verb",
+      "translation": "had",
+      "frequency": "medium"
+    },
+    {
+      "rank": 806,
       "word": "muchos",
       "pos": "adjective",
       "translation": "many",
       "frequency": "medium"
     },
     {
-      "rank": 784,
+      "rank": 807,
       "word": "seguridad",
       "pos": "noun",
       "translation": "security",
       "frequency": "medium"
     },
     {
-      "rank": 785,
+      "rank": 808,
       "word": "casos",
       "pos": "noun",
       "translation": "cases",
       "frequency": "medium"
     },
     {
-      "rank": 786,
+      "rank": 809,
       "word": "temporada",
       "pos": "noun",
       "translation": "season",
       "frequency": "medium"
     },
     {
-      "rank": 787,
+      "rank": 810,
       "word": "tipo",
       "pos": "noun",
       "translation": "type",
       "frequency": "medium"
     },
     {
-      "rank": 788,
+      "rank": 811,
+      "word": "hizo",
+      "pos": "verb",
+      "translation": "he/she/it did",
+      "frequency": "medium"
+    },
+    {
+      "rank": 812,
       "word": "mujeres",
       "pos": "noun",
       "translation": "women",
       "frequency": "medium"
     },
     {
-      "rank": 789,
-      "word": "toda",
-      "pos": "adjective",
-      "translation": "all, whole, every",
-      "frequency": "medium"
-    },
-    {
-      "rank": 790,
-      "word": "todos",
-      "pos": "pronoun",
-      "translation": "all/everyone",
-      "frequency": "medium"
-    },
-    {
-      "rank": 791,
-      "word": "embargar",
-      "pos": "verb",
-      "translation": "to embargo",
-      "frequency": "medium"
-    },
-    {
-      "rank": 792,
-      "word": "me",
-      "pos": "pronoun",
-      "translation": "me",
-      "frequency": "medium"
-    },
-    {
-      "rank": 793,
-      "word": "ni",
-      "pos": "conjunction",
-      "translation": "nor",
-      "frequency": "medium"
-    },
-    {
-      "rank": 794,
-      "word": "grandes",
-      "pos": "adjective",
-      "translation": "big/large/great",
-      "frequency": "medium"
-    },
-    {
-      "rank": 795,
-      "word": "diferencia",
-      "pos": "noun",
-      "translation": "difference",
-      "frequency": "medium"
-    },
-    {
-      "rank": 796,
-      "word": "edad",
-      "pos": "noun",
-      "translation": "age",
-      "frequency": "medium"
-    },
-    {
-      "rank": 797,
-      "word": "economía",
-      "pos": "noun",
-      "translation": "economy",
-      "frequency": "medium"
-    },
-    {
-      "rank": 798,
-      "word": "social",
-      "pos": "adjective",
-      "translation": "social",
-      "frequency": "medium"
-    },
-    {
-      "rank": 799,
-      "word": "desarrollar",
-      "pos": "noun",
-      "translation": "development",
-      "frequency": "medium"
-    },
-    {
-      "rank": 800,
-      "word": "real",
-      "pos": "adjective",
-      "translation": "real",
-      "frequency": "medium"
-    },
-    {
-      "rank": 801,
-      "word": "central",
-      "pos": "adjective",
-      "translation": "central",
-      "frequency": "medium"
-    },
-    {
-      "rank": 802,
-      "word": "nacional",
-      "pos": "adjective",
-      "translation": "national",
-      "frequency": "medium"
-    },
-    {
-      "rank": 803,
-      "word": "europa",
-      "pos": "noun",
-      "translation": "Europe",
-      "frequency": "medium"
-    },
-    {
-      "rank": 804,
-      "word": "carlos",
-      "pos": "noun",
-      "translation": "Carlos",
-      "frequency": "medium"
-    },
-    {
-      "rank": 805,
-      "word": "miembros",
-      "pos": "noun",
-      "translation": "members",
-      "frequency": "medium"
-    },
-    {
-      "rank": 806,
-      "word": "público",
-      "pos": "noun",
-      "translation": "public",
-      "frequency": "medium"
-    },
-    {
-      "rank": 807,
-      "word": "tema",
-      "pos": "noun",
-      "translation": "theme",
-      "frequency": "medium"
-    },
-    {
-      "rank": 808,
-      "word": "derecho",
-      "pos": "noun/adjective",
-      "translation": "right/straight",
-      "frequency": "medium"
-    },
-    {
-      "rank": 809,
-      "word": "causa",
-      "pos": "noun",
-      "translation": "cause",
-      "frequency": "medium"
-    },
-    {
-      "rank": 810,
-      "word": "espacio",
-      "pos": "noun",
-      "translation": "space",
-      "frequency": "medium"
-    },
-    {
-      "rank": 811,
-      "word": "jóvenes",
-      "pos": "noun",
-      "translation": "young people",
-      "frequency": "medium"
-    },
-    {
-      "rank": 812,
-      "word": "relación",
-      "pos": "noun",
-      "translation": "relationship",
-      "frequency": "medium"
-    },
-    {
       "rank": 813,
-      "word": "político",
-      "pos": "noun",
-      "translation": "political",
+      "word": "debe",
+      "pos": "verb",
+      "translation": "must/should",
       "frequency": "medium"
     },
     {
       "rank": 814,
-      "word": "base",
-      "pos": "noun",
-      "translation": "base",
-      "frequency": "medium"
-    },
-    {
-      "rank": 815,
-      "word": "españa",
-      "pos": "noun",
-      "translation": "Spain",
-      "frequency": "medium"
-    },
-    {
-      "rank": 816,
-      "word": "efecto",
-      "pos": "noun",
-      "translation": "effect",
-      "frequency": "medium"
-    },
-    {
-      "rank": 817,
-      "word": "capital",
-      "pos": "noun",
-      "translation": "capital",
-      "frequency": "medium"
-    },
-    {
-      "rank": 818,
-      "word": "director",
-      "pos": "noun",
-      "translation": "director",
-      "frequency": "medium"
-    },
-    {
-      "rank": 819,
-      "word": "autor",
-      "pos": "noun",
-      "translation": "author",
-      "frequency": "medium"
-    },
-    {
-      "rank": 820,
-      "word": "función",
-      "pos": "noun",
-      "translation": "function",
-      "frequency": "medium"
-    },
-    {
-      "rank": 821,
-      "word": "experiencia",
-      "pos": "noun",
-      "translation": "experience",
-      "frequency": "medium"
-    },
-    {
-      "rank": 822,
-      "word": "servicio",
-      "pos": "noun",
-      "translation": "service",
-      "frequency": "medium"
-    },
-    {
-      "rank": 823,
-      "word": "rey",
-      "pos": "noun",
-      "translation": "king",
-      "frequency": "medium"
-    },
-    {
-      "rank": 824,
-      "word": "imagen",
-      "pos": "noun",
-      "translation": "image",
-      "frequency": "medium"
-    },
-    {
-      "rank": 825,
-      "word": "norte",
-      "pos": "noun",
-      "translation": "north",
-      "frequency": "medium"
-    },
-    {
-      "rank": 826,
-      "word": "cierto",
+      "word": "toda",
       "pos": "adjective",
-      "translation": "certain",
-      "frequency": "medium"
-    },
-    {
-      "rank": 827,
-      "word": "futuro",
-      "pos": "noun",
-      "translation": "future",
-      "frequency": "medium"
-    },
-    {
-      "rank": 828,
-      "word": "orden",
-      "pos": "noun",
-      "translation": "order",
-      "frequency": "medium"
-    },
-    {
-      "rank": 829,
-      "word": "región",
-      "pos": "noun",
-      "translation": "region",
-      "frequency": "medium"
-    },
-    {
-      "rank": 830,
-      "word": "objetivo",
-      "pos": "noun",
-      "translation": "objective",
-      "frequency": "medium"
-    },
-    {
-      "rank": 831,
-      "word": "vista",
-      "pos": "noun",
-      "translation": "sight/view",
-      "frequency": "medium"
-    },
-    {
-      "rank": 832,
-      "word": "militar",
-      "pos": "verb",
-      "translation": "to militate/to serve in the military",
-      "frequency": "medium"
-    },
-    {
-      "rank": 833,
-      "word": "datos",
-      "pos": "noun",
-      "translation": "data",
-      "frequency": "medium"
-    },
-    {
-      "rank": 834,
-      "word": "veces",
-      "pos": "noun",
-      "translation": "times",
-      "frequency": "medium"
-    },
-    {
-      "rank": 835,
-      "word": "condiciones",
-      "pos": "noun",
-      "translation": "conditions",
-      "frequency": "medium"
-    },
-    {
-      "rank": 836,
-      "word": "dirección",
-      "pos": "noun",
-      "translation": "address/direction",
-      "frequency": "medium"
-    },
-    {
-      "rank": 837,
-      "word": "propios",
-      "pos": "adjective",
-      "translation": "own",
-      "frequency": "medium"
-    },
-    {
-      "rank": 838,
-      "word": "natural",
-      "pos": "adjective",
-      "translation": "natural",
-      "frequency": "medium"
-    },
-    {
-      "rank": 839,
-      "word": "zona",
-      "pos": "noun",
-      "translation": "zone",
-      "frequency": "medium"
-    },
-    {
-      "rank": 840,
-      "word": "principal",
-      "pos": "adjective",
-      "translation": "main/principal",
-      "frequency": "medium"
-    },
-    {
-      "rank": 841,
-      "word": "obrar",
-      "pos": "verb",
-      "translation": "to work",
-      "frequency": "medium"
-    },
-    {
-      "rank": 842,
-      "word": "formar",
-      "pos": "verb",
-      "translation": "to form",
-      "frequency": "medium"
-    },
-    {
-      "rank": 843,
-      "word": "cultura",
-      "pos": "noun",
-      "translation": "culture",
-      "frequency": "medium"
-    },
-    {
-      "rank": 844,
-      "word": "respeto",
-      "pos": "noun",
-      "translation": "respect",
-      "frequency": "medium"
-    },
-    {
-      "rank": 845,
-      "word": "proceso",
-      "pos": "noun",
-      "translation": "process",
-      "frequency": "medium"
-    },
-    {
-      "rank": 846,
-      "word": "producción",
-      "pos": "noun",
-      "translation": "production",
-      "frequency": "medium"
-    },
-    {
-      "rank": 847,
-      "word": "participar",
-      "pos": "verb",
-      "translation": "to participate",
-      "frequency": "medium"
-    },
-    {
-      "rank": 848,
-      "word": "recurrir",
-      "pos": "verb",
-      "translation": "to resort/ to turn to",
-      "frequency": "medium"
-    },
-    {
-      "rank": 849,
-      "word": "establecer",
-      "pos": "verb",
-      "translation": "to establish",
-      "frequency": "medium"
-    },
-    {
-      "rank": 850,
-      "word": "aplicar",
-      "pos": "verb",
-      "translation": "to apply",
-      "frequency": "medium"
-    },
-    {
-      "rank": 851,
-      "word": "publicar",
-      "pos": "verb",
-      "translation": "to publish",
-      "frequency": "medium"
-    },
-    {
-      "rank": 852,
-      "word": "dedicar",
-      "pos": "verb",
-      "translation": "to dedicate",
-      "frequency": "medium"
-    },
-    {
-      "rank": 853,
-      "word": "resultado",
-      "pos": "noun",
-      "translation": "result",
-      "frequency": "medium"
-    },
-    {
-      "rank": 854,
-      "word": "ambiente",
-      "pos": "noun",
-      "translation": "environment",
-      "frequency": "medium"
-    },
-    {
-      "rank": 855,
-      "word": "elemento",
-      "pos": "noun",
-      "translation": "element",
-      "frequency": "medium"
-    },
-    {
-      "rank": 856,
-      "word": "necesidad",
-      "pos": "noun",
-      "translation": "need/necessity",
-      "frequency": "medium"
-    },
-    {
-      "rank": 857,
-      "word": "origen",
-      "pos": "noun",
-      "translation": "origin",
-      "frequency": "medium"
-    },
-    {
-      "rank": 858,
-      "word": "nivel",
-      "pos": "noun",
-      "translation": "level",
-      "frequency": "medium"
-    },
-    {
-      "rank": 859,
-      "word": "sector",
-      "pos": "noun",
-      "translation": "sector",
-      "frequency": "medium"
-    },
-    {
-      "rank": 860,
-      "word": "modelo",
-      "pos": "noun",
-      "translation": "model",
-      "frequency": "medium"
-    },
-    {
-      "rank": 861,
-      "word": "resto",
-      "pos": "noun",
-      "translation": "rest",
-      "frequency": "medium"
-    },
-    {
-      "rank": 862,
-      "word": "aspecto",
-      "pos": "noun",
-      "translation": "aspect/appearance",
-      "frequency": "medium"
-    },
-    {
-      "rank": 863,
-      "word": "costa",
-      "pos": "noun",
-      "translation": "coast",
-      "frequency": "medium"
-    },
-    {
-      "rank": 864,
-      "word": "distancia",
-      "pos": "noun",
-      "translation": "distance",
-      "frequency": "medium"
-    },
-    {
-      "rank": 865,
-      "word": "estructura",
-      "pos": "noun",
-      "translation": "structure",
-      "frequency": "medium"
-    },
-    {
-      "rank": 866,
-      "word": "especie",
-      "pos": "noun",
-      "translation": "species",
-      "frequency": "medium"
-    },
-    {
-      "rank": 867,
-      "word": "línea",
-      "pos": "noun",
-      "translation": "line",
-      "frequency": "medium"
-    },
-    {
-      "rank": 868,
-      "word": "material",
-      "pos": "noun/adjective",
-      "translation": "material",
-      "frequency": "medium"
-    },
-    {
-      "rank": 869,
-      "word": "período",
-      "pos": "noun",
-      "translation": "period",
-      "frequency": "medium"
-    },
-    {
-      "rank": 870,
-      "word": "producto",
-      "pos": "noun",
-      "translation": "product",
-      "frequency": "medium"
-    },
-    {
-      "rank": 871,
-      "word": "propiedad",
-      "pos": "noun",
-      "translation": "property",
-      "frequency": "medium"
-    },
-    {
-      "rank": 872,
-      "word": "superficie",
-      "pos": "noun",
-      "translation": "surface",
-      "frequency": "medium"
-    },
-    {
-      "rank": 873,
-      "word": "técnica",
-      "pos": "noun",
-      "translation": "technique",
-      "frequency": "medium"
-    },
-    {
-      "rank": 874,
-      "word": "teoría",
-      "pos": "noun",
-      "translation": "theory",
-      "frequency": "medium"
-    },
-    {
-      "rank": 875,
-      "word": "territorio",
-      "pos": "noun",
-      "translation": "territory",
-      "frequency": "medium"
-    },
-    {
-      "rank": 876,
-      "word": "título",
-      "pos": "noun",
-      "translation": "title",
-      "frequency": "medium"
-    },
-    {
-      "rank": 877,
-      "word": "unidad",
-      "pos": "noun",
-      "translation": "unity",
-      "frequency": "medium"
-    },
-    {
-      "rank": 878,
-      "word": "usar",
-      "pos": "noun",
-      "translation": "use",
-      "frequency": "medium"
-    },
-    {
-      "rank": 879,
-      "word": "actividad",
-      "pos": "noun",
-      "translation": "activity",
-      "frequency": "medium"
-    },
-    {
-      "rank": 880,
-      "word": "actitud",
-      "pos": "noun",
-      "translation": "attitude",
-      "frequency": "medium"
-    },
-    {
-      "rank": 881,
-      "word": "acción",
-      "pos": "noun",
-      "translation": "action",
-      "frequency": "medium"
-    },
-    {
-      "rank": 882,
-      "word": "acontecimiento",
-      "pos": "noun",
-      "translation": "event/incident/happening",
-      "frequency": "medium"
-    },
-    {
-      "rank": 883,
-      "word": "administración",
-      "pos": "noun",
-      "translation": "administration",
-      "frequency": "medium"
-    },
-    {
-      "rank": 884,
-      "word": "afecto",
-      "pos": "noun",
-      "translation": "affection",
-      "frequency": "medium"
-    },
-    {
-      "rank": 885,
-      "word": "agenda",
-      "pos": "noun",
-      "translation": "agenda",
-      "frequency": "medium"
-    },
-    {
-      "rank": 886,
-      "word": "agencia",
-      "pos": "noun",
-      "translation": "agency",
-      "frequency": "medium"
-    },
-    {
-      "rank": 887,
-      "word": "agricultura",
-      "pos": "noun",
-      "translation": "agriculture",
-      "frequency": "medium"
-    },
-    {
-      "rank": 888,
-      "word": "alianza",
-      "pos": "noun",
-      "translation": "alliance",
-      "frequency": "medium"
-    },
-    {
-      "rank": 889,
-      "word": "alma",
-      "pos": "noun",
-      "translation": "soul",
-      "frequency": "medium"
-    },
-    {
-      "rank": 890,
-      "word": "análisis",
-      "pos": "noun",
-      "translation": "analysis",
-      "frequency": "medium"
-    },
-    {
-      "rank": 891,
-      "word": "aniversario",
-      "pos": "noun",
-      "translation": "anniversary",
-      "frequency": "medium"
-    },
-    {
-      "rank": 892,
-      "word": "anuncio",
-      "pos": "noun",
-      "translation": "advertisement",
-      "frequency": "medium"
-    },
-    {
-      "rank": 893,
-      "word": "aparato",
-      "pos": "noun",
-      "translation": "device/appliance",
-      "frequency": "medium"
-    },
-    {
-      "rank": 894,
-      "word": "apariencia",
-      "pos": "noun",
-      "translation": "appearance",
-      "frequency": "medium"
-    },
-    {
-      "rank": 895,
-      "word": "aplicación",
-      "pos": "noun",
-      "translation": "application",
-      "frequency": "medium"
-    },
-    {
-      "rank": 896,
-      "word": "apoyar",
-      "pos": "noun",
-      "translation": "support",
-      "frequency": "medium"
-    },
-    {
-      "rank": 897,
-      "word": "aproximación",
-      "pos": "noun",
-      "translation": "approximation",
-      "frequency": "medium"
-    },
-    {
-      "rank": 898,
-      "word": "área",
-      "pos": "noun",
-      "translation": "area",
-      "frequency": "medium"
-    },
-    {
-      "rank": 899,
-      "word": "argumento",
-      "pos": "noun",
-      "translation": "argument",
-      "frequency": "medium"
-    },
-    {
-      "rank": 900,
-      "word": "arma",
-      "pos": "noun",
-      "translation": "weapon",
-      "frequency": "medium"
-    },
-    {
-      "rank": 901,
-      "word": "arquitectura",
-      "pos": "noun",
-      "translation": "architecture",
-      "frequency": "medium"
-    },
-    {
-      "rank": 902,
-      "word": "artículo",
-      "pos": "noun",
-      "translation": "article",
-      "frequency": "medium"
-    },
-    {
-      "rank": 903,
-      "word": "asociación",
-      "pos": "noun",
-      "translation": "association",
-      "frequency": "medium"
-    },
-    {
-      "rank": 904,
-      "word": "asunto",
-      "pos": "noun",
-      "translation": "matter/issue/subject",
-      "frequency": "medium"
-    },
-    {
-      "rank": 905,
-      "word": "ataque",
-      "pos": "noun",
-      "translation": "attack",
-      "frequency": "medium"
-    },
-    {
-      "rank": 906,
-      "word": "atención",
-      "pos": "noun",
-      "translation": "attention",
-      "frequency": "medium"
-    },
-    {
-      "rank": 907,
-      "word": "atmósfera",
-      "pos": "noun",
-      "translation": "atmosphere",
-      "frequency": "medium"
-    },
-    {
-      "rank": 908,
-      "word": "autoridad",
-      "pos": "noun",
-      "translation": "authority",
-      "frequency": "medium"
-    },
-    {
-      "rank": 909,
-      "word": "aventura",
-      "pos": "noun",
-      "translation": "adventure",
-      "frequency": "medium"
-    },
-    {
-      "rank": 910,
-      "word": "barrio",
-      "pos": "noun",
-      "translation": "neighborhood",
-      "frequency": "medium"
-    },
-    {
-      "rank": 911,
-      "word": "batalla",
-      "pos": "noun",
-      "translation": "battle",
-      "frequency": "medium"
-    },
-    {
-      "rank": 912,
-      "word": "belleza",
-      "pos": "noun",
-      "translation": "beauty",
-      "frequency": "medium"
-    },
-    {
-      "rank": 913,
-      "word": "beneficio",
-      "pos": "noun",
-      "translation": "benefit",
-      "frequency": "medium"
-    },
-    {
-      "rank": 914,
-      "word": "brillar",
-      "pos": "verb",
-      "translation": "shine",
-      "frequency": "medium"
-    },
-    {
-      "rank": 915,
-      "word": "búsqueda",
-      "pos": "noun",
-      "translation": "search",
-      "frequency": "medium"
-    },
-    {
-      "rank": 916,
-      "word": "cable",
-      "pos": "noun",
-      "translation": "cable",
-      "frequency": "medium"
-    },
-    {
-      "rank": 917,
-      "word": "cadena",
-      "pos": "noun",
-      "translation": "chain",
-      "frequency": "medium"
-    },
-    {
-      "rank": 918,
-      "word": "caída",
-      "pos": "noun",
-      "translation": "fall",
-      "frequency": "medium"
-    },
-    {
-      "rank": 919,
-      "word": "caja",
-      "pos": "noun",
-      "translation": "box",
-      "frequency": "medium"
-    },
-    {
-      "rank": 920,
-      "word": "cámara",
-      "pos": "noun",
-      "translation": "camera",
-      "frequency": "medium"
-    },
-    {
-      "rank": 921,
-      "word": "campaña",
-      "pos": "noun",
-      "translation": "campaign",
-      "frequency": "medium"
-    },
-    {
-      "rank": 922,
-      "word": "canal",
-      "pos": "noun",
-      "translation": "channel",
-      "frequency": "medium"
-    },
-    {
-      "rank": 923,
-      "word": "candidato",
-      "pos": "noun",
-      "translation": "candidate",
-      "frequency": "medium"
-    },
-    {
-      "rank": 924,
-      "word": "cantidad",
-      "pos": "noun",
-      "translation": "quantity/amount",
-      "frequency": "medium"
-    },
-    {
-      "rank": 925,
-      "word": "capacidad",
-      "pos": "noun",
-      "translation": "capacity",
-      "frequency": "medium"
-    },
-    {
-      "rank": 926,
-      "word": "capítulo",
-      "pos": "noun",
-      "translation": "chapter",
-      "frequency": "medium"
-    },
-    {
-      "rank": 927,
-      "word": "carácter",
-      "pos": "noun",
-      "translation": "character",
-      "frequency": "medium"
-    },
-    {
-      "rank": 928,
-      "word": "característica",
-      "pos": "noun",
-      "translation": "characteristic",
-      "frequency": "medium"
-    },
-    {
-      "rank": 929,
-      "word": "cargar",
-      "pos": "noun",
-      "translation": "load/cargo",
-      "frequency": "medium"
-    },
-    {
-      "rank": 930,
-      "word": "carrer",
-      "pos": "noun",
-      "translation": "career/race",
-      "frequency": "medium"
-    },
-    {
-      "rank": 931,
-      "word": "casamiento",
-      "pos": "noun",
-      "translation": "marriage",
-      "frequency": "medium"
-    },
-    {
-      "rank": 932,
-      "word": "categoría",
-      "pos": "noun",
-      "translation": "category",
-      "frequency": "medium"
-    },
-    {
-      "rank": 933,
-      "word": "celebración",
-      "pos": "noun",
-      "translation": "celebration",
-      "frequency": "medium"
-    },
-    {
-      "rank": 934,
-      "word": "celular",
-      "pos": "noun",
-      "translation": "cell phone",
-      "frequency": "medium"
-    },
-    {
-      "rank": 935,
-      "word": "cementerio",
-      "pos": "noun",
-      "translation": "cemetery",
-      "frequency": "medium"
-    },
-    {
-      "rank": 936,
-      "word": "censura",
-      "pos": "noun",
-      "translation": "censorship",
-      "frequency": "medium"
-    },
-    {
-      "rank": 937,
-      "word": "ceremonia",
-      "pos": "noun",
-      "translation": "ceremony",
-      "frequency": "medium"
-    },
-    {
-      "rank": 938,
-      "word": "certeza",
-      "pos": "noun",
-      "translation": "certainty",
-      "frequency": "medium"
-    },
-    {
-      "rank": 939,
-      "word": "ciencia",
-      "pos": "noun",
-      "translation": "science",
-      "frequency": "medium"
-    },
-    {
-      "rank": 940,
-      "word": "científico",
-      "pos": "adjective",
-      "translation": "scientific",
-      "frequency": "medium"
-    },
-    {
-      "rank": 941,
-      "word": "cifra",
-      "pos": "noun",
-      "translation": "figure/digit",
-      "frequency": "medium"
-    },
-    {
-      "rank": 942,
-      "word": "círculo",
-      "pos": "noun",
-      "translation": "circle",
-      "frequency": "medium"
-    },
-    {
-      "rank": 943,
-      "word": "circunstancia",
-      "pos": "noun",
-      "translation": "circumstance",
-      "frequency": "medium"
-    },
-    {
-      "rank": 944,
-      "word": "cita",
-      "pos": "noun",
-      "translation": "appointment/date",
-      "frequency": "medium"
-    },
-    {
-      "rank": 945,
-      "word": "ciudadano",
-      "pos": "noun",
-      "translation": "citizen",
-      "frequency": "medium"
-    },
-    {
-      "rank": 946,
-      "word": "civil",
-      "pos": "adjective",
-      "translation": "civil",
-      "frequency": "medium"
-    },
-    {
-      "rank": 947,
-      "word": "civilización",
-      "pos": "noun",
-      "translation": "civilization",
-      "frequency": "medium"
-    },
-    {
-      "rank": 948,
-      "word": "claridad",
-      "pos": "noun",
-      "translation": "clarity",
-      "frequency": "medium"
-    },
-    {
-      "rank": 949,
-      "word": "club",
-      "pos": "noun",
-      "translation": "club",
-      "frequency": "medium"
-    },
-    {
-      "rank": 950,
-      "word": "cobrar",
-      "pos": "noun",
-      "translation": "collection/charge",
-      "frequency": "medium"
-    },
-    {
-      "rank": 951,
-      "word": "código",
-      "pos": "noun",
-      "translation": "code",
-      "frequency": "medium"
-    },
-    {
-      "rank": 952,
-      "word": "colección",
-      "pos": "noun",
-      "translation": "collection",
-      "frequency": "medium"
-    },
-    {
-      "rank": 953,
-      "word": "colegio",
-      "pos": "noun",
-      "translation": "school",
-      "frequency": "medium"
-    },
-    {
-      "rank": 954,
-      "word": "color",
-      "pos": "noun",
-      "translation": "color",
-      "frequency": "medium"
-    },
-    {
-      "rank": 955,
-      "word": "columna",
-      "pos": "noun",
-      "translation": "column",
-      "frequency": "medium"
-    },
-    {
-      "rank": 956,
-      "word": "combinación",
-      "pos": "noun",
-      "translation": "combination",
-      "frequency": "medium"
-    },
-    {
-      "rank": 957,
-      "word": "comedia",
-      "pos": "noun",
-      "translation": "comedy",
-      "frequency": "medium"
-    },
-    {
-      "rank": 958,
-      "word": "comentario",
-      "pos": "noun",
-      "translation": "comment",
-      "frequency": "medium"
-    },
-    {
-      "rank": 959,
-      "word": "comercio",
-      "pos": "noun",
-      "translation": "commerce/trade",
-      "frequency": "medium"
-    },
-    {
-      "rank": 960,
-      "word": "comisión",
-      "pos": "noun",
-      "translation": "commission",
-      "frequency": "medium"
-    },
-    {
-      "rank": 961,
-      "word": "comité",
-      "pos": "noun",
-      "translation": "committee",
-      "frequency": "medium"
-    },
-    {
-      "rank": 962,
-      "word": "compañía",
-      "pos": "noun",
-      "translation": "company",
-      "frequency": "medium"
-    },
-    {
-      "rank": 963,
-      "word": "comparación",
-      "pos": "noun",
-      "translation": "comparison",
-      "frequency": "medium"
-    },
-    {
-      "rank": 964,
-      "word": "competencia",
-      "pos": "noun",
-      "translation": "competition",
-      "frequency": "medium"
-    },
-    {
-      "rank": 965,
-      "word": "competición",
-      "pos": "noun",
-      "translation": "competition",
-      "frequency": "medium"
-    },
-    {
-      "rank": 966,
-      "word": "complemento",
-      "pos": "noun",
-      "translation": "complement",
-      "frequency": "medium"
-    },
-    {
-      "rank": 967,
-      "word": "comportamiento",
-      "pos": "noun",
-      "translation": "behavior",
-      "frequency": "medium"
-    },
-    {
-      "rank": 968,
-      "word": "composición",
-      "pos": "noun",
-      "translation": "composition",
-      "frequency": "medium"
-    },
-    {
-      "rank": 969,
-      "word": "comprensión",
-      "pos": "noun",
-      "translation": "comprehension",
-      "frequency": "medium"
-    },
-    {
-      "rank": 970,
-      "word": "compromiso",
-      "pos": "noun",
-      "translation": "commitment",
-      "frequency": "medium"
-    },
-    {
-      "rank": 971,
-      "word": "comunicación",
-      "pos": "noun",
-      "translation": "communication",
-      "frequency": "medium"
-    },
-    {
-      "rank": 972,
-      "word": "comunidad",
-      "pos": "noun",
-      "translation": "community",
-      "frequency": "medium"
-    },
-    {
-      "rank": 973,
-      "word": "concepto",
-      "pos": "noun",
-      "translation": "concept",
-      "frequency": "medium"
-    },
-    {
-      "rank": 974,
-      "word": "conciencia",
-      "pos": "noun",
-      "translation": "consciousness",
-      "frequency": "medium"
-    },
-    {
-      "rank": 975,
-      "word": "concierto",
-      "pos": "noun",
-      "translation": "concert",
-      "frequency": "medium"
-    },
-    {
-      "rank": 976,
-      "word": "conclusión",
-      "pos": "noun",
-      "translation": "conclusion",
-      "frequency": "medium"
-    },
-    {
-      "rank": 977,
-      "word": "condición",
-      "pos": "noun",
-      "translation": "condition",
-      "frequency": "medium"
-    },
-    {
-      "rank": 978,
-      "word": "conducta",
-      "pos": "noun",
-      "translation": "behavior/conduct",
-      "frequency": "medium"
-    },
-    {
-      "rank": 979,
-      "word": "conferencia",
-      "pos": "noun",
-      "translation": "conference",
-      "frequency": "medium"
-    },
-    {
-      "rank": 980,
-      "word": "conflicto",
-      "pos": "noun",
-      "translation": "conflict",
-      "frequency": "medium"
-    },
-    {
-      "rank": 981,
-      "word": "confusión",
-      "pos": "noun",
-      "translation": "confusion",
-      "frequency": "medium"
-    },
-    {
-      "rank": 982,
-      "word": "congreso",
-      "pos": "noun",
-      "translation": "congress",
-      "frequency": "medium"
-    },
-    {
-      "rank": 983,
-      "word": "conjunto",
-      "pos": "noun",
-      "translation": "set/group/ensemble",
-      "frequency": "medium"
-    },
-    {
-      "rank": 984,
-      "word": "consecuencia",
-      "pos": "noun",
-      "translation": "consequence",
-      "frequency": "medium"
-    },
-    {
-      "rank": 985,
-      "word": "consejo",
-      "pos": "noun",
-      "translation": "advice",
-      "frequency": "medium"
-    },
-    {
-      "rank": 986,
-      "word": "conservación",
-      "pos": "noun",
-      "translation": "conservation",
-      "frequency": "medium"
-    },
-    {
-      "rank": 987,
-      "word": "consideración",
-      "pos": "noun",
-      "translation": "consideration",
-      "frequency": "medium"
-    },
-    {
-      "rank": 988,
-      "word": "consigna",
-      "pos": "noun",
-      "translation": "locker/assignment/task",
-      "frequency": "medium"
-    },
-    {
-      "rank": 989,
-      "word": "construcción",
-      "pos": "noun",
-      "translation": "construction",
-      "frequency": "medium"
-    },
-    {
-      "rank": 990,
-      "word": "consulta",
-      "pos": "noun",
-      "translation": "consultation",
-      "frequency": "medium"
-    },
-    {
-      "rank": 991,
-      "word": "consumir",
-      "pos": "noun",
-      "translation": "consumption",
-      "frequency": "medium"
-    },
-    {
-      "rank": 992,
-      "word": "contacto",
-      "pos": "noun",
-      "translation": "contact",
-      "frequency": "medium"
-    },
-    {
-      "rank": 993,
-      "word": "contenido",
-      "pos": "noun",
-      "translation": "content",
-      "frequency": "medium"
-    },
-    {
-      "rank": 994,
-      "word": "contexto",
-      "pos": "noun",
-      "translation": "context",
-      "frequency": "medium"
-    },
-    {
-      "rank": 995,
-      "word": "continente",
-      "pos": "noun",
-      "translation": "continent",
-      "frequency": "medium"
-    },
-    {
-      "rank": 996,
-      "word": "continuación",
-      "pos": "noun",
-      "translation": "continuation",
-      "frequency": "medium"
-    },
-    {
-      "rank": 997,
-      "word": "contratar",
-      "pos": "noun",
-      "translation": "contract",
-      "frequency": "medium"
-    },
-    {
-      "rank": 998,
-      "word": "contradicción",
-      "pos": "noun",
-      "translation": "contradiction",
-      "frequency": "medium"
-    },
-    {
-      "rank": 999,
-      "word": "contrario",
-      "pos": "adjective",
-      "translation": "opposite",
-      "frequency": "medium"
-    },
-    {
-      "rank": 1000,
-      "word": "contrastar",
-      "pos": "noun",
-      "translation": "contrast",
-      "frequency": "medium"
-    },
-    {
-      "rank": 1001,
-      "word": "controlar",
-      "pos": "verb",
-      "translation": "to control",
-      "frequency": "medium"
-    },
-    {
-      "rank": 1002,
-      "word": "controversia",
-      "pos": "noun",
-      "translation": "controversy",
-      "frequency": "medium"
-    },
-    {
-      "rank": 1003,
-      "word": "convención",
-      "pos": "noun",
-      "translation": "convention",
-      "frequency": "medium"
-    },
-    {
-      "rank": 1004,
-      "word": "conversión",
-      "pos": "noun",
-      "translation": "conversion",
-      "frequency": "medium"
-    },
-    {
-      "rank": 1005,
-      "word": "cooperación",
-      "pos": "noun",
-      "translation": "cooperation",
-      "frequency": "medium"
-    },
-    {
-      "rank": 1006,
-      "word": "coordinación",
-      "pos": "noun",
-      "translation": "coordination",
-      "frequency": "medium"
-    },
-    {
-      "rank": 1007,
-      "word": "copia",
-      "pos": "noun",
-      "translation": "copy",
-      "frequency": "medium"
-    },
-    {
-      "rank": 1008,
-      "word": "corriente",
-      "pos": "noun/adjective",
-      "translation": "current",
-      "frequency": "medium"
-    },
-    {
-      "rank": 1009,
-      "word": "creación",
-      "pos": "noun",
-      "translation": "creation",
-      "frequency": "medium"
-    },
-    {
-      "rank": 1010,
-      "word": "creador",
-      "pos": "noun",
-      "translation": "creator",
-      "frequency": "medium"
-    },
-    {
-      "rank": 1011,
-      "word": "crecimiento",
-      "pos": "noun",
-      "translation": "growth",
-      "frequency": "medium"
-    },
-    {
-      "rank": 1012,
-      "word": "crédito",
-      "pos": "noun",
-      "translation": "credit",
-      "frequency": "medium"
-    },
-    {
-      "rank": 1013,
-      "word": "creencia",
-      "pos": "noun",
-      "translation": "belief",
-      "frequency": "medium"
-    },
-    {
-      "rank": 1014,
-      "word": "crimen",
-      "pos": "noun",
-      "translation": "crime",
-      "frequency": "medium"
-    },
-    {
-      "rank": 1015,
-      "word": "crisis",
-      "pos": "noun",
-      "translation": "crisis",
-      "frequency": "medium"
-    },
-    {
-      "rank": 1016,
-      "word": "criterio",
-      "pos": "noun",
-      "translation": "criterion",
-      "frequency": "medium"
-    },
-    {
-      "rank": 1017,
-      "word": "crítica",
-      "pos": "noun",
-      "translation": "criticism",
-      "frequency": "medium"
-    },
-    {
-      "rank": 1018,
-      "word": "crónica",
-      "pos": "noun",
-      "translation": "chronicle",
-      "frequency": "medium"
-    },
-    {
-      "rank": 1019,
-      "word": "cruz",
-      "pos": "noun",
-      "translation": "cross",
-      "frequency": "medium"
-    },
-    {
-      "rank": 1020,
-      "word": "cuadro",
-      "pos": "noun",
-      "translation": "painting/picture/frame",
-      "frequency": "medium"
-    },
-    {
-      "rank": 1021,
-      "word": "cuarto",
-      "pos": "noun",
-      "translation": "fourth",
-      "frequency": "medium"
-    },
-    {
-      "rank": 1022,
-      "word": "cuestión",
-      "pos": "noun",
-      "translation": "issue/question",
-      "frequency": "medium"
-    },
-    {
-      "rank": 1023,
-      "word": "cuidar",
-      "pos": "noun",
-      "translation": "care/caution",
-      "frequency": "medium"
-    },
-    {
-      "rank": 1024,
-      "word": "culpa",
-      "pos": "noun",
-      "translation": "blame/guilt",
-      "frequency": "medium"
-    },
-    {
-      "rank": 1025,
-      "word": "cultivar",
-      "pos": "verb",
-      "translation": "to cultivate",
-      "frequency": "medium"
-    },
-    {
-      "rank": 1026,
-      "word": "cumbre",
-      "pos": "noun",
-      "translation": "summit/top",
-      "frequency": "medium"
-    },
-    {
-      "rank": 1027,
-      "word": "cumplimiento",
-      "pos": "noun",
-      "translation": "fulfillment/compliance",
-      "frequency": "medium"
-    },
-    {
-      "rank": 1028,
-      "word": "curar",
-      "pos": "verb",
-      "translation": "to heal",
-      "frequency": "medium"
-    },
-    {
-      "rank": 1029,
-      "word": "curiosidad",
-      "pos": "noun",
-      "translation": "curiosity",
-      "frequency": "medium"
-    },
-    {
-      "rank": 1030,
-      "word": "curso",
-      "pos": "noun",
-      "translation": "course",
-      "frequency": "medium"
-    },
-    {
-      "rank": 1031,
-      "word": "curva",
-      "pos": "noun",
-      "translation": "curve",
+      "translation": "all, whole, every",
       "frequency": "medium"
     }
   ],

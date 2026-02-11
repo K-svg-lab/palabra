@@ -37,6 +37,28 @@ model User {
   sessionLength Int?    @default(15) // Minutes
   preferredTime String? // "morning", "afternoon", "evening"
 
+  // Phase 18.3.1: Subscription management
+  subscriptionTier       String   @default("free") // "free", "premium", "lifetime"
+  subscriptionStatus     String? // "active", "canceled", "past_due", "expired"
+  stripeCustomerId       String?  @unique
+  stripeSubscriptionId   String?  @unique
+  subscriptionStart      DateTime?
+  subscriptionEnd        DateTime?
+  
+  // Lifetime payment tracking
+  lifetimePayment        Boolean  @default(false)
+  lifetimePaymentDate    DateTime?
+  lifetimeAmount         Float?
+  
+  // Trial tracking
+  trialUsed              Boolean  @default(false)
+  trialStartDate         DateTime?
+  trialEndDate           DateTime?
+  
+  // Usage limits for free tier
+  aiGenerationsMonth     Int      @default(0) // Reset monthly
+  lastGenerationReset    DateTime @default(now())
+
   // Relations
   accounts                Account[]
   sessions                Session[]
@@ -59,8 +81,14 @@ model User {
   
   // Phase 18.2.2: Deep learning mode
   elaborativeResponses ElaborativeResponse[]
+  
+  // Phase 18.3.1: Monetization
+  subscriptions Subscription[]
+  payments      Payment[]
 
   @@index([email])
+  @@index([subscriptionTier])
+  @@index([stripeCustomerId])
 }
 
 model Account {
@@ -1017,4 +1045,84 @@ model ElaborativeResponse {
   @@index([wordId])
   @@index([skipped])
   @@index([createdAt])
+}
+
+// ============================================================================
+// MONETIZATION & SUBSCRIPTIONS (Phase 18.3.1)
+// Stripe-powered subscription management
+// ============================================================================
+
+model Subscription {
+  id     String @id @default(cuid())
+  userId String
+  
+  // Stripe details
+  stripeSubscriptionId     String   @unique
+  stripePriceId            String
+  stripeCurrentPeriodStart DateTime
+  stripeCurrentPeriodEnd   DateTime
+  
+  // Status
+  status   String // "active", "canceled", "past_due", "unpaid", "incomplete"
+  tier     String // "premium" (future: "pro")
+  
+  // Pricing
+  amount   Float  // $4.99 or $39.99
+  currency String @default("usd")
+  interval String // "month" or "year"
+  
+  // Lifecycle
+  canceledAt    DateTime?
+  cancelReason  String?   @db.Text
+  cancelAtEnd   Boolean   @default(false) // Whether to cancel at period end
+  
+  // Metadata
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([userId])
+  @@index([status])
+  @@index([stripeCurrentPeriodEnd])
+}
+
+model Payment {
+  id     String @id @default(cuid())
+  userId String
+  
+  // Stripe
+  stripePaymentIntentId String  @unique
+  stripeInvoiceId       String?
+  stripeChargeId        String?
+  
+  // Details
+  amount      Float
+  currency    String  @default("usd")
+  type        String // "subscription", "lifetime", "refund"
+  status      String // "succeeded", "failed", "refunded"
+  
+  // Subscription reference (for recurring payments)
+  subscriptionId String?
+  
+  // Metadata
+  description String?  @db.Text
+  receiptUrl  String?  @db.Text
+  failureCode String? // Stripe failure code
+  failureMessage String? @db.Text
+  
+  // Timestamps
+  createdAt DateTime @default(now())
+  paidAt    DateTime?
+  refundedAt DateTime?
+  
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([userId])
+  @@index([status])
+  @@index([type])
+  @@index([createdAt])
+  @@index([subscriptionId])
 }

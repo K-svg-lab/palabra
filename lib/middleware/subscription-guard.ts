@@ -1,0 +1,155 @@
+/**
+ * Subscription Guard Middleware
+ * Feature gating for premium features
+ * Phase 18.3.1: Monetization Implementation
+ */
+
+import { NextRequest, NextResponse } from 'next/server';
+import { hasActivePremium } from '@/lib/services/stripe';
+import { getAuthUser } from '@/lib/backend/api-utils';
+
+/**
+ * Check if user has premium access (subscription or lifetime)
+ */
+export async function requirePremium(userId: string): Promise<boolean> {
+  return await hasActivePremium(userId);
+}
+
+/**
+ * Premium feature list
+ * Used for UI gating and messaging
+ */
+export const PREMIUM_FEATURES = {
+  deepLearning: {
+    name: 'Deep Learning Mode',
+    description: 'Elaborative interrogation for deeper memory',
+    tier: 'premium' as const,
+  },
+  personalizedAI: {
+    name: 'Personalized AI Examples',
+    description: 'On-demand AI-generated examples tailored to you',
+    tier: 'premium' as const,
+  },
+  advancedInterference: {
+    name: 'Advanced Interference Detection',
+    description: 'Comparative review for confused words',
+    tier: 'premium' as const,
+  },
+  dataExport: {
+    name: 'Data Export',
+    description: 'Export your vocabulary and progress',
+    tier: 'premium' as const,
+  },
+  offlineMode: {
+    name: 'Offline Mode',
+    description: 'Access your vocabulary without internet',
+    tier: 'premium' as const,
+  },
+  advancedAnalytics: {
+    name: 'Advanced Analytics',
+    description: 'Detailed progress insights and statistics',
+    tier: 'premium' as const,
+  },
+  prioritySupport: {
+    name: 'Priority Support',
+    description: 'Get help faster when you need it',
+    tier: 'premium' as const,
+  },
+} as const;
+
+export type PremiumFeature = keyof typeof PREMIUM_FEATURES;
+
+/**
+ * Check if user can access a specific premium feature
+ */
+export async function canAccessFeature(
+  userId: string,
+  feature: PremiumFeature
+): Promise<boolean> {
+  const featureConfig = PREMIUM_FEATURES[feature];
+  
+  if (featureConfig.tier === 'premium') {
+    return await requirePremium(userId);
+  }
+  
+  return true; // Free features
+}
+
+/**
+ * API route wrapper that requires premium access
+ * Returns 403 with upgrade URL if user doesn't have premium
+ */
+export function withPremium(
+  handler: (req: NextRequest, userId: string) => Promise<NextResponse>
+) {
+  return async (req: NextRequest): Promise<NextResponse> => {
+    try {
+      const user = await getAuthUser(req);
+      
+      if (!user) {
+        return NextResponse.json(
+          { error: 'Unauthorized' },
+          { status: 401 }
+        );
+      }
+      
+      const hasPremium = await requirePremium(user.id);
+      
+      if (!hasPremium) {
+        return NextResponse.json(
+          {
+            error: 'Premium subscription required',
+            message: 'This feature requires a premium subscription',
+            upgradeUrl: '/settings/subscription',
+            tier: 'premium',
+          },
+          { status: 403 }
+        );
+      }
+      
+      return await handler(req, user.id);
+    } catch (error) {
+      console.error('[Subscription Guard] Error:', error);
+      return NextResponse.json(
+        { error: 'Internal server error' },
+        { status: 500 }
+      );
+    }
+  };
+}
+
+/**
+ * Client-side hook helper types
+ * Used by React components to gate features
+ */
+export interface SubscriptionInfo {
+  tier: 'free' | 'premium' | 'lifetime';
+  isActive: boolean;
+  isPremium: boolean;
+  isLifetime: boolean;
+  subscriptionEnd?: Date | null;
+  canAccessFeature: (feature: PremiumFeature) => boolean;
+}
+
+/**
+ * Get upgrade message for a specific feature
+ */
+export function getUpgradeMessage(feature: PremiumFeature): string {
+  const featureConfig = PREMIUM_FEATURES[feature];
+  return `${featureConfig.name} is a premium feature. Upgrade to unlock ${featureConfig.description.toLowerCase()}.`;
+}
+
+/**
+ * Check if user is on free tier (helper)
+ */
+export function isFreeTier(tier: string | null): boolean {
+  return !tier || tier === 'free';
+}
+
+/**
+ * Check if subscription is expired
+ */
+export function isSubscriptionExpired(subscriptionEnd: Date | null): boolean {
+  if (!subscriptionEnd) return true;
+  return new Date() > new Date(subscriptionEnd);
+}

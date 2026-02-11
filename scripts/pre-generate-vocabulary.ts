@@ -45,6 +45,7 @@ import * as path from 'path';
 import { batchGenerateExamples } from '@/lib/services/ai-example-generator';
 import { getCurrentMonthCostReport, canMakeAICall } from '@/lib/services/ai-cost-control';
 import type { CEFRLevel } from '@/lib/types/proficiency';
+import { validateWordList, formatValidationResult, type WordEntry } from '@/lib/utils/word-list-validator';
 
 // ============================================================================
 // CONFIGURATION
@@ -113,6 +114,28 @@ async function main() {
   // 1. Load word list
   const words = loadWordList();
   console.log(`📚 Loaded ${words.length} words from ${WORDS_FILE}`);
+  
+  // 1.5. Validate word list
+  console.log(`\n🔍 Validating word list...`);
+  const validation = validateWordList(words);
+  
+  if (validation.summary.criticalErrors > 0 || validation.summary.errors > 0) {
+    console.log(formatValidationResult(validation));
+    
+    if (!validation.valid) {
+      console.error(`\n❌ Found ${validation.summary.criticalErrors} critical validation errors.`);
+      console.error('Please fix the word list before proceeding.\n');
+      console.error('Suggested fixes:');
+      console.error('  - Run: npx tsx scripts/fix-conjugated-verbs.ts (for verb form issues)');
+      console.error('  - Run: npx tsx scripts/validate-word-list.ts --detailed (for detailed report)');
+      console.error('  - Manually review and fix translation/rank issues\n');
+      process.exit(1);
+    }
+  } else if (validation.summary.warnings > 0) {
+    console.log(`⚠️  Found ${validation.summary.warnings} warnings (non-critical).\n`);
+  } else {
+    console.log(`✅ Word list validation passed! All ${words.length} words are valid.\n`);
+  }
   
   // 2. Load or initialize progress
   const progress = isResume ? loadProgress() : initializeProgress(words.length);

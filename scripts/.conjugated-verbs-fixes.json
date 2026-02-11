@@ -1,0 +1,213 @@
+{
+  "timestamp": "2026-02-11T12:39:44.064Z",
+  "operation": "fix_conjugated_verbs",
+  "summary": {
+    "totalVerbsFound": 25,
+    "successfulConversions": 25,
+    "replaced": 0,
+    "removed": 25,
+    "finalWordCount": 789
+  },
+  "changes": [
+    {
+      "rank": 703,
+      "conjugated": "es",
+      "infinitive": "ser",
+      "oldTranslation": "is",
+      "newTranslation": "to be",
+      "confidence": "high"
+    },
+    {
+      "rank": 704,
+      "conjugated": "fue",
+      "infinitive": "ser",
+      "oldTranslation": "was/went",
+      "newTranslation": "to be",
+      "confidence": "medium"
+    },
+    {
+      "rank": 705,
+      "conjugated": "ha",
+      "infinitive": "haber",
+      "oldTranslation": "has (third person singular present of the verb 'haber')",
+      "newTranslation": "to have",
+      "confidence": "high"
+    },
+    {
+      "rank": 713,
+      "conjugated": "está",
+      "infinitive": "estar",
+      "oldTranslation": "is",
+      "newTranslation": "to be",
+      "confidence": "high"
+    },
+    {
+      "rank": 715,
+      "conjugated": "han",
+      "infinitive": "haber",
+      "oldTranslation": "have",
+      "newTranslation": "to have",
+      "confidence": "high"
+    },
+    {
+      "rank": 722,
+      "conjugated": "tiene",
+      "infinitive": "tener",
+      "oldTranslation": "he/she/it has",
+      "newTranslation": "to have",
+      "confidence": "high"
+    },
+    {
+      "rank": 728,
+      "conjugated": "dijo",
+      "infinitive": "decir",
+      "oldTranslation": "said",
+      "newTranslation": "to say",
+      "confidence": "high"
+    },
+    {
+      "rank": 731,
+      "conjugated": "puede",
+      "infinitive": "poder",
+      "oldTranslation": "can",
+      "newTranslation": "to be able to",
+      "confidence": "high"
+    },
+    {
+      "rank": 732,
+      "conjugated": "había",
+      "infinitive": "haber",
+      "oldTranslation": "there was / there were",
+      "newTranslation": "to have",
+      "confidence": "high"
+    },
+    {
+      "rank": 733,
+      "conjugated": "fueron",
+      "infinitive": "ser",
+      "oldTranslation": "they were / you were / we were",
+      "newTranslation": "to be",
+      "confidence": "high"
+    },
+    {
+      "rank": 737,
+      "conjugated": "están",
+      "infinitive": "estar",
+      "oldTranslation": "are",
+      "newTranslation": "to be",
+      "confidence": "high"
+    },
+    {
+      "rank": 741,
+      "conjugated": "sido",
+      "infinitive": "ser",
+      "oldTranslation": "been",
+      "newTranslation": "to be",
+      "confidence": "high"
+    },
+    {
+      "rank": 744,
+      "conjugated": "hace",
+      "infinitive": "hacer",
+      "oldTranslation": "to do/make (in reference to time)",
+      "newTranslation": "to do/make",
+      "confidence": "high"
+    },
+    {
+      "rank": 764,
+      "conjugated": "será",
+      "infinitive": "ser",
+      "oldTranslation": "will be",
+      "newTranslation": "to be",
+      "confidence": "high"
+    },
+    {
+      "rank": 768,
+      "conjugated": "pueden",
+      "infinitive": "poder",
+      "oldTranslation": "they can / you all can",
+      "newTranslation": "to be able",
+      "confidence": "high"
+    },
+    {
+      "rank": 771,
+      "conjugated": "tienen",
+      "infinitive": "tener",
+      "oldTranslation": "they have",
+      "newTranslation": "to have",
+      "confidence": "high"
+    },
+    {
+      "rank": 772,
+      "conjugated": "estaba",
+      "infinitive": "estar",
+      "oldTranslation": "was",
+      "newTranslation": "to be",
+      "confidence": "high"
+    },
+    {
+      "rank": 778,
+      "conjugated": "encuentra",
+      "infinitive": "encontrar",
+      "oldTranslation": "find",
+      "newTranslation": "to find",
+      "confidence": "high"
+    },
+    {
+      "rank": 787,
+      "conjugated": "tuvo",
+      "infinitive": "tener",
+      "oldTranslation": "he/she/it had",
+      "newTranslation": "to have",
+      "confidence": "high"
+    },
+    {
+      "rank": 794,
+      "conjugated": "siendo",
+      "infinitive": "ser",
+      "oldTranslation": "being",
+      "newTranslation": "to be",
+      "confidence": "high"
+    },
+    {
+      "rank": 802,
+      "conjugated": "estas",
+      "infinitive": "estar",
+      "oldTranslation": "you are (2nd person singular informal)",
+      "newTranslation": "to be",
+      "confidence": "high"
+    },
+    {
+      "rank": 804,
+      "conjugated": "eran",
+      "infinitive": "ser",
+      "oldTranslation": "were",
+      "newTranslation": "to be",
+      "confidence": "high"
+    },
+    {
+      "rank": 805,
+      "conjugated": "tenía",
+      "infinitive": "tener",
+      "oldTranslation": "had",
+      "newTranslation": "to have",
+      "confidence": "high"
+    },
+    {
+      "rank": 811,
+      "conjugated": "hizo",
+      "infinitive": "hacer",
+      "oldTranslation": "he/she/it did",
+      "newTranslation": "to do",
+      "confidence": "high"
+    },
+    {
+      "rank": 813,
+      "conjugated": "debe",
+      "infinitive": "deber",
+      "oldTranslation": "must/should",
+      "newTranslation": "to must/should",
+      "confidence": "high"
+    }
+  ]
+}

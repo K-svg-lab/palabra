@@ -1,11 +1,11 @@
 {
-  "lastProcessedRank": 669,
-  "totalWords": 669,
-  "successfulWords": 1391,
-  "failedWords": 1,
-  "cachedWords": 615,
-  "totalCost": 0.53302,
-  "startedAt": "2026-02-10T08:43:22.959Z",
-  "lastUpdatedAt": "2026-02-10T14:15:05.685Z",
+  "lastProcessedRank": 850,
+  "totalWords": 1031,
+  "successfulWords": 183,
+  "failedWords": 0,
+  "cachedWords": 2367,
+  "totalCost": 0.07045199999999999,
+  "startedAt": "2026-02-11T13:39:48.620Z",
+  "lastUpdatedAt": "2026-02-11T15:04:26.249Z",
   "completedLevels": {}
 }

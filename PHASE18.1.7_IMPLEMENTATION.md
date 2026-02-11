@@ -222,13 +222,29 @@ Period: Last 30 days
 
 ## 🏗️ **Architecture**
 
-### **Data Flow**
+### **Data Flow** (Updated Feb 11, 2026)
 
 ```
 ┌─────────────────────────────────────────────────────────┐
 │  1. Load Common Words List (5,000 words)                │
 │     - Ranked by frequency                               │
 │     - Tagged with POS and translations                  │
+└──────────────────┬──────────────────────────────────────┘
+                   │
+                   ▼
+┌─────────────────────────────────────────────────────────┐
+│  1.5. VALIDATE Word List (NEW - Feb 11, 2026)           │
+│     ✅ Verb form validation (infinitive only)           │
+│     ✅ Duplicate detection                              │
+│     ✅ Translation validation                           │
+│     ✅ Rank sequence validation                         │
+│     ✅ POS validation                                   │
+│     ✅ Frequency tier validation                        │
+│     ✅ Word length validation                           │
+│                                                         │
+│  ❌ If critical errors → EXIT (halt processing)        │
+│  ⚠️  If warnings → Log and continue                     │
+│  ✅ If valid → Proceed to processing                    │
 └──────────────────┬──────────────────────────────────────┘
                    │
                    ▼
@@ -244,6 +260,7 @@ Period: Last 30 days
 │     - A1: Beginner-appropriate examples                 │
 │     - B1: Intermediate examples                         │
 │     - C1: Advanced examples                             │
+│     - Cost: ~$0.0003-$0.0006 per word per level        │
 └──────────────────┬──────────────────────────────────────┘
                    │
                    ▼
@@ -263,6 +280,11 @@ Period: Last 30 days
 │     - Cost in USD                                       │
 └─────────────────────────────────────────────────────────┘
 ```
+
+**Key Addition**: Step 1.5 validates the word list before any expensive processing begins, preventing issues like conjugated verbs (50x multiplication) and duplicates from wasting API calls.
+
+**📖 Complete Workflow**: For a detailed plan on expanding the word list to 5,000 words using this validated data flow, including cost calculations and execution strategy, see:
+- [docs/plans/EXPANSION_4000_WORDS_WITH_VALIDATION.md](./docs/plans/EXPANSION_4000_WORDS_WITH_VALIDATION.md)
 
 ### **Database Schema**
 
@@ -570,6 +592,132 @@ Error: OpenAI API key not configured
 
 ---
 
+## ⚠️ **Critical Issue: Conjugated Verbs (Feb 11, 2026)**
+
+### **Problem Discovered**
+
+During word list expansion from 699 to 814 words, **25 conjugated Spanish verbs** were incorrectly added instead of their infinitive forms. This occurred because the source (Wiktionary frequency list) ranks words as they appear in text (conjugated forms), not lemmatized/root forms.
+
+**Examples of problematic entries:**
+- "es" (is) instead of "ser" (to be)
+- "tiene" (has) instead of "tener" (to have)
+- "fue" (was) instead of "ser" (to be)
+- "está" (is) instead of "estar" (to be - location/state)
+
+### **Why This Was Critical**
+
+Spanish verbs have **~50-60 conjugated forms** each across:
+- 6 persons (yo, tú, él/ella, nosotros, vosotros, ellos)
+- Multiple tenses (present, preterite, imperfect, future, conditional, subjunctive, etc.)
+- Participles and gerunds
+
+**Impact:** If we cached conjugated forms, we'd need to cache potentially **1,000+ verb forms** instead of ~20 infinitives, multiplying the work by **50x**!
+
+### **Solution Implemented**
+
+Created `scripts/fix-conjugated-verbs.ts` to:
+1. Identify conjugated verbs (25 found)
+2. Convert to infinitive forms using OpenAI
+3. Check for duplicates (all 25 were duplicates!)
+4. Remove conjugated verbs from word list
+5. Clean database entries
+
+**Result:**
+- Word list: 814 → 789 words (removed 25 duplicates)
+- Database: Cleaned 25 conjugated verb entries
+- Cost: ~$0.01 (one-time cleanup)
+- Status: ✅ All verbs now in infinitive form
+
+### **Requirements for Future Word List Expansions**
+
+**CRITICAL RULE:** All Spanish verbs MUST be in infinitive form (-ar, -er, -ir endings).
+
+**Valid infinitive forms:**
+- Regular verbs: hablar, comer, vivir
+- Reflexive verbs: sentirse, levantarse, vestirse (infinitive + "se")
+- Irregular with -ír: oír, reír, sonreír
+
+**INVALID forms (conjugated):**
+- Present: hablo, comes, vive
+- Preterite: hablé, comió, vivieron
+- Imperfect: hablaba, comías, vivían
+- Future: hablaré, comerás, vivirá
+- Conditional: hablaría, comería, vivirían
+- Present participle: hablando, comiendo, viviendo
+- Past participle: hablado, comido, vivido
+
+### **Recommended Validation (Phase 1 of Data Flow)**
+
+Add validation step in `loadWordList()` function:
+
+```typescript
+function validateVerbs(words: WordEntry[]): { valid: WordEntry[]; invalid: WordEntry[] } {
+  const valid: WordEntry[] = [];
+  const invalid: WordEntry[] = [];
+  
+  for (const word of words) {
+    if (word.pos === 'verb') {
+      const isInfinitive = 
+        word.word.endsWith('ar') || 
+        word.word.endsWith('er') || 
+        word.word.endsWith('ir') ||
+        word.word.endsWith('ír') ||  // Irregular: oír, reír
+        word.word.endsWith('arse') || // Reflexive -ar
+        word.word.endsWith('erse') || // Reflexive -er
+        word.word.endsWith('irse');   // Reflexive -ir
+      
+      if (isInfinitive) {
+        valid.push(word);
+      } else {
+        invalid.push(word);
+        console.warn(`⚠️  Conjugated verb detected: "${word.word}" (rank ${word.rank})`);
+      }
+    } else {
+      valid.push(word);
+    }
+  }
+  
+  return { valid, invalid };
+}
+```
+
+**Usage in pre-generation script:**
+
+```typescript
+const words = loadWordList();
+const { valid, invalid } = validateVerbs(words);
+
+if (invalid.length > 0) {
+  console.error(`❌ Found ${invalid.length} conjugated verbs. Please fix before proceeding.`);
+  console.error('Run: npx tsx scripts/fix-conjugated-verbs.ts');
+  process.exit(1);
+}
+```
+
+### **Word List Source Requirements**
+
+When expanding beyond 789 words, use sources that provide **lemmatized** (base form) words:
+
+**Recommended sources:**
+1. ✅ Spanish lemmatized frequency lists
+2. ✅ RAE (Real Academia Española) corpus with lemmas
+3. ✅ SpanishInput lemmatized word lists
+4. ✅ WordFrequency.info with lemmatization
+
+**Avoid:**
+- ❌ Raw text frequency analysis (includes conjugated forms)
+- ❌ Wiktionary frequency lists (not lemmatized)
+- ❌ Movie subtitle frequency lists (conjugated as spoken)
+
+### **Documentation References**
+
+- Full incident report: `docs/deployments/2026-02/DEPLOYMENT_2026_02_11_PHASE18.2.4.md`
+- Cleanup script: `scripts/fix-conjugated-verbs.ts`
+- Change log: `scripts/.conjugated-verbs-fixes.json`
+- Backup: `scripts/common-words-5000.backup.json`
+
+---
+
 ## 📝 **Notes**
 
 ### **Design Decisions**
@@ -615,6 +763,14 @@ Error: OpenAI API key not configured
    - Process multiple words simultaneously
    - Reduce total runtime
    - Requires careful rate limit management
+
+5. **Additional Data Validation (Nice to Have)**
+   - **Character encoding validation**: Detect invalid UTF-8 or non-Spanish characters
+   - **Spanish language detection**: Use linguistic features (ñ, accents, common patterns) to flag non-Spanish words
+   - **Noun gender validation**: Ensure all nouns have gender markers (m/f) for proper article usage
+   - **Word complexity scoring**: Rank by syllable count, cognate status, difficulty
+   - **Pronunciation validation**: Check if word has IPA transcription available
+   - **Usage frequency verification**: Cross-reference with multiple corpora to confirm rankings
 
 ---
 
