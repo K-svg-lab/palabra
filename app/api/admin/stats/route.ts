@@ -41,16 +41,7 @@ export async function GET(request: NextRequest) {
       select: { email: true },
     });
 
-    // Debug logging (remove after fixing)
-    console.log('[Admin Check]', {
-      userEmail: user?.email,
-      adminEmail,
-      envADMIN_EMAIL: process.env.ADMIN_EMAIL,
-      envNEXT_PUBLIC_ADMIN_EMAIL: process.env.NEXT_PUBLIC_ADMIN_EMAIL,
-      match: user?.email === adminEmail,
-      trimmedMatch: user?.email?.trim().toLowerCase() === adminEmail?.trim().toLowerCase(),
-    });
-
+    // Case-insensitive email comparison with whitespace trimming
     if (!user || !adminEmail || user.email.trim().toLowerCase() !== adminEmail.trim().toLowerCase()) {
       return NextResponse.json(
         { error: 'Forbidden - Admin access required' },
