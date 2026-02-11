@@ -51,7 +51,7 @@ export default function SubscriptionPage() {
         <AppHeader
           title="Subscription"
           subtitle="Manage your plan"
-          backHref="/settings"
+          showBack={true}
         />
         <div className="container max-w-7xl mx-auto p-6">
           <div className="flex items-center justify-center py-20">
@@ -67,7 +67,7 @@ export default function SubscriptionPage() {
       <AppHeader
         title="Subscription"
         subtitle="Choose the perfect plan for your learning journey"
-        backHref="/settings"
+        showBack={true}
       />
 
       <div className="container max-w-7xl mx-auto p-6 space-y-8">
