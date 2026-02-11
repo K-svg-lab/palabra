@@ -346,11 +346,10 @@ function FAQItem({ question, answer, index }: FAQItemProps) {
     <motion.div
       className="bg-gradient-to-br from-purple-500/5 to-pink-500/5 rounded-2xl p-6 border border-purple-700/30 hover:border-purple-500/50 hover:shadow-lg hover:shadow-purple-500/10 transition-all duration-300"
       whileHover={{ scale: 1.02, y: -4 }}
-      transition={{ duration: 0.2 }}
       initial={{ opacity: 0, y: 20 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
-      transition={{ delay: index * 0.05 }}
+      transition={{ duration: 0.2, delay: index * 0.05 }}
     >
       <h3 className="font-bold text-lg text-gray-900 dark:text-white mb-3 flex items-start gap-2">
         <span className="text-purple-500 text-xl">Q.</span>
