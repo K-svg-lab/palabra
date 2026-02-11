@@ -61,17 +61,15 @@ export default function ABTestDashboard() {
   useEffect(() => {
     async function checkAdmin() {
       try {
-        const response = await fetch('/api/auth/me');
+        // Check admin access via API (which has access to server-side env vars)
+        const response = await fetch('/api/admin/check');
         if (!response.ok) {
           router.push('/');
           return;
         }
 
         const data = await response.json();
-        
-        // Check if user is admin (TODO: Add isAdmin field to User model)
-        const adminEmail = process.env.NEXT_PUBLIC_ADMIN_EMAIL;
-        if (data.user?.email !== adminEmail) {
+        if (!data.isAdmin) {
           router.push('/');
           return;
         }
