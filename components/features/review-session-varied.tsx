@@ -93,8 +93,6 @@ export function ReviewSessionVaried({
   const [deepLearningWord, setDeepLearningWord] = useState<VocabularyWord | null>(null);
   const [deepLearningPrompt, setDeepLearningPrompt] = useState<ElaborativePrompt | null>(null);
   // User state for database recording
-  const [user, setUser] = useState<any>(null);
-
   const { preferences } = useReviewPreferences();
   const deepLearningEnabled = preferences.deepLearningEnabled === true;
   const deepLearningFrequency = preferences.deepLearningFrequency ?? 12;
@@ -102,22 +100,6 @@ export function ReviewSessionVaried({
   // Scroll to top when component mounts
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'instant' });
-  }, []);
-
-  // Fetch user for deep learning response recording
-  useEffect(() => {
-    async function fetchUser() {
-      try {
-        const response = await fetch('/api/auth/me');
-        if (response.ok) {
-          const data = await response.json();
-          setUser(data.user);
-        }
-      } catch (error) {
-        console.log('[Deep Learning] User not authenticated');
-      }
-    }
-    fetchUser();
   }, []);
 
   // Process words based on configuration
@@ -384,11 +366,18 @@ export function ReviewSessionVaried({
     userResponse?: string;
     responseTime: number;
   }) => {
-    console.log('[Deep Learning] Card completed:', { skipped: response.skipped, responseTime: response.responseTime });
+    console.log('[Deep Learning] Card completed:', { 
+      skipped: response.skipped, 
+      responseTime: response.responseTime,
+      hasResponse: !!response.userResponse,
+      responseLength: response.userResponse?.length || 0
+    });
     
     // Record response to database (Phase 18.2.2 completion)
-    if (user?.id && deepLearningWord && deepLearningPrompt) {
+    // Always attempt to save - API will handle auth check
+    if (deepLearningWord && deepLearningPrompt) {
       try {
+        console.log('[Deep Learning] 💾 Attempting to save response...');
         const saveResponse = await fetch('/api/deep-learning/record-response', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -396,7 +385,7 @@ export function ReviewSessionVaried({
             wordId: deepLearningWord.id,
             promptType: deepLearningPrompt.type,
             question: deepLearningPrompt.question,
-            userResponse: response.userResponse,
+            userResponse: response.userResponse || null,
             skipped: response.skipped,
             responseTime: response.responseTime,
           }),
@@ -405,14 +394,22 @@ export function ReviewSessionVaried({
         if (saveResponse.ok) {
           console.log('[Deep Learning] ✅ Response saved to database');
         } else {
-          console.error('[Deep Learning] ❌ Failed to save response:', await saveResponse.text());
+          const errorText = await saveResponse.text();
+          console.error('[Deep Learning] ❌ Failed to save response:', errorText);
+          // If user not authenticated, they might be guest
+          if (saveResponse.status === 401) {
+            console.log('[Deep Learning] ℹ️ User not authenticated - response not saved');
+          }
         }
       } catch (error) {
         console.error('[Deep Learning] ❌ Error saving response:', error);
         // Don't block user flow if save fails
       }
     } else {
-      console.log('[Deep Learning] ⏭️ Skipping database save (guest user or missing data)');
+      console.warn('[Deep Learning] ⚠️ Missing data:', {
+        hasWord: !!deepLearningWord,
+        hasPrompt: !!deepLearningPrompt,
+      });
     }
     
     // Clear deep learning state
