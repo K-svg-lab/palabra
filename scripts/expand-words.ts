@@ -174,17 +174,17 @@ async function getExistingWords(): Promise<Set<string>> {
     select: { sourceWord: true },
   });
   
-  const dbWords = new Set(cachedWords.map(w => w.sourceWord.toLowerCase()));
+  const dbWords: Set<string> = new Set(cachedWords.map(w => w.sourceWord.toLowerCase()));
   console.log(`   Database (all entries): ${dbWords.size} words`);
   
   // Get words from JSON file
   const fileContent = fs.readFileSync(WORDS_FILE, 'utf-8');
   const wordData = JSON.parse(fileContent);
-  const jsonWords = new Set(wordData.words.map((w: WordEntry) => w.word.toLowerCase()));
+  const jsonWords: Set<string> = new Set(wordData.words.map((w: WordEntry) => w.word.toLowerCase()));
   console.log(`   JSON file: ${jsonWords.size} words`);
   
   // Combine (remove duplicates between DB and JSON)
-  const allExisting = new Set([...dbWords, ...jsonWords]);
+  const allExisting: Set<string> = new Set([...dbWords, ...jsonWords]);
   console.log(`   Combined unique: ${allExisting.size} words\n`);
   
   return allExisting;

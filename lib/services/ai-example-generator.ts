@@ -181,6 +181,16 @@ English: [translation]
 Example:`;
 
   const openai = getOpenAIClient();
+  
+  if (!openai) {
+    console.warn('[AI Examples] OpenAI client not available, using fallback templates');
+    const examples = await generateFallbackExamples(options);
+    return {
+      examples,
+      cost: 0,
+      tokensUsed: 0,
+    };
+  }
 
   const startTime = Date.now();
   const response = await openai.chat.completions.create({

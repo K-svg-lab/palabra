@@ -29,8 +29,8 @@ export type SubscriptionTier = 'free' | 'premium' | 'lifetime';
 export async function createCheckoutSession(
   userId: string,
   priceId: string,
-  successUrl: string,
-  cancelUrl: string
+  success_url: string,
+  cancel_url: string
 ): Promise<string> {
   const user = await prisma.user.findUnique({
     where: { id: userId },
@@ -68,17 +68,17 @@ export async function createCheckoutSession(
   const session = await stripe.checkout.sessions.create({
     customer: customerId,
     mode,
-    paymentMethodTypes: ['card'],
-    lineItems: [
+    payment_method_types: ['card'],
+    line_items: [
       {
         price: priceId,
         quantity: 1,
       },
     ],
-    successUrl: successUrl,
-    cancelUrl: cancelUrl,
-    allowPromotionCodes: true,
-    billingAddressCollection: 'auto',
+    success_url: success_url,
+    cancel_url: cancel_url,
+    allow_promotion_codes: true,
+    billing_address_collection: 'auto',
     metadata: {
       userId,
       priceId,
@@ -97,7 +97,7 @@ export async function createCheckoutSession(
  */
 export async function createCustomerPortalSession(
   userId: string,
-  returnUrl: string
+  return_url: string
 ): Promise<string> {
   const user = await prisma.user.findUnique({
     where: { id: userId },
@@ -110,7 +110,7 @@ export async function createCustomerPortalSession(
 
   const session = await stripe.billingPortal.sessions.create({
     customer: user.stripeCustomerId,
-    returnUrl: returnUrl,
+    return_url: return_url,
   });
 
   return session.url;
@@ -160,14 +160,14 @@ export async function handleWebhookEvent(event: Stripe.Event): Promise<void> {
 
       // Payment intent events (for one-time payments)
       case 'payment_intent.succeeded': {
-        const paymentIntent = event.data.object as Stripe.PaymentIntent;
-        await handlePaymentIntentSucceeded(paymentIntent);
+        const payment_intent = event.data.object as Stripe.PaymentIntent;
+        await handlePaymentIntentSucceeded(payment_intent);
         break;
       }
 
       case 'payment_intent.payment_failed': {
-        const paymentIntent = event.data.object as Stripe.PaymentIntent;
-        await handlePaymentIntentFailed(paymentIntent);
+        const payment_intent = event.data.object as Stripe.PaymentIntent;
+        await handlePaymentIntentFailed(payment_intent);
         break;
       }
 
@@ -211,7 +211,7 @@ async function handleLifetimePurchase(
   session: Stripe.Checkout.Session,
   userId: string
 ): Promise<void> {
-  const amount = (session.amountTotal || 0) / 100; // Convert cents to dollars
+  const amount = (session.amount_total || 0) / 100; // Convert cents to dollars
 
   await prisma.user.update({
     where: { id: userId },
@@ -228,7 +228,7 @@ async function handleLifetimePurchase(
   await prisma.payment.create({
     data: {
       userId,
-      stripePaymentIntentId: session.paymentIntent as string,
+      stripePaymentIntentId: session.payment_intent as string,
       amount,
       type: 'lifetime',
       status: 'succeeded',
@@ -267,33 +267,49 @@ async function handleSubscriptionUpdate(
     return;
   }
 
-  const periodEnd = new Date(subscription.currentPeriodEnd * 1000);
-  const periodStart = new Date(subscription.currentPeriodStart * 1000);
-  const price = subscription.items.data[0].price;
+  // Use type assertion to access properties (Stripe v20 API types are incomplete for preview versions)
+  const sub = subscription as any;
+  
+  // If dates are missing at top level, fetch fresh subscription data from Stripe
+  let actualSubscription = subscription;
+  if (!sub.current_period_start || !sub.current_period_end) {
+    console.log('[Stripe] Dates missing, fetching subscription from API...');
+    actualSubscription = await stripe.subscriptions.retrieve(subscription.id, {
+      expand: ['latest_invoice', 'customer'],
+    });
+  }
+  
+  const subData = actualSubscription as any;
+  const item = actualSubscription.items.data[0] as any;
+  
+  // Try top-level first, then fall back to item level (where Stripe stores these in some webhook events)
+  const periodEnd = new Date((subData.current_period_end || item.current_period_end || subData.currentPeriodEnd) * 1000);
+  const periodStart = new Date((subData.current_period_start || item.current_period_start || subData.currentPeriodStart) * 1000);
+  const price = item.price as any;
 
   // Update or create subscription record
   await prisma.subscription.upsert({
-    where: { stripeSubscriptionId: subscription.id },
+    where: { stripeSubscriptionId: actualSubscription.id },
     create: {
       userId: user.id,
-      stripeSubscriptionId: subscription.id,
+      stripeSubscriptionId: actualSubscription.id,
       stripePriceId: price.id,
       stripeCurrentPeriodStart: periodStart,
       stripeCurrentPeriodEnd: periodEnd,
-      status: subscription.status,
+      status: actualSubscription.status,
       tier: 'premium',
-      amount: (price.unitAmount || 0) / 100,
-      currency: subscription.currency,
+      amount: ((price.unit_amount || price.unitAmount) || 0) / 100,
+      currency: actualSubscription.currency,
       interval: price.recurring?.interval || 'month',
     },
     update: {
-      status: subscription.status,
+      status: actualSubscription.status,
       stripeCurrentPeriodStart: periodStart,
       stripeCurrentPeriodEnd: periodEnd,
       stripePriceId: price.id,
-      amount: (price.unitAmount || 0) / 100,
-      canceledAt: subscription.canceledAt ? new Date(subscription.canceledAt * 1000) : null,
-      cancelAtEnd: subscription.cancelAtPeriodEnd,
+      amount: ((price.unit_amount || price.unitAmount) || 0) / 100,
+      canceledAt: (subData.canceled_at || subData.canceledAt) ? new Date((subData.canceled_at || subData.canceledAt) * 1000) : null,
+      cancelAtEnd: subData.cancel_at_period_end || subData.cancelAtPeriodEnd || false,
     },
   });
 
@@ -301,9 +317,9 @@ async function handleSubscriptionUpdate(
   await prisma.user.update({
     where: { id: user.id },
     data: {
-      subscriptionTier: subscription.status === 'active' ? 'premium' : 'free',
-      subscriptionStatus: subscription.status,
-      stripeSubscriptionId: subscription.id,
+      subscriptionTier: actualSubscription.status === 'active' ? 'premium' : 'free',
+      subscriptionStatus: actualSubscription.status,
+      stripeSubscriptionId: actualSubscription.id,
       subscriptionStart: periodStart,
       subscriptionEnd: periodEnd,
     },
@@ -368,12 +384,13 @@ async function handleSubscriptionDeleted(
  * Handle successful invoice payment (recurring subscription)
  */
 async function handlePaymentSucceeded(invoice: Stripe.Invoice): Promise<void> {
-  if (!invoice.subscription) {
+  const inv = invoice as any;
+  if (!inv.subscription) {
     return; // Not a subscription invoice
   }
 
   const subscription = await prisma.subscription.findUnique({
-    where: { stripeSubscriptionId: invoice.subscription as string },
+    where: { stripeSubscriptionId: inv.subscription as string },
   });
 
   if (!subscription) {
@@ -385,16 +402,14 @@ async function handlePaymentSucceeded(invoice: Stripe.Invoice): Promise<void> {
   await prisma.payment.create({
     data: {
       userId: subscription.userId,
-      stripePaymentIntentId: invoice.paymentIntent as string,
+      stripePaymentIntentId: (inv.payment_intent || inv.paymentIntent) as string,
       stripeInvoiceId: invoice.id,
-      stripeChargeId: invoice.charge as string,
-      amount: invoice.amountPaid / 100,
+      amount: (inv.amount_paid || inv.amountPaid || 0) / 100,
       currency: invoice.currency,
       type: 'subscription',
       status: 'succeeded',
-      subscriptionId: subscription.id,
       description: `Subscription payment - ${subscription.interval}`,
-      receiptUrl: invoice.hostedInvoiceUrl || undefined,
+      receiptUrl: (inv.hosted_invoice_url || inv.hostedInvoiceUrl) || undefined,
       paidAt: new Date(),
     },
   });
@@ -406,12 +421,13 @@ async function handlePaymentSucceeded(invoice: Stripe.Invoice): Promise<void> {
  * Handle failed invoice payment
  */
 async function handlePaymentFailed(invoice: Stripe.Invoice): Promise<void> {
-  if (!invoice.subscription) {
+  const inv = invoice as any;
+  if (!inv.subscription) {
     return;
   }
 
   const subscription = await prisma.subscription.findUnique({
-    where: { stripeSubscriptionId: invoice.subscription as string },
+    where: { stripeSubscriptionId: inv.subscription as string },
   });
 
   if (!subscription) {
@@ -422,13 +438,12 @@ async function handlePaymentFailed(invoice: Stripe.Invoice): Promise<void> {
   await prisma.payment.create({
     data: {
       userId: subscription.userId,
-      stripePaymentIntentId: invoice.paymentIntent as string,
+      stripePaymentIntentId: (inv.payment_intent || inv.paymentIntent) as string,
       stripeInvoiceId: invoice.id,
-      amount: invoice.amountDue / 100,
+      amount: (inv.amount_due || inv.amountDue || 0) / 100,
       currency: invoice.currency,
       type: 'subscription',
       status: 'failed',
-      subscriptionId: subscription.id,
       description: `Failed subscription payment - ${subscription.interval}`,
       failureMessage: 'Payment failed',
     },
@@ -453,20 +468,20 @@ async function handlePaymentFailed(invoice: Stripe.Invoice): Promise<void> {
  * Handle successful payment intent (one-time payments)
  */
 async function handlePaymentIntentSucceeded(
-  paymentIntent: Stripe.PaymentIntent
+  payment_intent: Stripe.PaymentIntent
 ): Promise<void> {
   // Payment intents for subscriptions are handled via invoices
   // This handles standalone payments (if any)
-  console.log(`[Stripe] Payment intent succeeded: ${paymentIntent.id}`);
+  console.log(`[Stripe] Payment intent succeeded: ${payment_intent.id}`);
 }
 
 /**
  * Handle failed payment intent
  */
 async function handlePaymentIntentFailed(
-  paymentIntent: Stripe.PaymentIntent
+  payment_intent: Stripe.PaymentIntent
 ): Promise<void> {
-  console.log(`[Stripe] Payment intent failed: ${paymentIntent.id}`);
+  console.log(`[Stripe] Payment intent failed: ${payment_intent.id}`);
 }
 
 /**
