@@ -128,12 +128,12 @@ export function PricingCard({
       transition={{ duration: 0.2 }}
     >
       {/* Badge */}
-      {plan.badge && (
+      {'badge' in plan && plan.badge && (
         <div className="absolute -top-4 left-1/2 -translate-x-1/2">
           <span
             className={cn(
               'bg-gradient-to-r text-white text-xs font-bold px-4 py-1.5 rounded-full shadow-lg',
-              plan.badgeColor
+              'badgeColor' in plan ? plan.badgeColor : ''
             )}
           >
             {plan.badge}
