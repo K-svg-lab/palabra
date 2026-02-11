@@ -61,7 +61,7 @@ export function DeepLearningCard({
 
     const interval = setInterval(() => {
       setTimer(prev => {
-        if (prev <= 1) {
+        if (prev <= 0) {
           // Signal auto-skip (don't call onComplete here - setState during render error)
           setShouldAutoSkip(true);
           return 0;
@@ -286,7 +286,7 @@ export function DeepLearningCardCompact({
 
     const interval = setInterval(() => {
       setTimer(prev => {
-        if (prev <= 1) {
+        if (prev <= 0) {
           handleComplete(true, '');
           return 0;
         }
