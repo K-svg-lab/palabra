@@ -6,15 +6,15 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { verifyAuth } from '@/lib/auth/jwt';
+import { getSession } from '@/lib/backend/auth';
 import { recordElaborativeResponse } from '@/lib/services/deep-learning';
 import type { ElaborativePrompt } from '@/lib/utils/deep-learning-client';
 
 export async function POST(request: NextRequest) {
   try {
     // Verify authentication
-    const token = await verifyAuth(request);
-    if (!token || !token.userId) {
+    const session = await getSession();
+    if (!session || !session.userId) {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
@@ -51,7 +51,7 @@ export async function POST(request: NextRequest) {
 
     // Record response to database
     await recordElaborativeResponse({
-      userId: token.userId,
+      userId: session.userId,
       wordId,
       prompt,
       userResponse: userResponse || null,
