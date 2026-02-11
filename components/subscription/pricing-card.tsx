@@ -99,10 +99,15 @@ export function PricingCard({
   const Icon = plan.icon;
   
   // For premium, show yearly price if interval is 'year'
+  const premiumPlan = tier === 'premium' ? PLANS.premium : null;
   const displayPrice =
-    tier === 'premium' && interval === 'year' ? plan.yearlyPrice : plan.price;
+    tier === 'premium' && interval === 'year' && premiumPlan
+      ? premiumPlan.yearlyPrice
+      : plan.price;
   const displayPeriod =
-    tier === 'premium' && interval === 'year' ? plan.yearlyPeriod : plan.period;
+    tier === 'premium' && interval === 'year' && premiumPlan
+      ? premiumPlan.yearlyPeriod
+      : plan.period;
 
   return (
     <motion.div
@@ -170,9 +175,9 @@ export function PricingCard({
             {displayPeriod}
           </span>
         </div>
-        {tier === 'premium' && interval === 'year' && plan.yearlyNote && (
+        {tier === 'premium' && interval === 'year' && premiumPlan?.yearlyNote && (
           <p className="text-sm text-green-600 dark:text-green-400 font-medium">
-            💰 {plan.yearlyNote}
+            💰 {premiumPlan.yearlyNote}
           </p>
         )}
         <p className="text-gray-600 dark:text-gray-400 text-sm mt-2">
