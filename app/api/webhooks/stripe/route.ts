@@ -23,7 +23,7 @@ export async function POST(request: NextRequest) {
     const body = await request.text();
     
     // Get Stripe signature
-    const headersList = headers();
+    const headersList = await headers();
     const signature = headersList.get('stripe-signature');
 
     if (!signature) {
