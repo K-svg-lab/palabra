@@ -187,7 +187,7 @@ export function PricingPreview() {
           className="mt-8 text-center"
         >
           <Link
-            href="/settings/subscription"
+            href="/dashboard/settings/subscription"
             className="inline-flex items-center gap-2 text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium transition-colors"
           >
             <Sparkles className="w-4 h-4" />

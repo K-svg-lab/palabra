@@ -120,7 +120,7 @@ export function Footer() {
             <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
               Start learning Spanish vocabulary for free today.
             </p>
-            <Link href="/">
+            <Link href="/dashboard">
               <button className="w-full px-4 py-2 rounded-lg bg-gradient-to-r from-blue-600 to-purple-600 text-white font-medium text-sm hover:shadow-lg transition-shadow">
                 Start Free
               </button>

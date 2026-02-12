@@ -128,7 +128,7 @@ export default function ReviewTestPage() {
 
       <div className="max-w-2xl mx-auto px-4 py-6 space-y-6">
         <Link
-          href="/review"
+          href="/dashboard/review"
           className="inline-flex items-center gap-2 text-sm text-blue-600 dark:text-blue-400 hover:underline"
         >
           <ArrowLeft className="w-4 h-4" />

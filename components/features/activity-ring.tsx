@@ -247,7 +247,7 @@ export function ActivityRingWithCTA({
         <div className="absolute inset-0 flex flex-col items-center justify-center">
           {/* Primary CTA Button - Circular with Integrated Subtitle */}
           <Link
-            href="/review"
+            href="/dashboard/review"
             className={`
               group relative flex flex-col items-center justify-center
               w-36 h-36 rounded-full

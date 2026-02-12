@@ -35,7 +35,7 @@ export default async function ComparativeReviewPage({
   // Require authentication
   const session = await getSession();
   if (!session?.userId) {
-    redirect('/auth/signin?callbackUrl=/review/comparative');
+    redirect('/auth/signin?callbackUrl=/dashboard/review/comparative');
   }
 
   // Get user
@@ -58,7 +58,7 @@ export default async function ComparativeReviewPage({
           Please select two words to compare from your vocabulary.
         </p>
         <Link
-          href="/vocabulary"
+          href="/dashboard/vocabulary"
           className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
         >
           <ArrowLeft className="w-4 h-4" />
@@ -97,7 +97,7 @@ export default async function ComparativeReviewPage({
           One or both of the selected words could not be found in your vocabulary.
         </p>
         <Link
-          href="/vocabulary"
+          href="/dashboard/vocabulary"
           className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
         >
           <ArrowLeft className="w-4 h-4" />
@@ -141,7 +141,7 @@ export default async function ComparativeReviewPage({
     await recordComparativeReview(user.id, result);
 
     // Redirect to dashboard with success message
-    redirect('/?message=confusion-resolved');
+    redirect('/dashboard?message=confusion-resolved');
   };
 
   return (
@@ -150,7 +150,7 @@ export default async function ComparativeReviewPage({
         {/* Back Button */}
         <div className="mb-6">
           <Link
-            href="/"
+            href="/dashboard"
             className="inline-flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
           >
             <ArrowLeft className="w-4 h-4" />

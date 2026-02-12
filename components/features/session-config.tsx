@@ -255,7 +255,7 @@ export function SessionConfig({
       {/* Test question types (no practice session) */}
       <div className="pt-3 mt-2 border-t border-black/5 dark:border-white/5">
         <Link
-          href="/review/test"
+          href="/dashboard/review/test"
           className="inline-flex items-center gap-2 text-xs text-text-tertiary hover:text-accent transition-colors"
         >
           <FlaskConical className="w-3.5 h-3.5" />

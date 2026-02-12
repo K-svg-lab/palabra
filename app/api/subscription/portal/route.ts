@@ -22,7 +22,7 @@ export async function POST(request: NextRequest) {
 
     // Build return URL
     const baseUrl = (process.env.NEXTAUTH_URL || 'http://localhost:3000').trim();
-    const returnUrl = `${baseUrl}/settings/subscription`;
+    const returnUrl = `${baseUrl}/dashboard/settings/subscription`;
 
     // Create portal session
     const portalUrl = await createCustomerPortalSession(user.id, returnUrl);

@@ -7,7 +7,6 @@
 
 import { useEffect, createContext, useContext, useState, ReactNode } from 'react';
 import { registerServiceWorker, requestPersistentStorage } from '@/lib/utils/pwa';
-import { PWAInstallPrompt } from '@/components/features/pwa-install-prompt';
 import { OfflineIndicator } from '@/components/features/offline-indicator';
 
 interface PWAContextValue {
@@ -78,7 +77,6 @@ export function PWAProvider({ children }: PWAProviderProps) {
   return (
     <PWAContext.Provider value={value}>
       {children}
-      <PWAInstallPrompt />
       <OfflineIndicator />
     </PWAContext.Provider>
   );

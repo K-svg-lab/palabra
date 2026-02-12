@@ -752,7 +752,7 @@ export function FlashcardEnhanced({
               </div>
             </div>
             <button
-              onClick={() => router.push('/review')}
+              onClick={() => router.push('/dashboard/review')}
               className="px-6 py-3 bg-accent text-white rounded-xl font-medium hover:opacity-90 transition-opacity"
             >
               ← Exit Listening Mode

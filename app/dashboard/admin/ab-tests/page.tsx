@@ -64,20 +64,20 @@ export default function ABTestDashboard() {
         // Check admin access via API (which has access to server-side env vars)
         const response = await fetch('/api/admin/check');
         if (!response.ok) {
-          router.push('/');
+          router.push('/dashboard');
           return;
         }
 
         const data = await response.json();
         if (!data.isAdmin) {
-          router.push('/');
+          router.push('/dashboard');
           return;
         }
 
         setIsAdmin(true);
       } catch (error) {
         console.error('Auth check failed:', error);
-        router.push('/');
+        router.push('/dashboard');
       } finally {
         setLoading(false);
       }
@@ -105,7 +105,7 @@ export default function ABTestDashboard() {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
             <Link
-              href="/"
+              href="/dashboard"
               className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
             >
               <ArrowLeft className="w-5 h-5" />

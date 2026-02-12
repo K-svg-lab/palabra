@@ -2,7 +2,7 @@
   "name": "Palabra - Spanish Vocabulary Learning",
   "short_name": "Palabra",
   "description": "AI-powered Spanish vocabulary learning with intelligent spaced repetition",
-  "start_url": "/",
+  "start_url": "/dashboard",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#007aff",
@@ -44,7 +44,7 @@
       "name": "Review Vocabulary",
       "short_name": "Review",
       "description": "Start a review session",
-      "url": "/review",
+      "url": "/dashboard/review",
       "icons": [
         {
           "src": "/icon-192.png",
@@ -57,7 +57,7 @@
       "name": "Add Word",
       "short_name": "Add",
       "description": "Add new vocabulary",
-      "url": "/vocabulary",
+      "url": "/dashboard/vocabulary",
       "icons": [
         {
           "src": "/icon-192.png",

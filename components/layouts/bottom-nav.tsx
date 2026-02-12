@@ -16,22 +16,22 @@ import { cn } from '@/lib/utils/cn';
 const navItems = [
   {
     label: 'Home',
-    href: '/',
+    href: '/dashboard',
     icon: Home,
   },
   {
     label: 'Vocabulary',
-    href: '/vocabulary',
+    href: '/dashboard/vocabulary',
     icon: BookOpen,
   },
   {
     label: 'Progress',
-    href: '/progress',
+    href: '/dashboard/progress',
     icon: BarChart3,
   },
   {
     label: 'Settings',
-    href: '/settings',
+    href: '/dashboard/settings',
     icon: Settings,
   },
 ] as const;
@@ -55,7 +55,7 @@ export function BottomNav() {
         {navItems.map((item) => {
           const Icon = item.icon;
           const isActive = pathname === item.href || 
-            (item.href !== '/' && pathname.startsWith(item.href));
+            (item.href !== '/dashboard' && pathname.startsWith(item.href));
 
           return (
             <Link

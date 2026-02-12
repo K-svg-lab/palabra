@@ -535,7 +535,7 @@ export default function ReviewPage() {
     try {
       // ✅ INSTANT: Navigate user to home screen (<50ms)
       // This is the ONLY operation that blocks the user
-      router.push("/?sessionComplete=true");
+      router.push("/dashboard?sessionComplete=true");
       
       // 🔄 BACKGROUND: Process everything asynchronously
       // setTimeout ensures navigation completes first
@@ -549,7 +549,7 @@ export default function ReviewPage() {
     } catch (error) {
       console.error('[Session] Navigation failed:', error);
       // Fallback: still try to navigate
-      router.push("/");
+      router.push("/dashboard");
     }
   };
 
@@ -560,7 +560,7 @@ export default function ReviewPage() {
     console.log('[handleSessionCancel] ⚠️ Session cancelled! Stack:', new Error().stack);
     setIsInSession(false);
     setShowConfig(false);
-    router.push("/");
+    router.push("/dashboard");
   };
 
   // Loading state
@@ -587,7 +587,7 @@ export default function ReviewPage() {
             Add your first Spanish word to start learning!
           </p>
           <Link
-            href="/vocabulary?focus=search"
+            href="/dashboard/vocabulary?focus=search"
             className="inline-flex items-center gap-2 px-6 py-3 bg-accent text-white rounded-xl hover:bg-accent/90 transition-colors font-medium"
           >
             <Plus className="w-5 h-5" />
@@ -616,7 +616,7 @@ export default function ReviewPage() {
             Great job! You've reviewed all your due words for today.
           </p>
           <Link
-            href="/vocabulary?focus=search"
+            href="/dashboard/vocabulary?focus=search"
             className="inline-flex items-center gap-2 px-6 py-3 bg-accent text-white rounded-xl hover:bg-accent/90 transition-colors font-medium"
           >
             <Plus className="w-5 h-5" />
@@ -635,7 +635,7 @@ export default function ReviewPage() {
           totalAvailable={dueCount}
           allWords={allWords || []}
           onStart={startSession}
-          onCancel={() => router.push("/")}
+          onCancel={() => router.push("/dashboard")}
           defaultConfig={sessionConfig || DEFAULT_SESSION_CONFIG}
         />
       </div>

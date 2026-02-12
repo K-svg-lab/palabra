@@ -236,7 +236,7 @@ export default function HomePage() {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.shiftKey && e.key === 'A') {
         e.preventDefault();
-        router.push('/vocabulary');
+        router.push('/dashboard/vocabulary');
       }
     };
 
@@ -251,7 +251,7 @@ export default function HomePage() {
     completeOnboarding();
     setShowOnboarding(false);
     // Navigate to vocabulary page to add first word
-    router.push('/vocabulary');
+    router.push('/dashboard/vocabulary');
   };
 
   const handleOnboardingSkip = () => {
@@ -441,7 +441,7 @@ export default function HomePage() {
               icon={<Plus className="w-12 h-12" />}
               title="Add New Word"
               description="Expand your vocabulary"
-              href="/vocabulary?focus=search"
+              href="/dashboard/vocabulary?focus=search"
               solid="#007AFF"
             />
           </div>

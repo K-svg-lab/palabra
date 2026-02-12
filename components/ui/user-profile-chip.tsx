@@ -92,7 +92,7 @@ export function UserProfileChip({ transparent = false }: UserProfileChipProps) {
       label: "Settings",
       onClick: () => {
         setIsOpen(false);
-        router.push("/settings");
+        router.push("/dashboard/settings");
       },
     },
     {

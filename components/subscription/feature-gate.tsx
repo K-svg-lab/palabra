@@ -69,7 +69,7 @@ export function FeatureGate({
       </p>
 
       {/* Upgrade Button */}
-      <Link href="/settings/subscription">
+      <Link href="/dashboard/settings/subscription">
         <Button
           size="lg"
           className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white"
@@ -116,7 +116,7 @@ export function InlineFeatureGate({
 
       {/* Overlay */}
       <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-purple-500/10 to-pink-500/10 backdrop-blur-sm">
-        <Link href="/settings/subscription">
+        <Link href="/dashboard/settings/subscription">
           <Button
             size="sm"
             variant="outline"

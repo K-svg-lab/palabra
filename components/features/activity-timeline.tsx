@@ -119,7 +119,7 @@ export function ActivityTimeline({ days = 7, className = '' }: ActivityTimelineP
 
       {/* View more link */}
       <Link
-        href="/analytics"
+        href="/dashboard/analytics"
         className="flex items-center gap-2 text-sm text-blue-600 dark:text-blue-400 hover:underline mt-6"
       >
         <span>View detailed analytics</span>

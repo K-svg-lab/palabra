@@ -135,7 +135,7 @@ export function HowItWorks() {
           className="text-center mt-16"
         >
           <motion.a
-            href="/"
+            href="/dashboard"
             whileHover={{ scale: 1.02, y: -2 }}
             whileTap={{ scale: 0.98 }}
             className="inline-flex items-center gap-2 px-8 py-4 rounded-2xl bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold text-lg shadow-lg hover:shadow-xl transition-all duration-300"

@@ -6,6 +6,7 @@
  * Task 18.3.4: Go-to-Market Strategy Implementation
  */
 
+import { LandingHeader } from '@/components/landing/landing-header';
 import { HeroSection } from '@/components/landing/hero-section';
 import { FeaturesShowcase } from '@/components/landing/features-showcase';
 import { HowItWorks } from '@/components/landing/how-it-works';
@@ -81,6 +82,9 @@ export const metadata: Metadata = {
 export default function LandingPage() {
   return (
     <main className="min-h-screen">
+      {/* Smart Navigation Header */}
+      <LandingHeader />
+      
       {/* Hero Section */}
       <HeroSection />
 

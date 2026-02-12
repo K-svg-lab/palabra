@@ -91,7 +91,7 @@ export function AccountSettings({ onAuthChanged }: AccountSettingsProps) {
       }
       
       // Force hard reload to show clean state
-      window.location.href = '/';
+      window.location.href = '/dashboard';
     } catch (error) {
       console.error('Sign out failed:', error);
       // Even if sign out fails, try to clear local data and reload
@@ -100,7 +100,7 @@ export function AccountSettings({ onAuthChanged }: AccountSettingsProps) {
       } catch (clearError) {
         console.error('Failed to clear local data:', clearError);
       }
-      window.location.href = '/';
+      window.location.href = '/dashboard';
     }
   };
 

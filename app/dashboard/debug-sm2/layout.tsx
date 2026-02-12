@@ -48,7 +48,7 @@ export default function DebugLayout({ children }: DebugLayoutProps) {
       // After 5 failed attempts, redirect to dashboard
       if (attempts >= 4) {
         setTimeout(() => {
-          router.push('/');
+          router.push('/dashboard');
         }, 2000);
       }
     }
@@ -58,7 +58,7 @@ export default function DebugLayout({ children }: DebugLayoutProps) {
   const handleLogout = () => {
     sessionStorage.removeItem('debug_auth');
     setIsAuthenticated(false);
-    router.push('/');
+    router.push('/dashboard');
   };
 
   if (isChecking) {
@@ -150,7 +150,7 @@ export default function DebugLayout({ children }: DebugLayoutProps) {
 
             <div className="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
               <button
-                onClick={() => router.push('/')}
+                onClick={() => router.push('/dashboard')}
                 className="w-full text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 transition-colors"
               >
                 ← Return to Dashboard

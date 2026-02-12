@@ -63,7 +63,7 @@ export default function SignInPage() {
       completeOnboarding();
 
       // Force hard reload to clear all cached data
-      window.location.href = '/';
+      window.location.href = '/dashboard';
     } catch (err: any) {
       setError(err.message);
     } finally {

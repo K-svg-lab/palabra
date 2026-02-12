@@ -84,7 +84,7 @@ export default function AdminDashboard() {
       const response = await fetch(`/api/admin/stats?daysBack=${daysBack}`);
       
       if (response.status === 401 || response.status === 403) {
-        router.push('/');
+        router.push('/dashboard');
         return;
       }
 
@@ -189,7 +189,7 @@ export default function AdminDashboard() {
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
           <div className="flex items-center gap-4">
             <Link
-              href="/"
+              href="/dashboard"
               className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
             >
               <ArrowLeft className="w-5 h-5" />
@@ -429,7 +429,7 @@ export default function AdminDashboard() {
               A/B Testing Overview
             </h2>
             <Link
-              href="/admin/ab-tests"
+              href="/dashboard/admin/ab-tests"
               className="text-sm text-blue-600 hover:text-blue-700 font-medium"
             >
               View Details →
