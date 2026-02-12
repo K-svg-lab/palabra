@@ -155,25 +155,26 @@ function SubscriptionPageContent() {
                   </p>
                   {subscription.isLifetime && subscription.lifetimeAmount && (
                     <p className="text-xs text-gray-400 mt-1">
-                      One-time payment: ${subscription.lifetimeAmount.toFixed(2)}
+                      One-time payment: €{subscription.lifetimeAmount.toFixed(2)}
                     </p>
                   )}
                 </div>
               </div>
 
-              {/* Manage Billing Button (only for recurring subscriptions) */}
+              {/* Manage Billing Button (only for recurring subscriptions) - Enhanced spring animation */}
               {tier === 'premium' &&
                 !subscription.isLifetime &&
                 subscription.canManageBilling && (
                   <motion.div
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
+                    whileHover={{ scale: 1.05, x: 5 }}
+                    whileTap={{ scale: 0.98 }}
+                    transition={{ type: 'spring', stiffness: 400, damping: 17 }}
                   >
                     <Button
                       variant="outline"
                       onClick={manageBilling}
                       disabled={isManaging}
-                      className="bg-white/10 hover:bg-white/20 border-white/20 hover:border-white/30 text-white backdrop-blur-sm"
+                      className="bg-purple-500/20 hover:bg-purple-500/30 border border-purple-500/50 hover:border-purple-500 text-white backdrop-blur-sm transition-colors duration-200"
                     >
                       {isManaging ? (
                         <>
@@ -190,10 +191,10 @@ function SubscriptionPageContent() {
           </motion.div>
         )}
 
-        {/* Billing Interval Toggle (for Premium only) */}
+        {/* Billing Interval Toggle (for Premium only) - FIX: Added proper top spacing */}
         {tier === 'free' && (
           <motion.div
-            className="flex justify-center"
+            className="flex justify-center mt-12 mb-8"
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: 0.1 }}
@@ -217,15 +218,15 @@ function SubscriptionPageContent() {
                     : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100'
                 }`}
               >
-                Yearly <span className="ml-1 text-xs">(Save $20)</span>
+                Yearly <span className="ml-1 text-xs">(Save €20)</span>
               </button>
             </div>
           </motion.div>
         )}
 
-        {/* Pricing Cards - FIX #3: Added gap-8 for mobile spacing */}
+        {/* Pricing Cards - Enhanced spacing to prevent overlap on hover */}
         <motion.div
-          className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-6 max-w-6xl mx-auto mt-12"
+          className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto mt-12"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.2 }}
@@ -344,8 +345,8 @@ interface FAQItemProps {
 function FAQItem({ question, answer, index }: FAQItemProps) {
   return (
     <motion.div
-      className="bg-gradient-to-br from-purple-500/5 to-pink-500/5 rounded-2xl p-6 border border-purple-700/30 hover:border-purple-500/50 hover:shadow-lg hover:shadow-purple-500/10 transition-all duration-300"
-      whileHover={{ scale: 1.02, y: -4 }}
+      className="bg-gradient-to-br from-purple-500/5 to-pink-500/5 rounded-2xl p-6 border border-purple-700/30 hover:border-purple-500/50 hover:bg-purple-500/8 hover:shadow-lg hover:shadow-purple-500/10 transition-all duration-300"
+      whileHover={{ x: 4, y: -2 }}
       initial={{ opacity: 0, y: 20 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
@@ -399,6 +400,7 @@ function TrustSignal({
         className="flex justify-center mb-4"
         initial={{ scale: 0.8 }}
         whileInView={{ scale: 1 }}
+        whileHover={{ rotate: [0, -10, 10, -10, 0] }}
         transition={{ delay: delay + 0.2, type: 'spring', stiffness: 300 }}
       >
         <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${gradientFrom} ${gradientTo} backdrop-blur-sm flex items-center justify-center shadow-lg`}>

@@ -22,7 +22,7 @@ interface PricingCardProps {
 const PLANS = {
   free: {
     name: 'Free',
-    price: '$0',
+    price: '€0',
     period: 'forever',
     icon: Sparkles,
     iconColor: 'text-blue-500',
@@ -42,11 +42,11 @@ const PLANS = {
   },
   premium: {
     name: 'Premium',
-    price: '$4.99',
-    yearlyPrice: '$39.99',
+    price: '€4.99',
+    yearlyPrice: '€39.99',
     period: 'per month',
     yearlyPeriod: 'per year',
-    yearlyNote: 'Save $20 with annual',
+    yearlyNote: 'Save €20 with annual',
     icon: Crown,
     iconColor: 'text-purple-500',
     badge: 'MOST POPULAR',
@@ -67,7 +67,7 @@ const PLANS = {
   },
   lifetime: {
     name: 'Lifetime',
-    price: '$79.99',
+    price: '€79.99',
     period: 'one-time',
     icon: Zap,
     iconColor: 'text-yellow-500',
@@ -117,9 +117,9 @@ export function PricingCard({
       className={cn(
         'relative rounded-3xl p-8 border-2 transition-all duration-300',
         plan.highlighted
-          ? 'bg-gradient-to-br from-purple-900/40 to-pink-900/40 backdrop-blur-sm border-purple-500 shadow-xl shadow-purple-500/20'
+          ? 'bg-gradient-to-br from-purple-900/40 to-pink-900/40 backdrop-blur-sm border-purple-500 shadow-xl shadow-purple-500/20 hover:shadow-2xl hover:shadow-purple-500/40'
           : tier === 'lifetime'
-          ? 'bg-gradient-to-br from-orange-900/40 to-yellow-900/40 backdrop-blur-sm border-orange-500 shadow-xl shadow-orange-500/20'
+          ? 'bg-gradient-to-br from-orange-900/40 to-yellow-900/40 backdrop-blur-sm border-orange-500 shadow-xl shadow-orange-500/20 hover:shadow-2xl hover:shadow-orange-500/40'
           : tier === 'free'
           ? 'bg-gradient-to-br from-blue-900/30 to-cyan-900/30 backdrop-blur-sm border-blue-500/50 shadow-lg shadow-blue-500/10 hover:border-blue-500 hover:shadow-xl hover:shadow-blue-500/20'
           : 'bg-gradient-to-br from-gray-900/40 to-gray-800/40 border-gray-700 hover:border-gray-600 hover:shadow-lg',
@@ -133,7 +133,15 @@ export function PricingCard({
         type: 'spring',
         stiffness: 150
       }}
-      whileHover={!isCurrentPlan ? { scale: 1.02, y: -5 } : undefined}
+      whileHover={
+        !isCurrentPlan 
+          ? { 
+              scale: plan.highlighted ? 1.03 : 1.02,
+              y: plan.highlighted ? -4 : -5,
+              transition: { duration: 0.2, type: 'spring', stiffness: 300 }
+            } 
+          : undefined
+      }
     >
       {/* Badges and Active Indicator - Show both when appropriate */}
       
@@ -158,20 +166,20 @@ export function PricingCard({
         </motion.div>
       )}
 
-      {/* Badge - Top center (MOST POPULAR, BEST VALUE) */}
+      {/* Badge - Top center (MOST POPULAR, BEST VALUE) - Enhanced with glow */}
       {'badge' in plan && plan.badge && (
         <motion.div
           className="absolute -top-4 left-1/2 -translate-x-1/2 z-10"
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
+          initial={{ opacity: 0, y: -10, scale: 0.8 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          transition={{ delay: 0.3, type: 'spring', stiffness: 200 }}
         >
           <span
             className={cn(
-              'bg-gradient-to-r text-white text-xs font-bold px-4 py-1.5 rounded-full shadow-lg',
+              'inline-block bg-gradient-to-r text-white text-xs font-bold px-4 py-1.5 rounded-full uppercase tracking-wider',
               'badgeColor' in plan ? plan.badgeColor : '',
-              tier === 'premium' && 'shadow-purple-500/50',
-              tier === 'lifetime' && 'shadow-orange-500/50'
+              tier === 'premium' && 'shadow-xl shadow-purple-500/60',
+              tier === 'lifetime' && 'shadow-xl shadow-orange-500/60'
             )}
           >
             {plan.badge}
@@ -202,49 +210,56 @@ export function PricingCard({
         </div>
       </motion.div>
 
-      {/* Header */}
+      {/* Header - Enhanced typography */}
       <div className="text-center mb-6">
-        <h3 className="text-2xl font-bold mb-2">{plan.name}</h3>
-        <div className="mb-2">
-          <span className="text-5xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 dark:from-white dark:to-gray-300 bg-clip-text text-transparent">
-            {displayPrice}
-          </span>
-          <span className="text-gray-500 dark:text-gray-400 ml-2 text-sm">
+        <h3 className="text-2xl font-bold mb-3">{plan.name}</h3>
+        <div className="mb-3">
+          <div>
+            <span className="text-6xl md:text-7xl font-bold bg-gradient-to-br from-gray-900 to-gray-600 dark:from-white dark:to-gray-300 bg-clip-text text-transparent">
+              {displayPrice}
+            </span>
+          </div>
+          <div className="text-sm text-gray-500 dark:text-gray-400 font-medium mt-2">
             {displayPeriod}
-          </span>
+          </div>
         </div>
         {tier === 'premium' && interval === 'year' && premiumPlan?.yearlyNote && (
-          <p className="text-sm text-green-600 dark:text-green-400 font-medium">
-            💰 {premiumPlan.yearlyNote}
-          </p>
+          <div className="mt-2 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-green-500/20 border border-green-500/30">
+            <span className="text-green-400 text-xs font-semibold">💰 {premiumPlan.yearlyNote}</span>
+          </div>
         )}
-        <p className="text-gray-600 dark:text-gray-400 text-sm mt-2">
+        <p className="text-gray-600 dark:text-gray-400 text-sm mt-3">
           {plan.description}
         </p>
       </div>
 
-      {/* Features */}
-      <ul className="space-y-3 mb-8">
+      {/* Features - Enhanced with circular backgrounds */}
+      <ul className="space-y-4 mb-8">
         {plan.features.map((feature, i) => (
           <motion.li
             key={i}
             className="flex items-start gap-3"
-            initial={{ opacity: 0, x: -10 }}
+            initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: i * 0.05 + 0.2 }}
+            transition={{ delay: i * 0.05 + 0.2, duration: 0.3 }}
           >
-            <Check className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
-            <span className="text-sm text-gray-700 dark:text-gray-300">
+            <div className="flex-shrink-0 mt-0.5">
+              <div className="w-5 h-5 rounded-full bg-green-500/20 flex items-center justify-center">
+                <Check className="w-3 h-3 text-green-400" />
+              </div>
+            </div>
+            <span className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
               {feature}
             </span>
           </motion.li>
         ))}
       </ul>
 
-      {/* CTA - Enhanced with delightful states */}
+      {/* CTA - Enhanced with delightful states and animations */}
       <motion.div
-        whileHover={!isCurrentPlan && !isLoading ? { scale: 1.02 } : undefined}
-        whileTap={!isCurrentPlan && !isLoading ? { scale: 0.98 } : undefined}
+        whileHover={!isCurrentPlan && !isLoading && !isDowngrade ? { scale: 1.05 } : undefined}
+        whileTap={!isCurrentPlan && !isLoading && !isDowngrade ? { scale: 0.98 } : undefined}
+        transition={{ type: 'spring', stiffness: 400, damping: 17 }}
       >
         <Button
           onClick={onSelect}
@@ -257,11 +272,11 @@ export function PricingCard({
               : isDowngrade
               ? 'bg-gray-800/30 border-2 border-gray-700/50 text-gray-500 cursor-not-allowed'
               : plan.highlighted &&
-                'bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white shadow-lg shadow-purple-500/30 hover:shadow-xl hover:shadow-purple-500/50',
+                'bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white shadow-xl shadow-purple-500/40 hover:shadow-2xl hover:shadow-purple-500/60',
             !isCurrentPlan && !isDowngrade && tier === 'lifetime' &&
-              'bg-gradient-to-r from-orange-500 to-yellow-500 hover:from-orange-600 hover:to-yellow-600 text-white shadow-lg shadow-orange-500/30 hover:shadow-xl hover:shadow-orange-500/50',
+              'bg-gradient-to-r from-orange-500 to-yellow-500 hover:from-orange-600 hover:to-yellow-600 text-white shadow-xl shadow-orange-500/40 hover:shadow-2xl hover:shadow-orange-500/60',
             !isCurrentPlan && !isDowngrade && tier === 'free' &&
-              'bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white shadow-lg shadow-blue-500/30 hover:shadow-xl hover:shadow-blue-500/50'
+              'bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white shadow-xl shadow-blue-500/40 hover:shadow-2xl hover:shadow-blue-500/60'
           )}
         >
           {isLoading ? (
