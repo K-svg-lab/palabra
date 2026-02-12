@@ -500,6 +500,32 @@ If specific issue identified:
 
 ---
 
+## Update: Carousel Simplified to Grid Layout
+
+**Date:** February 12, 2026 (Later)  
+**Status:** ✅ Deployed  
+**Commit:** `1bb90d8`
+
+### Change Summary
+Replaced complex infinite carousel with clean, responsive grid layout displaying all 5 review methods simultaneously.
+
+**Rationale:** Carousel complexity caused more issues than value. Simplified to Phase 17-aligned grid.
+
+**Changes:**
+- Removed: Auto-advance timers, infinite loop logic, navigation dots (135 lines removed)
+- Added: 2-col/3-col responsive grid with staggered animations (58 lines added)
+- Maintained: Gradient icons, hover effects, Phase 17 design quality
+
+**Impact:**
+- ✅ More reliable (no carousel edge cases)
+- ✅ Better UX (all methods visible at once)
+- ✅ Simpler maintenance
+- ✅ Faster performance
+
+**Deployment:** Production live via Vercel automatic deployment
+
+---
+
 **End of Deployment Document**
 
-*This deployment represents the completion of Task 18.3.4 landing page optimization work, including carousel polish, layout refinement, and full smart navigation implementation. All changes are now live in production and ready for user testing.*
+*This deployment represents the completion of Task 18.3.4 landing page optimization work, including carousel polish, layout refinement, full smart navigation implementation, and final carousel simplification to grid layout. All changes are now live in production and ready for user testing.*
