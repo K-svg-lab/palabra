@@ -6,8 +6,8 @@
 
 'use client';
 
-import { motion, AnimatePresence } from 'framer-motion';
-import { useState, useEffect, useRef } from 'react';
+import { motion } from 'framer-motion';
+import { useState } from 'react';
 import {
   Brain,
   Sparkles,
@@ -67,71 +67,6 @@ const features = [
 
 export function FeaturesShowcase() {
   const [activeFeature, setActiveFeature] = useState(0);
-  const [activeCarouselIndex, setActiveCarouselIndex] = useState(0);
-  const [carouselKey, setCarouselKey] = useState(0); // Force re-render for infinite loop
-  const [isPaused, setIsPaused] = useState(false);
-  const resumeTimerRef = useRef<NodeJS.Timeout | null>(null);
-
-  // Auto-advance carousel with true infinite loop - Apple TV+ style
-  useEffect(() => {
-    if (activeFeature !== 0 || isPaused) return;
-    
-    const interval = setInterval(() => {
-      setActiveCarouselIndex((prev) => {
-        const methods = features[0].methods!;
-        const next = (prev + 1) % methods.length;
-        // If wrapping from last to first, increment key to force reset
-        if (prev === methods.length - 1 && next === 0) {
-          setCarouselKey(k => k + 1);
-        }
-        return next;
-      });
-    }, 3500); // 3.5 seconds - Apple standard
-    
-    return () => clearInterval(interval);
-  }, [activeFeature, isPaused]);
-
-  // Handle user interaction - pause and resume after delay
-  const handleUserInteraction = (newIndex: number) => {
-    // Clear existing timer
-    if (resumeTimerRef.current) {
-      clearTimeout(resumeTimerRef.current);
-    }
-    
-    const methods = features[0].methods!;
-    const current = activeCarouselIndex;
-    
-    // Check if we're crossing the loop boundary forward (last to first)
-    if (current === methods.length - 1 && newIndex === 0) {
-      // Force key update to animate forward through loop
-      setCarouselKey(k => k + 1);
-    }
-    // Check if we're crossing the loop boundary backward (first to last)
-    else if (current === 0 && newIndex === methods.length - 1) {
-      // Force key update to animate backward through loop
-      setCarouselKey(k => k + 1);
-    }
-    
-    // Pause autoplay
-    setIsPaused(true);
-    
-    // Update index
-    setActiveCarouselIndex(newIndex);
-    
-    // Resume after 8 seconds
-    resumeTimerRef.current = setTimeout(() => {
-      setIsPaused(false);
-    }, 8000);
-  };
-
-  // Cleanup timer on unmount
-  useEffect(() => {
-    return () => {
-      if (resumeTimerRef.current) {
-        clearTimeout(resumeTimerRef.current);
-      }
-    };
-  }, []);
 
   return (
     <section className="py-24 bg-white dark:bg-gray-900">
@@ -204,149 +139,79 @@ export function FeaturesShowcase() {
 
           {/* Feature Content */}
           <div className="lg:w-2/3">
-            <div className="bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 rounded-3xl p-8 sm:p-16 relative flex items-center" style={{ minHeight: '468px', overflow: 'visible' }}>
+            <div className="bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 rounded-3xl p-8 sm:p-12 relative">
               <motion.div
                 key={activeFeature}
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -20 }}
                 transition={{ duration: 0.3, ease: "easeInOut" }}
-                className="w-full h-full flex items-center justify-center"
-                style={{ overflow: 'visible' }}
+                className="w-full"
               >
               {/* 5 Review Methods */}
               {activeFeature === 0 && (
                 <div className="w-full">
-                  <h3 className="text-3xl sm:text-4xl font-bold mb-12 text-gray-900 dark:text-white text-center">
+                  <h3 className="text-3xl sm:text-4xl font-bold mb-8 text-gray-900 dark:text-white text-center">
                     Five Ways to Practice
                   </h3>
                   
-                  {/* Premium Infinite Carousel - True Apple Style */}
-                  <div 
-                    className="relative max-w-4xl mx-auto"
-                    onMouseEnter={() => setIsPaused(true)}
-                    onMouseLeave={() => setIsPaused(false)}
-                    onTouchStart={() => {
-                      if (resumeTimerRef.current) {
-                        clearTimeout(resumeTimerRef.current);
-                      }
-                      setIsPaused(true);
-                      resumeTimerRef.current = setTimeout(() => {
-                        setIsPaused(false);
-                      }, 8000);
-                    }}
-                  >
-                    {/* 3-Card Viewport */}
-                    <div className="py-4">
-                      <div className="flex justify-center overflow-visible">
-                        <div className="relative w-[750px]"> {/* Exactly 3 cards + gaps: 224*3 + 24*2 */}
-                          {/* Mask for horizontal clipping without affecting vertical */}
-                          <div style={{ 
-                            maskImage: 'linear-gradient(to right, transparent, black 24px, black calc(100% - 24px), transparent)',
-                            WebkitMaskImage: 'linear-gradient(to right, transparent, black 24px, black calc(100% - 24px), transparent)'
-                          }}>
-                            <motion.div
-                              key={carouselKey}
-                              className="flex gap-6"
-                              animate={{
-                                x: -(activeCarouselIndex * 248),
-                              }}
-                              transition={{
-                                type: "spring",
-                                stiffness: 80,
-                                damping: 20,
-                                mass: 1,
-                              }}
-                            >
-                            {/* Render cards in continuous loop */}
-                            {[
-                              features[0].methods![features[0].methods!.length - 1],
-                              ...features[0].methods!,
-                              features[0].methods![0],
-                            ].map((method, i) => {
-                              const MethodIcon = method.icon;
-                              const methods = features[0].methods!;
-                              const centerIndex = activeCarouselIndex + 1;
-                              const distanceFromCenter = i - centerIndex;
-                              const isCenter = distanceFromCenter === 0;
-                              const isVisible = Math.abs(distanceFromCenter) <= 1;
+                  {/* Clean Grid Layout - All Methods Visible */}
+                  <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 max-w-4xl mx-auto">
+                    {features[0].methods?.map((method, index) => {
+                      const MethodIcon = method.icon;
+                      
+                      return (
+                        <motion.div
+                          key={method.name}
+                          initial={{ opacity: 0, y: 20 }}
+                          whileInView={{ opacity: 1, y: 0 }}
+                          viewport={{ once: true }}
+                          transition={{ 
+                            duration: 0.4,
+                            delay: index * 0.1,
+                            ease: [0.25, 0.1, 0.25, 1]
+                          }}
+                          whileHover={{ 
+                            scale: 1.03,
+                            y: -4,
+                            transition: { duration: 0.2 }
+                          }}
+                          className="group"
+                        >
+                          <div className="relative h-48 bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-md hover:shadow-xl transition-all duration-300">
+                            {/* Subtle gradient shine on hover */}
+                            <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-gray-50/50 to-transparent dark:from-gray-700/30 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                            
+                            {/* Content */}
+                            <div className="relative h-full flex flex-col items-center justify-center p-6 text-center">
+                              {/* Icon Container - Gradient */}
+                              <div className="mb-4 transform group-hover:scale-105 transition-transform duration-300">
+                                <div className={`w-16 h-16 rounded-xl bg-gradient-to-br ${method.bgGradient} flex items-center justify-center shadow-lg`}>
+                                  <MethodIcon className="w-8 h-8 text-white drop-shadow-md" strokeWidth={2.5} />
+                                </div>
+                              </div>
                               
-                              return (
-                                <motion.div
-                                  key={`${i}-${method.name}`}
-                                  animate={{
-                                    scale: isCenter ? 1.08 : 0.92,
-                                    opacity: isCenter ? 1 : isVisible ? 0.5 : 0.2,
-                                  }}
-                                  transition={{
-                                    duration: 0.5,
-                                    ease: [0.25, 0.1, 0.25, 1],
-                                  }}
-                                  style={{
-                                    transformOrigin: 'center center',
-                                  }}
-                                  className="flex-shrink-0 w-56 group cursor-pointer"
-                                  onClick={() => {
-                                    if (!isCenter && isVisible) {
-                                      let realIndex = i - 1;
-                                      if (realIndex < 0) realIndex = methods.length - 1;
-                                      if (realIndex >= methods.length) realIndex = 0;
-                                      handleUserInteraction(realIndex);
-                                    }
-                                  }}
-                                >
-                                  <div
-                                    className={`relative h-60 bg-white dark:bg-gray-800 rounded-[32px] border transition-all duration-500 ease-out
-                                      ${isCenter 
-                                        ? 'shadow-2xl border-gray-200 dark:border-gray-600' 
-                                        : 'shadow-md border-gray-100 dark:border-gray-700 group-hover:shadow-lg'
-                                      }
-                                      group-hover:-translate-y-1
-                                      active:scale-[0.98]`}
-                                  >
-                                    {/* Subtle gradient shine on hover */}
-                                    <div className="absolute inset-0 rounded-[32px] bg-gradient-to-br from-gray-50/50 to-transparent dark:from-gray-700/30 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                                    
-                                    {/* Content */}
-                                    <div className="relative h-full flex flex-col items-center justify-center p-8 text-center">
-                                      {/* Icon Container - Gradient */}
-                                      <div className="mb-6 transform group-hover:scale-105 transition-transform duration-500">
-                                        <div className={`w-20 h-20 rounded-[24px] bg-gradient-to-br ${method.bgGradient} flex items-center justify-center shadow-lg transition-shadow duration-500 ${isCenter ? 'shadow-xl' : ''}`}>
-                                          <MethodIcon className="w-10 h-10 text-white drop-shadow-md" strokeWidth={2.5} />
-                                        </div>
-                                      </div>
-                                      
-                                      {/* Title */}
-                                      <h4 className={`text-xl font-bold leading-snug tracking-tight transition-all duration-300 ${method.color} ${isCenter ? 'opacity-100' : 'opacity-60 group-hover:opacity-80'}`}>
-                                        {method.name}
-                                      </h4>
-                                    </div>
-                                  </div>
-                                </motion.div>
-                              );
-                            })}
-                          </motion.div>
+                              {/* Title */}
+                              <h4 className={`text-base font-bold leading-tight ${method.color}`}>
+                                {method.name}
+                              </h4>
+                            </div>
                           </div>
-                        </div>
-                      </div>
-                    </div>
+                        </motion.div>
+                      );
+                    })}
                   </div>
                   
-                  {/* Active navigation dots - iOS style */}
-                  <div className="flex justify-center gap-2 mt-6">
-                    {features[0].methods?.map((_, i) => (
-                      <button
-                        key={i}
-                        onClick={() => handleUserInteraction(i)}
-                        className={`transition-all duration-500 rounded-full ${
-                          i === activeCarouselIndex 
-                            ? 'w-8 h-2 bg-blue-600 dark:bg-blue-500' 
-                            : 'w-2 h-2 bg-gray-300 dark:bg-gray-600 hover:bg-gray-400 dark:hover:bg-gray-500'
-                        }`}
-                        aria-label={`Go to slide ${i + 1}`}
-                      />
-                    ))}
-                  </div>
+                  {/* Info text */}
+                  <motion.p
+                    initial={{ opacity: 0 }}
+                    whileInView={{ opacity: 1 }}
+                    viewport={{ once: true }}
+                    transition={{ delay: 0.6 }}
+                    className="text-center text-gray-600 dark:text-gray-400 mt-6 text-sm"
+                  >
+                    Mix of methods keeps learning engaging and reinforces memory from multiple angles
+                  </motion.p>
                 </div>
               )}
 
