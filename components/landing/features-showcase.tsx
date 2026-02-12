@@ -156,7 +156,7 @@ export function FeaturesShowcase() {
                   </h3>
                   
                   {/* Clean Grid Layout - All Methods Visible */}
-                  <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 max-w-4xl mx-auto">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 max-w-4xl mx-auto">
                     {features[0].methods?.map((method, index) => {
                       const MethodIcon = method.icon;
                       

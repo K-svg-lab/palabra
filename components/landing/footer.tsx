@@ -12,7 +12,7 @@ import { Twitter, Mail, MessageCircle } from 'lucide-react';
 const footerLinks = {
   product: [
     { name: 'Features', href: '#how-it-works' },
-    { name: 'Pricing', href: '/settings/subscription' },
+    { name: 'Pricing', href: '/dashboard/settings/subscription' },
     { name: 'Sign In', href: '/signin' },
     { name: 'Sign Up', href: '/signup' },
   ],
