@@ -80,35 +80,47 @@ export async function clearSessionCookie(): Promise<void> {
 }
 
 /**
- * Hash password (basic implementation)
- * For production, use bcrypt or argon2
+ * Hash password using bcrypt (production-ready)
+ * Uses 12 rounds (~400ms per hash) for security
  */
 export async function hashPassword(password: string): Promise<string> {
-  // In production, use bcrypt:
-  // import bcrypt from 'bcryptjs';
-  // return bcrypt.hash(password, 10);
-  
-  // For MVP, we'll use crypto.subtle
-  const encoder = new TextEncoder();
-  const data = encoder.encode(password);
-  const hash = await crypto.subtle.digest('SHA-256', data);
-  return Array.from(new Uint8Array(hash))
-    .map(b => b.toString(16).padStart(2, '0'))
-    .join('');
+  const bcrypt = require('bcryptjs');
+  const SALT_ROUNDS = 12; // 2^12 iterations - good balance of security and performance
+  return bcrypt.hash(password, SALT_ROUNDS);
 }
 
 /**
- * Verify password
+ * Verify password using bcrypt
  */
 export async function verifyPassword(
   password: string,
   hashedPassword: string
 ): Promise<boolean> {
-  // In production with bcrypt:
-  // return bcrypt.compare(password, hashedPassword);
+  const bcrypt = require('bcryptjs');
   
-  const hash = await hashPassword(password);
-  return hash === hashedPassword;
+  // Handle legacy SHA-256 passwords (migration support)
+  // SHA-256 hashes are 64 characters, bcrypt hashes are 60 characters
+  if (hashedPassword.length === 64 && !hashedPassword.startsWith('$2')) {
+    // This is a legacy SHA-256 hash - verify using old method
+    // then rehash with bcrypt (handled by caller)
+    const encoder = new TextEncoder();
+    const data = encoder.encode(password);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+    const legacyHash = Array.from(new Uint8Array(hashBuffer))
+      .map(b => b.toString(16).padStart(2, '0'))
+      .join('');
+    return legacyHash === hashedPassword;
+  }
+  
+  // Normal bcrypt verification
+  return bcrypt.compare(password, hashedPassword);
+}
+
+/**
+ * Check if password hash is legacy SHA-256 format
+ */
+export function isLegacyPasswordHash(hashedPassword: string): boolean {
+  return hashedPassword.length === 64 && !hashedPassword.startsWith('$2');
 }
 
 /**

@@ -7,6 +7,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { getSyncService } from '@/lib/services/sync';
 import { clearAllUserData } from '@/lib/db/schema';
 import { completeOnboarding } from '@/lib/utils/onboarding';
@@ -110,9 +111,17 @@ export default function SignInPage() {
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Password
-              </label>
+              <div className="flex items-center justify-between mb-2">
+                <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Password
+                </label>
+                <Link 
+                  href="/forgot-password" 
+                  className="text-sm text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 font-medium transition-colors"
+                >
+                  Forgot Password?
+                </Link>
+              </div>
               <input
                 id="password"
                 type="password"
@@ -136,9 +145,9 @@ export default function SignInPage() {
           <div className="mt-6 text-center">
             <p className="text-sm text-gray-600 dark:text-gray-400">
               Don't have an account?{' '}
-              <a href="/signup" className="text-blue-600 hover:text-blue-700 font-medium">
+              <Link href="/signup" className="text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 font-medium transition-colors">
                 Sign Up
-              </a>
+              </Link>
             </p>
           </div>
         </div>

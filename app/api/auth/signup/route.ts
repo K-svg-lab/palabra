@@ -87,14 +87,40 @@ async function handler(request: NextRequest) {
       },
     });
     
-    // Create session
+    // Send verification email (don't block on email sending)
+    try {
+      const { createVerificationToken } = await import('@/lib/backend/tokens');
+      const { sendVerificationEmail } = await import('@/lib/backend/email');
+      
+      const { token: verificationToken } = await createVerificationToken(emailNormalized);
+      const baseUrl = process.env.NEXTAUTH_URL || 'http://localhost:3000';
+      const verificationUrl = `${baseUrl}/verify-email?token=${verificationToken}`;
+      
+      // Send email (non-blocking)
+      sendVerificationEmail({
+        email: emailNormalized,
+        name: name,
+        verificationUrl,
+      }).catch(error => {
+        console.error('[SignUp] Failed to send verification email:', error);
+        // Don't fail signup if email fails
+      });
+      
+      console.log('[SignUp] Verification email queued for:', emailNormalized);
+    } catch (emailError) {
+      console.error('[SignUp] Error sending verification email:', emailError);
+      // Don't fail signup if email fails
+    }
+    
+    // Create session (allow unverified users to sign in)
     const token = await createSession(user.id);
     await setSessionCookie(token);
     
     return apiResponse({
       success: true,
       user,
-      message: 'Account created successfully',
+      message: 'Account created successfully. Please check your email to verify your account.',
+      emailSent: true,
     }, 201);
   } catch (error) {
     console.error('Sign up error:', error);

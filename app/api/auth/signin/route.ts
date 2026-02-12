@@ -90,6 +90,19 @@ async function handler(request: NextRequest) {
       return apiError('Invalid email or password', 401);
     }
     
+    // Auto-migrate legacy SHA-256 passwords to bcrypt
+    const { isLegacyPasswordHash } = await import('@/lib/backend/auth');
+    if (isLegacyPasswordHash(user.password)) {
+      if (process.env.NODE_ENV === 'development') {
+        console.log('[SignIn] Migrating legacy password to bcrypt for:', emailNormalized);
+      }
+      const newHash = await hashPassword(password);
+      await prisma.user.update({
+        where: { id: user.id },
+        data: { password: newHash },
+      });
+    }
+    
     // Create session
     const token = await createSession(user.id);
     await setSessionCookie(token);
