@@ -5,7 +5,7 @@
 
 import { NextRequest } from 'next/server';
 import { prisma } from '@/lib/backend/db';
-import { verifyPassword, createSession, setSessionCookie, checkRateLimit } from '@/lib/backend/auth';
+import { verifyPassword, createSession, setSessionCookie, checkRateLimit, hashPassword, isLegacyPasswordHash } from '@/lib/backend/auth';
 import {
   apiResponse,
   apiError,
@@ -91,7 +91,6 @@ async function handler(request: NextRequest) {
     }
     
     // Auto-migrate legacy SHA-256 passwords to bcrypt
-    const { isLegacyPasswordHash } = await import('@/lib/backend/auth');
     if (isLegacyPasswordHash(user.password)) {
       if (process.env.NODE_ENV === 'development') {
         console.log('[SignIn] Migrating legacy password to bcrypt for:', emailNormalized);
