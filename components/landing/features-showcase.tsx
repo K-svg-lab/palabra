@@ -156,7 +156,7 @@ export function FeaturesShowcase() {
                   </h3>
                   
                   {/* Clean Grid Layout - All Methods Visible */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 max-w-4xl mx-auto">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 max-w-6xl mx-auto">
                     {features[0].methods?.map((method, index) => {
                       const MethodIcon = method.icon;
                       
@@ -178,21 +178,21 @@ export function FeaturesShowcase() {
                           }}
                           className="group"
                         >
-                          <div className="relative h-48 bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-md hover:shadow-xl transition-all duration-300">
+                          <div className="relative h-44 bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-md hover:shadow-xl transition-all duration-300">
                             {/* Subtle gradient shine on hover */}
                             <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-gray-50/50 to-transparent dark:from-gray-700/30 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                             
                             {/* Content */}
-                            <div className="relative h-full flex flex-col items-center justify-center p-6 text-center">
+                            <div className="relative h-full flex flex-col items-center justify-center p-4 text-center">
                               {/* Icon Container - Gradient */}
-                              <div className="mb-4 transform group-hover:scale-105 transition-transform duration-300">
-                                <div className={`w-16 h-16 rounded-xl bg-gradient-to-br ${method.bgGradient} flex items-center justify-center shadow-lg`}>
-                                  <MethodIcon className="w-8 h-8 text-white drop-shadow-md" strokeWidth={2.5} />
+                              <div className="mb-3 transform group-hover:scale-105 transition-transform duration-300">
+                                <div className={`w-14 h-14 rounded-xl bg-gradient-to-br ${method.bgGradient} flex items-center justify-center shadow-lg`}>
+                                  <MethodIcon className="w-7 h-7 text-white drop-shadow-md" strokeWidth={2.5} />
                                 </div>
                               </div>
                               
                               {/* Title */}
-                              <h4 className={`text-base font-bold leading-tight ${method.color}`}>
+                              <h4 className={`text-sm font-bold leading-tight ${method.color}`}>
                                 {method.name}
                               </h4>
                             </div>
