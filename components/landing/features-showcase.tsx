@@ -156,50 +156,150 @@ export function FeaturesShowcase() {
                   </h3>
                   
                   {/* Clean Grid Layout - All Methods Visible */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 max-w-6xl mx-auto">
-                    {features[0].methods?.map((method, index) => {
-                      const MethodIcon = method.icon;
-                      
-                      return (
-                        <motion.div
-                          key={method.name}
-                          initial={{ opacity: 0, y: 20 }}
-                          whileInView={{ opacity: 1, y: 0 }}
-                          viewport={{ once: true }}
-                          transition={{ 
-                            duration: 0.4,
-                            delay: index * 0.1,
-                            ease: [0.25, 0.1, 0.25, 1]
-                          }}
-                          whileHover={{ 
-                            scale: 1.03,
-                            y: -4,
-                            transition: { duration: 0.2 }
-                          }}
-                          className="group"
-                        >
-                          <div className="relative h-44 bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-md hover:shadow-xl transition-all duration-300">
-                            {/* Subtle gradient shine on hover */}
-                            <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-gray-50/50 to-transparent dark:from-gray-700/30 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                            
-                            {/* Content */}
-                            <div className="relative h-full flex flex-col items-center justify-center p-4 text-center">
-                              {/* Icon Container - Gradient */}
-                              <div className="mb-3 transform group-hover:scale-105 transition-transform duration-300">
-                                <div className={`w-14 h-14 rounded-xl bg-gradient-to-br ${method.bgGradient} flex items-center justify-center shadow-lg`}>
-                                  <MethodIcon className="w-7 h-7 text-white drop-shadow-md" strokeWidth={2.5} />
+                  <div className="max-w-5xl mx-auto">
+                    {/* Mobile/Tablet: Standard grid */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 lg:hidden">
+                      {features[0].methods?.map((method, index) => {
+                        const MethodIcon = method.icon;
+                        
+                        return (
+                          <motion.div
+                            key={method.name}
+                            initial={{ opacity: 0, y: 20 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            viewport={{ once: true }}
+                            transition={{ 
+                              duration: 0.4,
+                              delay: index * 0.1,
+                              ease: [0.25, 0.1, 0.25, 1]
+                            }}
+                            whileHover={{ 
+                              scale: 1.03,
+                              y: -4,
+                              transition: { duration: 0.2 }
+                            }}
+                            className="group"
+                          >
+                            <div className="relative h-48 bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-md hover:shadow-xl transition-all duration-300">
+                              {/* Subtle gradient shine on hover */}
+                              <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-gray-50/50 to-transparent dark:from-gray-700/30 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                              
+                              {/* Content */}
+                              <div className="relative h-full flex flex-col items-center justify-center p-6 text-center">
+                                {/* Icon Container - Gradient */}
+                                <div className="mb-4 transform group-hover:scale-105 transition-transform duration-300">
+                                  <div className={`w-16 h-16 rounded-xl bg-gradient-to-br ${method.bgGradient} flex items-center justify-center shadow-lg`}>
+                                    <MethodIcon className="w-8 h-8 text-white drop-shadow-md" strokeWidth={2.5} />
+                                  </div>
+                                </div>
+                                
+                                {/* Title */}
+                                <h4 className={`text-base font-bold leading-tight ${method.color}`}>
+                                  {method.name}
+                                </h4>
+                              </div>
+                            </div>
+                          </motion.div>
+                        );
+                      })}
+                    </div>
+
+                    {/* Desktop: 3 top, 2 bottom centered */}
+                    <div className="hidden lg:block">
+                      {/* Top row - 3 tiles */}
+                      <div className="grid grid-cols-3 gap-4 mb-4">
+                        {features[0].methods?.slice(0, 3).map((method, index) => {
+                          const MethodIcon = method.icon;
+                          
+                          return (
+                            <motion.div
+                              key={method.name}
+                              initial={{ opacity: 0, y: 20 }}
+                              whileInView={{ opacity: 1, y: 0 }}
+                              viewport={{ once: true }}
+                              transition={{ 
+                                duration: 0.4,
+                                delay: index * 0.1,
+                                ease: [0.25, 0.1, 0.25, 1]
+                              }}
+                              whileHover={{ 
+                                scale: 1.03,
+                                y: -4,
+                                transition: { duration: 0.2 }
+                              }}
+                              className="group"
+                            >
+                              <div className="relative h-48 bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-md hover:shadow-xl transition-all duration-300">
+                                {/* Subtle gradient shine on hover */}
+                                <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-gray-50/50 to-transparent dark:from-gray-700/30 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                                
+                                {/* Content */}
+                                <div className="relative h-full flex flex-col items-center justify-center p-6 text-center">
+                                  {/* Icon Container - Gradient */}
+                                  <div className="mb-4 transform group-hover:scale-105 transition-transform duration-300">
+                                    <div className={`w-16 h-16 rounded-xl bg-gradient-to-br ${method.bgGradient} flex items-center justify-center shadow-lg`}>
+                                      <MethodIcon className="w-8 h-8 text-white drop-shadow-md" strokeWidth={2.5} />
+                                    </div>
+                                  </div>
+                                  
+                                  {/* Title */}
+                                  <h4 className={`text-base font-bold leading-tight ${method.color}`}>
+                                    {method.name}
+                                  </h4>
                                 </div>
                               </div>
-                              
-                              {/* Title */}
-                              <h4 className={`text-sm font-bold leading-tight ${method.color}`}>
-                                {method.name}
-                              </h4>
-                            </div>
-                          </div>
-                        </motion.div>
-                      );
-                    })}
+                            </motion.div>
+                          );
+                        })}
+                      </div>
+
+                      {/* Bottom row - 2 tiles centered */}
+                      <div className="grid grid-cols-2 gap-4 mx-auto" style={{ maxWidth: 'calc(66.666% + 0.5rem)' }}>
+                        {features[0].methods?.slice(3, 5).map((method, index) => {
+                          const MethodIcon = method.icon;
+                          
+                          return (
+                            <motion.div
+                              key={method.name}
+                              initial={{ opacity: 0, y: 20 }}
+                              whileInView={{ opacity: 1, y: 0 }}
+                              viewport={{ once: true }}
+                              transition={{ 
+                                duration: 0.4,
+                                delay: (index + 3) * 0.1,
+                                ease: [0.25, 0.1, 0.25, 1]
+                              }}
+                              whileHover={{ 
+                                scale: 1.03,
+                                y: -4,
+                                transition: { duration: 0.2 }
+                              }}
+                              className="group"
+                            >
+                              <div className="relative h-48 bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-md hover:shadow-xl transition-all duration-300">
+                                {/* Subtle gradient shine on hover */}
+                                <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-gray-50/50 to-transparent dark:from-gray-700/30 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                                
+                                {/* Content */}
+                                <div className="relative h-full flex flex-col items-center justify-center p-6 text-center">
+                                  {/* Icon Container - Gradient */}
+                                  <div className="mb-4 transform group-hover:scale-105 transition-transform duration-300">
+                                    <div className={`w-16 h-16 rounded-xl bg-gradient-to-br ${method.bgGradient} flex items-center justify-center shadow-lg`}>
+                                      <MethodIcon className="w-8 h-8 text-white drop-shadow-md" strokeWidth={2.5} />
+                                    </div>
+                                  </div>
+                                  
+                                  {/* Title */}
+                                  <h4 className={`text-base font-bold leading-tight ${method.color}`}>
+                                    {method.name}
+                                  </h4>
+                                </div>
+                              </div>
+                            </motion.div>
+                          );
+                        })}
+                      </div>
+                    </div>
                   </div>
                   
                   {/* Info text */}
