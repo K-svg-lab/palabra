@@ -1,0 +1,6 @@
+# Force Rebuild Trigger
+This file forces Vercel to perform a clean rebuild of the application.
+
+**Reason**: Webhook endpoint returning 405 Method Not Allowed
+**Date**: February 12, 2026
+**Issue**: app/api/webhooks/stripe/route.ts not being recognized by Vercel
