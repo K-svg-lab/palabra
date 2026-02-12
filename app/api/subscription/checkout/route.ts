@@ -65,7 +65,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Build success/cancel URLs
-    const baseUrl = process.env.NEXTAUTH_URL || 'http://localhost:3000';
+    const baseUrl = (process.env.NEXTAUTH_URL || 'http://localhost:3000').trim();
     const successUrl = `${baseUrl}/settings/subscription?success=true&tier=${tier}`;
     const cancelUrl = `${baseUrl}/settings/subscription?canceled=true`;
 
