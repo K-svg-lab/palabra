@@ -111,6 +111,8 @@ export async function generateExamples(
 
   // 2. Check if we can make AI API call
   const canUseAI = await canMakeAICall();
+  console.log(`[AI Examples] Budget check for "${word}": ${canUseAI ? 'ALLOWED ✅' : 'BLOCKED ❌'}`);
+  
   if (!canUseAI) {
     console.warn(
       `[AI Examples] Budget exceeded. Using fallback templates for "${word}"`
@@ -124,12 +126,14 @@ export async function generateExamples(
 
   // 3. Generate with AI
   try {
+    console.log(`[AI Examples] Calling OpenAI for "${word}" (${level})...`);
     const result = await generateWithOpenAI(options);
+    console.log(`[AI Examples] ✅ OpenAI returned ${result.examples.length} examples for "${word}"`);
     
-    // 4. Cache the generated examples with complete word data
-    await cacheExamples(word, level, result.examples, translation, partOfSpeech);
+    // NOTE: Do NOT cache here - caching only happens when user saves the word
+    // This allows premium users to get fresh AI examples without polluting the cache
     
-    console.log(`[AI Examples] Successfully generated ${result.examples.length} examples for "${word}"`);
+    console.log(`[AI Examples] Successfully generated ${result.examples.length} examples for "${word}" (not cached yet)`);
     return {
       examples: result.examples,
       fromCache: false,
@@ -137,19 +141,12 @@ export async function generateExamples(
       tokensUsed: result.tokensUsed,
     };
   } catch (error) {
-    console.error(`[AI Examples] Generation failed for "${word}":`, error);
+    console.error(`[AI Examples] ❌ OpenAI generation FAILED for "${word}":`, error);
     console.error(`[AI Examples] Error details:`, error instanceof Error ? error.message : String(error));
     
     // Fallback to templates on error
     const fallbackExamples = await generateFallbackExamples(options);
     console.log(`[AI Examples] Using ${fallbackExamples.length} fallback template examples for "${word}"`);
-    
-    // Cache the fallback examples too so they're available on next lookup
-    try {
-      await cacheExamples(word, level, fallbackExamples, translation, partOfSpeech);
-    } catch (cacheError) {
-      console.error(`[AI Examples] Failed to cache fallback examples:`, cacheError);
-    }
     
     return {
       examples: fallbackExamples,
@@ -514,12 +511,24 @@ export async function getExamplesForUser(
     return await getCachedExamples(word, translation, level);
   }
 
-  // Check if premium (with error handling)
+  // Check if premium using DATABASE ONLY (bypass Stripe completely)
+  // This is more reliable than Stripe API which can be slow or have sync issues
   let isPremium = false;
   try {
-    isPremium = await hasActivePremium(userId);
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { subscriptionTier: true, subscriptionStatus: true },
+    });
+    
+    isPremium = (
+      user &&
+      (user.subscriptionTier === 'premium' || user.subscriptionTier === 'lifetime') &&
+      (user.subscriptionStatus === 'active' || user.subscriptionStatus === 'lifetime')
+    );
+    
+    console.log(`[AI Examples] Database premium check: User is ${isPremium ? 'PREMIUM ✅' : 'FREE ❌'}`);
   } catch (error) {
-    console.error('[AI Examples] Error checking premium status:', error);
+    console.error('[AI Examples] Database premium check failed:', error);
     // On error, default to cache (safe fallback)
     return await getCachedExamples(word, translation, level);
   }
@@ -570,11 +579,30 @@ async function getCachedExamples(
       select: {
         examples: true,
         targetWord: true, // Get translation from cache if not provided
+        aiExamplesByLevel: true, // NEW: Get AI examples by level
       },
     });
 
     if (cached) {
-      // Check if we have examples stored
+      // PRIORITY 1: Check aiExamplesByLevel for the requested level
+      if (cached.aiExamplesByLevel) {
+        const examplesByLevel = cached.aiExamplesByLevel as Record<string, ExampleSentence[]>;
+        
+        // Try exact level match first
+        if (examplesByLevel[level] && examplesByLevel[level].length > 0) {
+          console.log(`[AI Examples] Found cached ${level} examples for "${word}"`);
+          return examplesByLevel[level].slice(0, 3);
+        }
+        
+        // Fallback to nearby level if exact match doesn't exist
+        const fallbackLevel = getNearestAvailableLevel(level, examplesByLevel);
+        if (fallbackLevel && examplesByLevel[fallbackLevel].length > 0) {
+          console.log(`[AI Examples] Using ${fallbackLevel} examples for "${word}" (requested ${level})`);
+          return examplesByLevel[fallbackLevel].slice(0, 3);
+        }
+      }
+      
+      // PRIORITY 2: Check legacy examples field
       if (cached.examples && Array.isArray(cached.examples)) {
         // Parse and return cached examples
         const examples = (cached.examples as any[]).map((ex: any) => ({
@@ -584,7 +612,8 @@ async function getCachedExamples(
         }));
         
         if (examples.length > 0) {
-          return examples.slice(0, 3); // Return up to 3
+          console.log(`[AI Examples] Found legacy cached examples for "${word}"`);
+          return examples.slice(0, 3);
         }
       }
       
@@ -595,11 +624,45 @@ async function getCachedExamples(
     }
   } catch (error) {
     console.error('[AI Examples] Error fetching cached examples:', error);
-    // Continue to template fallback
+    // Return empty array - caller will handle fallback
   }
 
-  // Final fallback: Generate simple template examples
-  return generateTemplateExamples(word, translation || word, level);
+  // No cache found - return empty array so caller can try AI generation
+  console.log(`[AI Examples] No cache found for "${word}" - returning empty`);
+  return [];
+}
+
+/**
+ * Find the nearest available level when exact match doesn't exist
+ * Fallback order: B2 → B1 → A2, A2 → A1 → B1, C2 → C1 → B2
+ */
+function getNearestAvailableLevel(
+  requestedLevel: CEFRLevel,
+  availableLevels: Record<string, ExampleSentence[]>
+): CEFRLevel | null {
+  const levelHierarchy: Record<CEFRLevel, CEFRLevel[]> = {
+    'A1': ['A2', 'B1'],
+    'A2': ['A1', 'B1', 'B2'],
+    'B1': ['A2', 'B2', 'A1'],
+    'B2': ['B1', 'C1', 'A2'],
+    'C1': ['B2', 'C2', 'B1'],
+    'C2': ['C1', 'B2'],
+  };
+
+  const fallbacks = levelHierarchy[requestedLevel] || [];
+  
+  for (const fallback of fallbacks) {
+    if (availableLevels[fallback] && availableLevels[fallback].length > 0) {
+      return fallback;
+    }
+  }
+
+  // If no fallback found, try any available level
+  const anyLevel = Object.keys(availableLevels).find(
+    level => availableLevels[level] && availableLevels[level].length > 0
+  );
+  
+  return anyLevel as CEFRLevel || null;
 }
 
 /**

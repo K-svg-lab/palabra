@@ -20,7 +20,7 @@ import type { RaeDefinition } from '@/lib/services/rae';
 import { PrismaClient } from '@prisma/client';
 import type { PartOfSpeech } from '@/lib/types/vocabulary';
 import type { LanguagePair, VerifiedVocabularyData, CacheStrategy } from '@/lib/types/verified-vocabulary';
-import { generateExamples } from '@/lib/services/ai-example-generator';
+import { getExamplesForUser } from '@/lib/services/ai-example-generator';
 import type { CEFRLevel } from '@/lib/types/proficiency';
 import { getSession } from '@/lib/backend/auth';
 
@@ -440,7 +440,7 @@ export async function POST(request: NextRequest) {
       const cacheTime = Date.now() - startTime;
       console.log(`✅ [Lookup] CACHE HIT for "${cleanWord}" (${cacheTime}ms, confidence: ${cachedWord.confidenceScore.toFixed(2)})`);
       
-      // Phase 18.1.3: Get AI examples for user's proficiency level
+      // Phase 18.3.6: Get tier-appropriate examples (premium = AI, free = cached)
       let levelExamples: any[] = cachedWord.examples || [];
       try {
         const session = await getSession();
@@ -450,19 +450,19 @@ export async function POST(request: NextRequest) {
         }) : null;
         
         const userLevel = (user?.languageLevel as CEFRLevel) || 'B1';
-        const aiResult = await generateExamples({
-          word: cleanWord,
-          translation: cachedWord.targetWord,
-          partOfSpeech: cachedWord.partOfSpeech || undefined,
-          level: userLevel,
-          count: 3,
-        });
+        const examples = await getExamplesForUser(
+          session?.userId || null,
+          cleanWord,
+          cachedWord.targetWord,
+          userLevel,
+          cachedWord.partOfSpeech || undefined
+        );
         
-        if (aiResult.examples.length > 0) {
-          levelExamples = aiResult.examples;
+        if (examples.length > 0) {
+          levelExamples = examples;
         }
       } catch (error) {
-        console.debug('[AI Examples] Skipping for cached word:', error);
+        console.debug('[AI Examples] Error getting examples:', error);
         // Use dictionary examples as fallback
       }
       
@@ -698,27 +698,38 @@ export async function POST(request: NextRequest) {
         }
       }
 
-      // If not cached, start generation in background (don't block response)
-      if (aiExamples.length === 0) {
-        console.log(`[AI Examples] Cache MISS for "${cleanWord}" (${userLevel}) - Will generate async`);
+      // If not cached, try to generate for premium users (SYNC for premium, async for free)
+      if (aiExamples.length === 0 && session?.userId) {
+        console.log(`[AI Examples] Cache MISS for "${cleanWord}" (${userLevel}) - Checking if premium...`);
         
-        // Fire-and-forget: Generate in background for next request
-        // Client will poll /api/vocabulary/examples endpoint for result
-        generateExamples({
-          word: cleanWord,
-          translation: translation?.primary || '',
-          partOfSpeech: finalPartOfSpeech || undefined,
-          level: userLevel,
-          count: 1,
-        }).then((result) => {
-          console.log(
-            `[AI Examples] ✨ Background generation complete for "${cleanWord}" (${userLevel})` +
-            ` - ${result.examples.length} examples cached` +
-            (result.cost ? ` - Cost: $${result.cost.toFixed(4)}` : '')
+        try {
+          // Phase 18.3.6: Premium users get immediate AI generation, free users get async
+          const examples = await getExamplesForUser(
+            session.userId,
+            cleanWord,
+            translation?.primary || '',
+            userLevel,
+            finalPartOfSpeech || undefined
           );
-        }).catch((error) => {
-          console.error(`[AI Examples] Background generation failed for "${cleanWord}":`, error);
-        });
+          
+          if (examples.length > 0) {
+            aiExamples = examples;
+            console.log(
+              `[AI Examples] ✨ Generated ${examples.length} examples for "${cleanWord}" (${userLevel})`
+            );
+          } else {
+            console.log(`[AI Examples] No examples generated for "${cleanWord}" - using fallback`);
+          }
+        } catch (error) {
+          console.error(`[AI Examples] Generation failed for "${cleanWord}":`, error);
+          if (error instanceof Error) {
+            console.error(`[AI Examples] Error message:`, error.message);
+            console.error(`[AI Examples] Error stack:`, error.stack);
+          }
+          // Continue without AI examples - dictionary examples will be used
+        }
+      } else if (aiExamples.length === 0 && !session?.userId) {
+        console.log(`[AI Examples] Guest user - skipping generation for "${cleanWord}"`);
       }
     } catch (error) {
       console.error(`[AI Examples] Failed for "${cleanWord}":`, error);
