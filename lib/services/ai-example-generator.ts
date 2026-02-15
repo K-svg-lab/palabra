@@ -520,7 +520,7 @@ export async function getExamplesForUser(
       select: { subscriptionTier: true, subscriptionStatus: true },
     });
     
-    isPremium = (
+    isPremium = !!(
       user &&
       (user.subscriptionTier === 'premium' || user.subscriptionTier === 'lifetime') &&
       (user.subscriptionStatus === 'active' || user.subscriptionStatus === 'lifetime')
