@@ -94,12 +94,12 @@ export function VocabularyEditModal({ word, isOpen, onClose, onSuccess }: Props)
     <div className="fixed inset-0 bg-black/50 flex items-end sm:items-center justify-center z-50 p-0 sm:p-4">
       <div className="bg-white dark:bg-gray-900 rounded-t-2xl sm:rounded-2xl w-full sm:max-w-2xl max-h-[calc(100dvh-80px)] sm:max-h-[85dvh] mb-16 sm:mb-0 overflow-hidden flex flex-col shadow-xl animate-slideIn">
         {/* Header - Fixed with safe area support */}
-        <div className="flex-shrink-0 border-b border-gray-200 dark:border-gray-800 px-4 sm:px-6 py-4 flex items-center justify-between safe-top">
+        <div className="flex-shrink-0 border-b border-gray-200 dark:border-gray-800 pl-4 sm:pl-6 pr-2 sm:pr-4 py-4 flex items-center justify-between safe-top">
           <h2 className="text-xl font-semibold">Edit Vocabulary Word</h2>
           <button
             type="button"
             onClick={onClose}
-            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-all duration-150"
+            className="flex items-center justify-center p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-all duration-150 flex-shrink-0"
             aria-label="Close"
             style={{ minWidth: '44px', minHeight: '44px' }}
           >
