@@ -556,7 +556,6 @@ async function getCachedExamples(
       },
       select: {
         examples: true,
-        exampleSentences: true,
       },
     });
 
@@ -572,19 +571,6 @@ async function getCachedExamples(
         
         if (examples.length > 0) {
           return examples.slice(0, 3); // Return up to 3
-        }
-      }
-      
-      // Fallback: exampleSentences field
-      if (cached.exampleSentences && Array.isArray(cached.exampleSentences)) {
-        const examples = cached.exampleSentences.slice(0, 3).map((sentence: string) => ({
-          spanish: sentence,
-          english: '',
-          level: level,
-        }));
-        
-        if (examples.length > 0) {
-          return examples;
         }
       }
     }
