@@ -10,8 +10,8 @@ import { ReactNode } from 'react';
 import { motion } from 'framer-motion';
 import { Crown, Lock, Sparkles } from 'lucide-react';
 import { useFeatureAccess } from '@/lib/hooks/use-subscription';
-import type { PremiumFeature } from '@/lib/middleware/subscription-guard';
-import { PREMIUM_FEATURES } from '@/lib/middleware/subscription-guard';
+import type { PremiumFeature } from '@/lib/constants/premium-features';
+import { PREMIUM_FEATURES } from '@/lib/constants/premium-features';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 
