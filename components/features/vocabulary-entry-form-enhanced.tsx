@@ -892,7 +892,7 @@ export function VocabularyEntryFormEnhanced({ initialWord, onSuccess, onCancel }
               )}
               
               {/* Examples Ready - Smooth fade-in animation */}
-              {lookupData.examples && lookupData.examples.length > 0 && (
+              {!pollForExamples && (
                 <div 
                   className="space-y-2 text-center"
                   style={{ 
@@ -900,19 +900,26 @@ export function VocabularyEntryFormEnhanced({ initialWord, onSuccess, onCancel }
                     animationFillMode: 'backwards'
                   }}
                 >
+                  {/* Hint for manual entry when no verified examples */}
+                  {(!lookupData.examples || lookupData.examples.length === 0) && (
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mb-2 italic">
+                      No verified examples yet. Add your own below.
+                    </p>
+                  )}
+                  
                   <input
                     type="text"
                     {...register('exampleSpanish')}
-                    defaultValue={lookupData.examples[0].spanish}
-                    placeholder="Spanish example"
-                    className="w-full px-3 py-2 text-sm sm:text-base text-center italic text-gray-700 dark:text-gray-300 bg-transparent border border-transparent hover:border-gray-300 dark:hover:border-gray-600 focus:border-accent focus:bg-white dark:focus:bg-black rounded-lg focus:ring-2 focus:ring-accent focus:ring-opacity-20 transition-colors"
+                    defaultValue={lookupData.examples?.[0]?.spanish || ''}
+                    placeholder="Spanish example (e.g. Hablo español todos los días)"
+                    className="w-full px-3 py-2 text-sm sm:text-base text-center italic text-gray-700 dark:text-gray-300 bg-transparent border border-gray-300 dark:border-gray-700 hover:border-gray-400 dark:hover:border-gray-600 focus:border-accent focus:bg-white dark:focus:bg-black rounded-lg focus:ring-2 focus:ring-accent focus:ring-opacity-20 transition-colors"
                   />
                   <input
                     type="text"
                     {...register('exampleEnglish')}
-                    defaultValue={lookupData.examples[0].english}
-                    placeholder="English translation"
-                    className="w-full px-3 py-2 text-xs sm:text-sm text-center text-gray-500 dark:text-gray-400 bg-transparent border border-transparent hover:border-gray-300 dark:hover:border-gray-600 focus:border-accent focus:bg-white dark:focus:bg-black rounded-lg focus:ring-2 focus:ring-accent focus:ring-opacity-20 transition-colors"
+                    defaultValue={lookupData.examples?.[0]?.english || ''}
+                    placeholder="English translation (e.g. I speak Spanish every day)"
+                    className="w-full px-3 py-2 text-xs sm:text-sm text-center text-gray-500 dark:text-gray-400 bg-transparent border border-gray-300 dark:border-gray-700 hover:border-gray-400 dark:hover:border-gray-600 focus:border-accent focus:bg-white dark:focus:bg-black rounded-lg focus:ring-2 focus:ring-accent focus:ring-opacity-20 transition-colors"
                   />
                 </div>
               )}
