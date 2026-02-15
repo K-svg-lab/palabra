@@ -99,8 +99,8 @@ export async function generateExamples(
 
   // 1. Check cache first
   if (useCache) {
-    const cached = await getCachedExamples(word, level);
-    if (cached) {
+    const cached = await getCachedExamples(word, translation, level);
+    if (cached && cached.length > 0) {
       console.log(`[AI Examples] Using cached examples for "${word}" (${level})`);
       return {
         examples: cached,
@@ -129,6 +129,7 @@ export async function generateExamples(
     // 4. Cache the generated examples with complete word data
     await cacheExamples(word, level, result.examples, translation, partOfSpeech);
     
+    console.log(`[AI Examples] Successfully generated ${result.examples.length} examples for "${word}"`);
     return {
       examples: result.examples,
       fromCache: false,
@@ -137,9 +138,19 @@ export async function generateExamples(
     };
   } catch (error) {
     console.error(`[AI Examples] Generation failed for "${word}":`, error);
+    console.error(`[AI Examples] Error details:`, error instanceof Error ? error.message : String(error));
     
     // Fallback to templates on error
     const fallbackExamples = await generateFallbackExamples(options);
+    console.log(`[AI Examples] Using ${fallbackExamples.length} fallback template examples for "${word}"`);
+    
+    // Cache the fallback examples too so they're available on next lookup
+    try {
+      await cacheExamples(word, level, fallbackExamples, translation, partOfSpeech);
+    } catch (cacheError) {
+      console.error(`[AI Examples] Failed to cache fallback examples:`, cacheError);
+    }
+    
     return {
       examples: fallbackExamples,
       fromCache: false,
@@ -500,7 +511,7 @@ export async function getExamplesForUser(
 ): Promise<ExampleSentence[]> {
   // Guest users: always use cache
   if (!userId) {
-    return await getCachedExamples(word, level);
+    return await getCachedExamples(word, translation, level);
   }
 
   // Check if premium (with error handling)
@@ -510,7 +521,7 @@ export async function getExamplesForUser(
   } catch (error) {
     console.error('[AI Examples] Error checking premium status:', error);
     // On error, default to cache (safe fallback)
-    return await getCachedExamples(word, level);
+    return await getCachedExamples(word, translation, level);
   }
 
   if (isPremium) {
@@ -528,11 +539,11 @@ export async function getExamplesForUser(
       return result.examples;
     } catch (error) {
       console.error('[AI Examples] Generation failed, using cache:', error);
-      return await getCachedExamples(word, level);
+      return await getCachedExamples(word, translation, level);
     }
   } else {
     // Free: Cache only
-    return await getCachedExamples(word, level);
+    return await getCachedExamples(word, translation, level);
   }
 }
 
@@ -541,11 +552,13 @@ export async function getExamplesForUser(
  * Falls back to template examples if no cache exists
  * 
  * @param word - Spanish word
+ * @param translation - English translation (optional, for template fallback)
  * @param level - CEFR proficiency level
  * @returns Array of cached example sentences
  */
 async function getCachedExamples(
   word: string,
+  translation: string | undefined,
   level: CEFRLevel
 ): Promise<ExampleSentence[]> {
   // Try to find cached examples in VerifiedVocabulary
@@ -556,6 +569,7 @@ async function getCachedExamples(
       },
       select: {
         examples: true,
+        targetWord: true, // Get translation from cache if not provided
       },
     });
 
@@ -573,6 +587,11 @@ async function getCachedExamples(
           return examples.slice(0, 3); // Return up to 3
         }
       }
+      
+      // Use cached translation if available
+      if (!translation && cached.targetWord) {
+        translation = cached.targetWord;
+      }
     }
   } catch (error) {
     console.error('[AI Examples] Error fetching cached examples:', error);
@@ -580,7 +599,7 @@ async function getCachedExamples(
   }
 
   // Final fallback: Generate simple template examples
-  return generateTemplateExamples(word, level);
+  return generateTemplateExamples(word, translation || word, level);
 }
 
 /**
@@ -588,18 +607,23 @@ async function getCachedExamples(
  * Used when no cache exists and AI generation unavailable/blocked
  * 
  * @param word - Spanish word
+ * @param translation - English translation
  * @param level - CEFR proficiency level
  * @returns Array of template example sentences
  */
 function generateTemplateExamples(
   word: string,
+  translation: string,
   level: CEFRLevel
 ): ExampleSentence[] {
+  // Use translation or fall back to word if translation missing
+  const eng = translation || word;
+  
   // Simple templates for common cases
   const templates = [
-    { spanish: `Yo uso "${word}" todos los días.`, english: `I use "${word}" every day.` },
-    { spanish: `${word} es importante.`, english: `${word} is important.` },
-    { spanish: `Me gusta ${word}.`, english: `I like ${word}.` },
+    { spanish: `Yo uso "${word}" todos los días.`, english: `I use "${eng}" every day.` },
+    { spanish: `${word} es importante.`, english: `${eng} is important.` },
+    { spanish: `Me gusta ${word}.`, english: `I like ${eng}.` },
   ];
 
   return templates.map(t => ({
