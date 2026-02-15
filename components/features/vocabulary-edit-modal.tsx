@@ -91,23 +91,24 @@ export function VocabularyEditModal({ word, isOpen, onClose, onSuccess }: Props)
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white dark:bg-gray-900 rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-xl">
-        {/* Header */}
-        <div className="sticky top-0 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 px-6 py-4 flex items-center justify-between">
+    <div className="fixed inset-0 bg-black/50 flex items-end sm:items-center justify-center z-50 p-0 sm:p-4">
+      <div className="bg-white dark:bg-gray-900 rounded-t-2xl sm:rounded-2xl w-full sm:max-w-2xl h-[85dvh] sm:max-h-[85dvh] overflow-hidden flex flex-col shadow-xl animate-slideIn">
+        {/* Header - Fixed with safe area support */}
+        <div className="flex-shrink-0 border-b border-gray-200 dark:border-gray-800 px-4 sm:px-6 py-4 flex items-center justify-between safe-top">
           <h2 className="text-xl font-semibold">Edit Vocabulary Word</h2>
           <button
             type="button"
             onClick={onClose}
-            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors"
+            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-all duration-150"
             aria-label="Close"
+            style={{ minWidth: '44px', minHeight: '44px' }}
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
-        {/* Form */}
-        <form onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-6">
+        {/* Form - Scrollable with safe area support */}
+        <form onSubmit={handleSubmit(onSubmit)} className="flex-1 overflow-y-auto overscroll-contain p-4 sm:p-6 pb-8 safe-bottom space-y-6">
           {/* Spanish Word */}
           <div className="space-y-2">
             <label htmlFor="edit-spanishWord" className="block text-sm font-medium">
@@ -229,6 +230,7 @@ export function VocabularyEditModal({ word, isOpen, onClose, onSuccess }: Props)
               type="submit"
               disabled={updateMutation.isPending}
               className="flex-1 px-4 py-3 bg-accent text-white rounded-lg hover:bg-accent/90 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              style={{ minHeight: '44px' }}
             >
               {updateMutation.isPending ? (
                 <>
@@ -246,6 +248,7 @@ export function VocabularyEditModal({ word, isOpen, onClose, onSuccess }: Props)
               type="button"
               onClick={onClose}
               className="px-4 py-3 border border-gray-300 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-900"
+              style={{ minHeight: '44px' }}
             >
               Cancel
             </button>

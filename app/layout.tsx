@@ -45,12 +45,14 @@ export const metadata: Metadata = {
 
 /**
  * Viewport configuration for responsive design
+ * Updated for iOS Safari compatibility and accessibility (WCAG AA)
  */
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
-  maximumScale: 1,
-  userScalable: false,
+  maximumScale: 5, // Allow zoom for accessibility (WCAG AA requirement)
+  userScalable: true, // Enable pinch-to-zoom
+  viewportFit: 'cover', // Respect safe area insets on notched devices (iPhone X+)
   themeColor: [
     { media: '(prefers-color-scheme: light)', color: '#ffffff' },
     { media: '(prefers-color-scheme: dark)', color: '#000000' },

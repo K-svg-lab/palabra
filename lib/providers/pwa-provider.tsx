@@ -8,6 +8,7 @@
 import { useEffect, createContext, useContext, useState, ReactNode } from 'react';
 import { registerServiceWorker, requestPersistentStorage } from '@/lib/utils/pwa';
 import { OfflineIndicator } from '@/components/features/offline-indicator';
+import { IOSInstallPrompt } from '@/components/features/ios-install-prompt';
 
 interface PWAContextValue {
   isOnline: boolean;
@@ -37,8 +38,9 @@ export function PWAProvider({ children }: PWAProviderProps) {
   useEffect(() => {
     // Initialize PWA features
     async function initializePWA() {
-      // Check if installed
-      const installed = window.matchMedia('(display-mode: standalone)').matches;
+      // Check if installed (supports both standard and iOS-specific detection)
+      const installed = window.matchMedia('(display-mode: standalone)').matches
+                        || (navigator as any).standalone === true; // iOS-specific property
       setIsInstalled(installed);
       
       // Register service worker
@@ -78,6 +80,7 @@ export function PWAProvider({ children }: PWAProviderProps) {
     <PWAContext.Provider value={value}>
       {children}
       <OfflineIndicator />
+      <IOSInstallPrompt />
     </PWAContext.Provider>
   );
 }
