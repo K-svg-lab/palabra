@@ -70,46 +70,40 @@ export function IOSInstallPrompt() {
 
   return (
     <div 
-      className="fixed bottom-20 left-4 right-4 bg-gradient-to-r from-blue-600 to-blue-500 text-white rounded-2xl p-4 shadow-xl z-50 animate-slideIn safe-bottom"
+      className="fixed bottom-20 left-4 right-4 bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl border border-gray-200/50 dark:border-gray-800/50 rounded-xl z-50 animate-slideIn safe-bottom"
       role="dialog"
       aria-labelledby="install-prompt-title"
       aria-describedby="install-prompt-description"
+      style={{
+        boxShadow: '0 8px 32px rgba(0, 0, 0, 0.08)'
+      }}
     >
-      {/* Dismiss Button - Phase 17: 44px touch target */}
+      {/* Dismiss Button - Phase 17: 44px touch target, vertically centered */}
       <button
         onClick={handleDismiss}
-        className="absolute top-2 right-2 p-2 hover:bg-white/20 rounded-full transition-all duration-150"
+        className="absolute top-1/2 -translate-y-1/2 right-2 p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-all duration-150"
         aria-label="Dismiss install prompt"
         style={{ minWidth: '44px', minHeight: '44px' }}
       >
-        <X className="w-4 h-4" />
+        <X className="w-4 h-4 text-gray-600 dark:text-gray-400" />
       </button>
       
-      {/* Content */}
-      <div className="pr-12">
+      {/* Content - Phase 17: Equal vertical padding for balance */}
+      <div className="py-4 px-4 pr-14">
         <p 
           id="install-prompt-title"
-          className="font-semibold text-lg mb-2"
+          className="font-semibold text-base text-gray-900 dark:text-white mb-2"
         >
           Install Palabra
         </p>
         
         <div 
           id="install-prompt-description"
-          className="text-sm space-y-2 opacity-90"
+          className="text-sm text-gray-600 dark:text-gray-400"
         >
-          <p>For the best experience, install this app:</p>
-          
-          {/* Installation Steps */}
-          <ol className="list-decimal list-inside space-y-1 ml-2">
-            <li className="flex items-center gap-2">
-              <span className="flex-shrink-0">Tap the</span>
-              <Share className="w-4 h-4 inline flex-shrink-0" aria-hidden="true" />
-              <span className="flex-shrink-0">Share button</span>
-            </li>
-            <li>Scroll and tap "Add to Home Screen"</li>
-            <li>Tap "Add" in the top right</li>
-          </ol>
+          <p className="flex items-center">
+            Tap <Share className="w-3.5 h-3.5 mx-1 text-accent" aria-hidden="true" /> then "Add to Home Screen"
+          </p>
         </div>
       </div>
     </div>

@@ -925,12 +925,13 @@ export function VocabularyEntryFormEnhanced({ initialWord, onSuccess, onCancel }
         </div>
       )}
 
-      {/* Action Buttons */}
-      <div className="flex gap-2 sm:gap-3 pt-2">
+      {/* Action Buttons - Phase 17: Generous whitespace (24px bottom padding) */}
+      <div className="flex gap-2 sm:gap-3 pt-4 pb-6">
         <button
           type="submit"
           disabled={!canSave || addMutation.isPending}
           className="flex-1 px-4 py-2.5 sm:py-3 bg-accent text-white rounded-lg hover:bg-accent/90 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 font-medium text-sm sm:text-base"
+          style={{ minHeight: '44px' }}
         >
           {addMutation.isPending ? (
             <>
@@ -950,6 +951,7 @@ export function VocabularyEntryFormEnhanced({ initialWord, onSuccess, onCancel }
             type="button"
             onClick={onCancel}
             className="px-4 sm:px-6 py-2.5 sm:py-3 border border-gray-300 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-900 text-sm sm:text-base"
+            style={{ minHeight: '44px' }}
           >
             Cancel
           </button>

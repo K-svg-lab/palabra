@@ -215,7 +215,7 @@ export default function VocabularyPage() {
       {/* Add New Word Modal - Phase 17 iOS Bottom Sheet Design */}
       {showAddModal && (
         <div className="fixed inset-0 bg-black/50 flex items-end sm:items-center justify-center z-50 p-0 sm:p-4">
-          <div className="bg-white dark:bg-gray-900 rounded-t-2xl sm:rounded-2xl w-full sm:max-w-2xl h-[85dvh] sm:max-h-[85dvh] overflow-hidden flex flex-col shadow-xl animate-slideIn">
+          <div className="bg-white dark:bg-gray-900 rounded-t-2xl sm:rounded-2xl w-full sm:max-w-2xl max-h-[calc(100dvh-80px)] sm:max-h-[85dvh] mb-16 sm:mb-0 overflow-hidden flex flex-col shadow-xl animate-slideIn">
             {/* Header - Fixed with safe area support */}
             <div className="flex-shrink-0 border-b border-gray-200 dark:border-gray-800 px-4 sm:px-6 py-4 flex items-center justify-between safe-top">
               <h2 className="text-xl font-semibold">Add New Word</h2>
