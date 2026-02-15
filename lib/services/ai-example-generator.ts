@@ -586,7 +586,7 @@ async function getCachedExamples(
     if (cached) {
       // PRIORITY 1: Check aiExamplesByLevel for the requested level
       if (cached.aiExamplesByLevel) {
-        const examplesByLevel = cached.aiExamplesByLevel as Record<string, ExampleSentence[]>;
+        const examplesByLevel = cached.aiExamplesByLevel as unknown as Record<string, ExampleSentence[]>;
         
         // Try exact level match first
         if (examplesByLevel[level] && examplesByLevel[level].length > 0) {
