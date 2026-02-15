@@ -23,6 +23,7 @@ import { useOnlineStatusOnly } from '@/lib/hooks/use-online-status';
 import { getOfflineQueueService } from '@/lib/services/offline-queue';
 import { detectDeviceType, isMobile } from '@/lib/utils/device-detection';
 import { CacheIndicator } from '@/components/ui/cache-indicator';
+import { useSubscription } from '@/lib/hooks/use-subscription';
 import type { VocabularyWord, Gender, PartOfSpeech, ExampleSentence } from '@/lib/types/vocabulary';
 
 // ═══════════════════════════════════════════════════════════════════
@@ -54,6 +55,7 @@ interface Props {
 }
 
 export function VocabularyEntryFormEnhanced({ initialWord, onSuccess, onCancel }: Props) {
+  const { isPremium } = useSubscription();
   const [lookupData, setLookupData] = useState<{
     translation?: string;
     alternativeTranslations?: string[];
@@ -262,12 +264,17 @@ export function VocabularyEntryFormEnhanced({ initialWord, onSuccess, onCancel }
                   setValue('exampleEnglish', data.examples[0].english);
                   setPollForExamples(false);
                   setPollingStartTime(null);
-                } else {
-                  // No examples yet, start polling for AI generation (max 10 seconds)
-                  console.log(`[Form] No examples yet for "${cleanWord}", starting polling...`);
+                } else if (isPremium) {
+                  // Premium users: start polling for AI generation (max 10 seconds)
+                  console.log(`[Form] Premium user - No examples yet for "${cleanWord}", starting polling...`);
                   console.log(`[Form] Setting lastLookedUpWord to: "${cleanWord}"`);
                   setPollForExamples(true);
                   setPollingStartTime(Date.now());
+                } else {
+                  // Non-premium users: skip polling, go straight to manual entry
+                  console.log(`[Form] Free user - No examples for "${cleanWord}", manual entry available`);
+                  setPollForExamples(false);
+                  setPollingStartTime(null);
                 }
                 
                 // Keep keyboard closed after auto-fill
@@ -346,12 +353,17 @@ export function VocabularyEntryFormEnhanced({ initialWord, onSuccess, onCancel }
         setValue('exampleEnglish', data.examples[0].english);
         setPollForExamples(false);
         setPollingStartTime(null);
-      } else {
-        // No examples yet, start polling for AI generation (max 10 seconds)
-        console.log(`[Form] No examples yet for "${cleanWord}", starting polling...`);
+      } else if (isPremium) {
+        // Premium users: start polling for AI generation (max 10 seconds)
+        console.log(`[Form] Premium user - No examples yet for "${cleanWord}", starting polling...`);
         console.log(`[Form] Setting lastLookedUpWord to: "${cleanWord}"`);
         setPollForExamples(true);
         setPollingStartTime(Date.now());
+      } else {
+        // Non-premium users: skip polling, go straight to manual entry
+        console.log(`[Form] Free user - No examples for "${cleanWord}", manual entry available`);
+        setPollForExamples(false);
+        setPollingStartTime(null);
       }
     } catch (error) {
       console.error('Lookup error:', error);
