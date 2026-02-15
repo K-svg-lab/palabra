@@ -552,7 +552,7 @@ async function getCachedExamples(
   try {
     const cached = await prisma.verifiedVocabulary.findFirst({
       where: { 
-        spanishWord: word,
+        sourceWord: word,
       },
       select: {
         examples: true,
