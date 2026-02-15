@@ -94,6 +94,7 @@ export function VocabularyEntryFormEnhanced({ initialWord, onSuccess, onCancel }
   const [hasAutoTriggered, setHasAutoTriggered] = useState(false);
   const [offlineMode, setOfflineMode] = useState(false);
   const [pollForExamples, setPollForExamples] = useState(false);
+  const [pollingStartTime, setPollingStartTime] = useState<number | null>(null);
   
   // ═══════════════════════════════════════════════════════════════════
   // 📝 EDIT TRACKING (Phase 16.4.1)
@@ -130,6 +131,7 @@ export function VocabularyEntryFormEnhanced({ initialWord, onSuccess, onCancel }
 
   // ═══════════════════════════════════════════════════════════════════
   // PHASE 18.1.3: Poll for AI Examples (Progressive Loading)
+  // Maximum 10 seconds polling to prevent endless loading
   // ═══════════════════════════════════════════════════════════════════
   const { data: examplesData } = useQuery<AIExamplesResponse | null>({
     queryKey: ['ai-examples', lastLookedUpWord],
@@ -143,11 +145,18 @@ export function VocabularyEntryFormEnhanced({ initialWord, onSuccess, onCancel }
     },
     enabled: pollForExamples && !!lastLookedUpWord,
     refetchInterval: (query) => {
+      // Check if we've exceeded maximum polling duration (10 seconds)
+      if (pollingStartTime && Date.now() - pollingStartTime > 10000) {
+        console.log('[Polling] Timeout reached (10s), stopping poll');
+        return false;
+      }
+      
       // Stop polling when examples are ready
       if (query.state.data?.ready) {
         console.log('[Polling] Examples ready, stopping poll');
         return false;
       }
+      
       // Poll every 1 second while waiting
       console.log('[Polling] Not ready yet, will poll again in 1s');
       return 1000;
@@ -168,8 +177,24 @@ export function VocabularyEntryFormEnhanced({ initialWord, onSuccess, onCancel }
       setValue('exampleSpanish', newExamples[0].spanish);
       setValue('exampleEnglish', newExamples[0].english);
       setPollForExamples(false); // Stop polling
+      setPollingStartTime(null);
     }
   }, [examplesData, setValue]);
+  
+  // Stop polling after timeout
+  useEffect(() => {
+    if (pollForExamples && pollingStartTime) {
+      const checkTimeout = setInterval(() => {
+        if (Date.now() - pollingStartTime > 10000) {
+          console.log('[Polling] Timeout reached, stopping poll');
+          setPollForExamples(false);
+          setPollingStartTime(null);
+        }
+      }, 1000);
+      
+      return () => clearInterval(checkTimeout);
+    }
+  }, [pollForExamples, pollingStartTime]);
 
   // Auto-focus input field when component mounts and populate initial word if provided
   useEffect(() => {
@@ -236,11 +261,13 @@ export function VocabularyEntryFormEnhanced({ initialWord, onSuccess, onCancel }
                   setValue('exampleSpanish', data.examples[0].spanish);
                   setValue('exampleEnglish', data.examples[0].english);
                   setPollForExamples(false);
+                  setPollingStartTime(null);
                 } else {
-                  // No examples yet, start polling for AI generation
+                  // No examples yet, start polling for AI generation (max 10 seconds)
                   console.log(`[Form] No examples yet for "${cleanWord}", starting polling...`);
                   console.log(`[Form] Setting lastLookedUpWord to: "${cleanWord}"`);
                   setPollForExamples(true);
+                  setPollingStartTime(Date.now());
                 }
                 
                 // Keep keyboard closed after auto-fill
@@ -318,11 +345,13 @@ export function VocabularyEntryFormEnhanced({ initialWord, onSuccess, onCancel }
         setValue('exampleSpanish', data.examples[0].spanish);
         setValue('exampleEnglish', data.examples[0].english);
         setPollForExamples(false);
+        setPollingStartTime(null);
       } else {
-        // No examples yet, start polling for AI generation
+        // No examples yet, start polling for AI generation (max 10 seconds)
         console.log(`[Form] No examples yet for "${cleanWord}", starting polling...`);
         console.log(`[Form] Setting lastLookedUpWord to: "${cleanWord}"`);
         setPollForExamples(true);
+        setPollingStartTime(Date.now());
       }
     } catch (error) {
       console.error('Lookup error:', error);
