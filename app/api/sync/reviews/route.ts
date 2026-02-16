@@ -89,7 +89,8 @@ async function handler(request: NextRequest) {
         lastReviewDate: true,
         nextReviewDate: true,
       },
-      take: 1000,
+      // NO LIMIT: Allow users to sync all review records
+      // For users with thousands of words, this ensures all review data is synced
       orderBy: {
         lastReviewDate: 'desc',
       },

@@ -73,6 +73,7 @@ async function handler(request: NextRequest) {
     // Include items that were either updated OR synced since lastSyncTime
     // ALSO include items that were just modified in this request (to avoid race condition)
     // CRITICAL FIX: Include recently deleted items so clients can remove them locally
+    // PERFORMANCE FIX: Remove 1000 limit to support users with large vocabularies
     const remoteChanges = await prisma.vocabularyItem.findMany({
       where: {
         userId,
@@ -89,11 +90,19 @@ async function handler(request: NextRequest) {
           isDeleted: false
         }),
       },
-      take: 1000, // Limit to prevent huge responses
+      // NO LIMIT: Allow users to sync all vocabulary words
+      // For users with thousands of words, this will be a larger response
+      // but it's necessary for data integrity
       orderBy: {
         updatedAt: 'desc',
       },
     });
+    
+    // Log warning if returning large number of items
+    if (remoteChanges.length > 1000) {
+      console.warn(`⚠️ Sync returning ${remoteChanges.length} vocabulary items for user ${userId}`);
+      console.warn(`   This is normal for users with large vocabularies, but may impact response time.`);
+    }
     
     // Update device info
     await updateDeviceInfo(userId, deviceId);
