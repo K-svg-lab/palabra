@@ -63,6 +63,8 @@ export default function ReviewPage() {
   
   // Phase 18 Sync Fix: Track sync status to prevent data loss
   const syncInProgressRef = useRef(false);
+  // Phase 18: Issue #4 Fix - Track processed sessions to prevent duplicate saves
+  const processedSessionsRef = useRef<Set<string>>(new Set());
   
   // Track isInSession changes
   useEffect(() => {
@@ -381,6 +383,21 @@ export default function ReviewPage() {
     sessionEndTime: number,
     currentSessionData: ReviewSessionType | null
   ): Promise<void> => {
+    // Phase 18: Issue #4 Fix - Idempotency guard: prevent double-processing same session
+    if (!currentSessionData) {
+      console.warn('[Background] No session data, skipping processing');
+      return;
+    }
+    
+    if (processedSessionsRef.current.has(currentSessionData.id)) {
+      console.warn('[Background] ⚠️ Session', currentSessionData.id, 'already processed, skipping duplicate!');
+      return;
+    }
+    
+    // Mark session as being processed
+    processedSessionsRef.current.add(currentSessionData.id);
+    console.log('[Background] 🔒 Locked session', currentSessionData.id, 'for processing');
+    
     try {
       // Phase 18 Sync Fix: Mark sync as in progress
       syncInProgressRef.current = true;
