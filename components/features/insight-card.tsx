@@ -8,6 +8,7 @@
 'use client';
 
 import React from 'react';
+import Link from 'next/link';
 import type { Insight } from '@/lib/utils/insights';
 
 interface InsightCardProps {
@@ -16,18 +17,8 @@ interface InsightCardProps {
 }
 
 export function InsightCard({ insight, className = '' }: InsightCardProps) {
-  return (
-    <div
-      className={`
-        relative overflow-hidden rounded-xl p-5
-        text-white shadow-lg
-        transform hover:scale-[1.02] transition-all duration-300
-        ${className}
-      `}
-      style={{
-        background: `linear-gradient(135deg, ${insight.gradient.from}, ${insight.gradient.to})`,
-      }}
-    >
+  const content = (
+    <>
       {/* Background decoration */}
       <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-3xl" />
       <div className="absolute bottom-0 left-0 w-24 h-24 bg-black/5 rounded-full blur-2xl" />
@@ -47,11 +38,45 @@ export function InsightCard({ insight, className = '' }: InsightCardProps) {
           {insight.description}
         </p>
 
-        {/* Type badge (optional, for debugging) */}
-        {/* <div className="mt-3 text-xs opacity-70 uppercase tracking-wide">
-          {insight.type}
-        </div> */}
+        {/* Action button if present */}
+        {insight.action && (
+          <button className="mt-3 px-4 py-2 bg-white/20 hover:bg-white/30 rounded-lg text-sm font-medium transition-colors backdrop-blur-sm">
+            {insight.action.label}
+          </button>
+        )}
       </div>
+    </>
+  );
+
+  const cardClasses = `
+    relative overflow-hidden rounded-xl p-5
+    text-white shadow-lg
+    transform hover:scale-[1.02] transition-all duration-300
+    ${insight.action ? 'cursor-pointer' : ''}
+    ${className}
+  `;
+
+  const cardStyle = {
+    background: `linear-gradient(135deg, ${insight.gradient.from}, ${insight.gradient.to})`,
+  };
+
+  // If there's an action, wrap in a link
+  if (insight.action) {
+    return (
+      <Link
+        href={insight.action.href}
+        className={`${cardClasses} block no-underline`}
+        style={cardStyle}
+      >
+        {content}
+      </Link>
+    );
+  }
+
+  // Otherwise, just a div
+  return (
+    <div className={cardClasses} style={cardStyle}>
+      {content}
     </div>
   );
 }

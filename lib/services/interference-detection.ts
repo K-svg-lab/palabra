@@ -4,6 +4,8 @@
  * Automatically detects when users confuse similar words and provides
  * targeted comparative review sessions to resolve interference.
  * 
+ * Phase 18.3.6: PREMIUM FEATURE - Requires active subscription
+ * 
  * Research: Underwood (1957), Postman & Underwood (1973)
  * - Similar words compete for retrieval
  * - Confusion reduces retention by 40-60%
@@ -14,6 +16,7 @@
 
 import { prisma } from '@/lib/backend/db';
 import type { VocabularyItem } from '@prisma/client';
+import { hasActivePremium } from './stripe';
 
 // ============================================================================
 // TYPES
@@ -55,14 +58,23 @@ export interface ComparativeReviewResult {
  * Analyzes recent incorrect attempts to identify word pairs
  * that the user frequently confuses.
  * 
+ * Phase 18.3.6: Premium-only feature
+ * 
  * @param userId - User ID to analyze
  * @param lookbackDays - Days of history to analyze (default: 30)
- * @returns Array of confusion patterns, sorted by severity
+ * @returns Array of confusion patterns, sorted by severity (empty for free users)
  */
 export async function detectConfusionPatterns(
   userId: string,
   lookbackDays: number = 30
 ): Promise<ConfusionPattern[]> {
+  // Phase 18.3.6: Check premium access
+  const hasPremium = await hasActivePremium(userId);
+  if (!hasPremium) {
+    // Free users: no interference detection
+    return [];
+  }
+
   // Get recent review attempts where user was wrong
   const wrongAttempts = await prisma.reviewAttempt.findMany({
     where: {

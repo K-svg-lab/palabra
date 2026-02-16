@@ -23,15 +23,23 @@ export const metadata: Metadata = {
 };
 
 interface PageProps {
-  searchParams: {
+  searchParams: Promise<{
     word1?: string;
     word2?: string;
-  };
+  }>;
 }
 
 export default async function ComparativeReviewPage({
   searchParams,
 }: PageProps) {
+  // Await searchParams (Next.js 15+)
+  const params = await searchParams;
+  
+  // Debug logging
+  console.log('[Comparative Review] params:', params);
+  console.log('[Comparative Review] word1:', params.word1);
+  console.log('[Comparative Review] word2:', params.word2);
+  
   // Require authentication
   const session = await getSession();
   if (!session?.userId) {
@@ -48,7 +56,7 @@ export default async function ComparativeReviewPage({
   }
 
   // Validate query parameters
-  if (!searchParams.word1 || !searchParams.word2) {
+  if (!params.word1 || !params.word2) {
     return (
       <div className="container max-w-2xl mx-auto p-6 text-center">
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
@@ -73,14 +81,14 @@ export default async function ComparativeReviewPage({
     prisma.vocabularyItem.findFirst({
       where: {
         userId: user.id,
-        id: searchParams.word1,
+        id: params.word1,
         isDeleted: false,
       },
     }),
     prisma.vocabularyItem.findFirst({
       where: {
         userId: user.id,
-        id: searchParams.word2,
+        id: params.word2,
         isDeleted: false,
       },
     }),

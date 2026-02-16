@@ -16,6 +16,10 @@ export interface Insight {
   description: string;
   gradient: { from: string; to: string };
   priority: number; // Higher = more important
+  action?: {
+    label: string;
+    href: string;
+  };
 }
 
 export interface LearningStats {
@@ -86,6 +90,10 @@ export function generateInsights(stats: LearningStats): Insight[] {
       description: `You've mixed these up ${occurrences} times. Let's review them side-by-side.`,
       gradient: { from: '#FF8C00', to: '#FF6B6B' },
       priority: 95, // High priority - critical for learning
+      action: {
+        label: 'Review Together',
+        href: `/dashboard/review/comparative?word1=${word1Id}&word2=${word2Id}`,
+      },
     });
   }
   
