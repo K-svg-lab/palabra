@@ -138,7 +138,8 @@ Spanish_Vocab/
 
 | Document | Purpose | When to Use |
 |----------|---------|-------------|
-| **[docs/bug-fixes/2026-02/BUG_FIX_2026_02_14_INTERFERENCE_DETECTION_INTEGRATION.md](./docs/bug-fixes/2026-02/BUG_FIX_2026_02_14_INTERFERENCE_DETECTION_INTEGRATION.md)** | 🆕 **Interference Detection missing integration fixed** | Understanding how Phase 18.2.1 was integrated (Feb 14, 2026) |
+| **[docs/bug-fixes/2026-02/BUG_FIX_2026_02_14_INTERFERENCE_DETECTION_INTEGRATION.md](./docs/bug-fixes/2026-02/BUG_FIX_2026_02_14_INTERFERENCE_DETECTION_INTEGRATION.md)** | **Interference Detection missing integration fixed** | Understanding how Phase 18.2.1 was integrated (Feb 14, 2026) |
+| **[docs/deployments/2026-02/DEPLOYMENT_2026_02_16_AUTOMATIC_CONFUSION_RECORDING.md](./docs/deployments/2026-02/DEPLOYMENT_2026_02_16_AUTOMATIC_CONFUSION_RECORDING.md)** | 🆕 **Automatic confusion recording during reviews** | Interference Detection System completion (Feb 16, 2026) |
 
 ### 📋 Product & Planning
 

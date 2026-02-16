@@ -2,11 +2,38 @@
 
 ## Current Production Status
 
-**Latest Deployment:** February 5, 2026  
+**Latest Deployment:** February 16, 2026  
 **Status:** ✅ Live & Operational  
-**Production URL:** https://palabra-nu.vercel.app  
+**Production URL:** https://learnpalabra.com (Primary)  
+**Alternate URLs:** https://palabra-nu.vercel.app, https://palabra.vercel.app  
 **GitHub Repository:** https://github.com/K-svg-lab/palabra  
-**Latest Commit:** e1b34a3 (Phase 16.1 Complete + Build Fixes)
+**Latest Commit:** 325d2dd (Automatic Confusion Recording - Phase 18.2.1)
+
+---
+
+## 🆕 Latest Deployment (February 16, 2026)
+
+**Feature:** Automatic Confusion Recording for Interference Detection  
+**Commit:** 325d2dd  
+**Phase:** 18.2.1
+
+### What's New
+- ✅ Automatic confusion detection during review sessions
+- ✅ Records confusion pairs when user types similar wrong answers
+- ✅ Levenshtein distance algorithm (70% similarity threshold)
+- ✅ Fire-and-forget API calls (non-blocking, silent failures)
+- ✅ PostgreSQL database integration for confusion tracking
+- ✅ Dashboard insights now show top confusion pairs
+- ✅ Comparative review sessions to resolve confusion
+
+### Files Changed
+- Created: `app/api/confusion/record/route.ts` (+146 lines)
+- Modified: `components/features/review-session-varied.tsx` (+50 lines)
+- Modified: `components/features/review-session-enhanced.tsx` (+50 lines)
+
+### Documentation
+- **Deployment Guide:** [docs/deployments/2026-02/DEPLOYMENT_2026_02_16_AUTOMATIC_CONFUSION_RECORDING.md](./docs/deployments/2026-02/DEPLOYMENT_2026_02_16_AUTOMATIC_CONFUSION_RECORDING.md)
+- **Integration Guide:** [docs/bug-fixes/2026-02/BUG_FIX_2026_02_14_INTERFERENCE_DETECTION_INTEGRATION.md](./docs/bug-fixes/2026-02/BUG_FIX_2026_02_14_INTERFERENCE_DETECTION_INTEGRATION.md)
 
 ---
 
@@ -128,6 +155,10 @@ Connection: SSL Required
 - ✅ Word relationships
 - ✅ Notifications
 - ✅ Streak tracking
+- ✅ Interference Detection System (Phase 18.2.1)
+- ✅ Automatic confusion recording (Feb 16, 2026)
+- ✅ Comparative review sessions
+- ✅ Dashboard learning insights
 
 ---
 
