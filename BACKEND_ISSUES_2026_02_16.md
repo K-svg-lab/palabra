@@ -1,7 +1,7 @@
 # Backend Issues - Investigation & Resolution Plan
 
 **Date Created:** February 16, 2026  
-**Status:** 🟡 In Progress (1/5 Complete)  
+**Status:** 🟢 Good Progress (2 Fixed, 3 Pending)  
 **Priority:** High (Data Integrity Issues)  
 **Affected Version:** Phase 18.3.6 (Production)
 
@@ -17,8 +17,8 @@ Five critical backend issues identified affecting data integrity, user experienc
 **Pending:** 4
 
 **Issue Status:**
-- ✅ Issue #1: Vocabulary Cap (FIXED)
-- ⏳ Issue #2: Status Not Updating (PENDING)
+- ✅ Issue #1: Vocabulary Cap (FIXED & DEPLOYED - Feb 16)
+- ✅ Issue #2: Review Sync (FIXED - Feb 16, Ready for Deployment)
 - ⏳ Issue #3: Multi-Method Scheduling (PENDING)
 - ⏳ Issue #4: Double Save (PENDING)
 - ⏳ Issue #5: Streak Mismatch (PENDING)
@@ -110,67 +110,154 @@ lib/backend/prisma/schema.prisma           - Check for constraints
 
 ### Issue #2: Vocabulary Status Not Updating from "New"
 
-**Priority:** 🔴 Critical  
-**Risk Level:** Learning Effectiveness  
-**Estimated Fix Time:** 6-8 hours
+**Priority:** 🟡 High  
+**Risk Level:** User Experience + Data Integrity  
+**Estimated Fix Time:** 5-7 hours  
+**Status:** 🔍 DIAGNOSED (Feb 16, 2026)
+
+**📋 Full Diagnosis:** `docs/bug-fixes/2026-02/ISSUE_2_DIAGNOSIS_STATUS_NOT_UPDATING.md`
 
 #### Problem Description
-Old vocabulary entries remain stuck in "new" status indefinitely despite repeated correct answers marked as "good/excellent". Words don't progress through the learning stages (new → learning → mastered) and don't appear in reviews with expected frequency according to SM-2 algorithm.
+Old vocabulary entries like "modales", "botella", "ortografía" that the user knows very well **never appear in review sessions**. User marks them as "good" or "excellent" when they do appear, but they remain stuck in "new" status and don't show up again for review.
 
-#### Specific Examples
-- "modales" - marked as good/excellent multiple times, still shows "new"
-- "botella" - marked as good/excellent multiple times, still shows "new"  
-- "ortografía" - marked as good/excellent multiple times, still shows "new"
+**User Clarification:** *"The words botella and modales **never appear**."*
+
+#### Investigation Results
+
+**Database Analysis** (Feb 16, 2026):
+
+| Word | Reps | Last Review | Next Review | Days Until Due | Status |
+|------|------|------------|-------------|----------------|--------|
+| modales | 2 | Feb 13 | **Feb 19** | +3 days (FUTURE) | new |
+| botella | 2 | Feb 13 | **Feb 19** | +3 days (FUTURE) | new |
+| ortografía | 2 | Feb 12 | **Feb 18** | +2 days (FUTURE) | new |
+
+**Key Findings:**
+- ✅ Words ARE scheduled correctly per SM-2 algorithm
+- ✅ Status calculation logic is working (new = < 3 reviews)
+- ❌ Words won't appear until future review date (Feb 18-19)
+- 🔴 **CRITICAL:** Review records missing from PostgreSQL (count = 0, expected = 2 per word)
+
+#### Root Causes Identified
+
+**1. User Expectation vs. SM-2 Algorithm Design (PRIMARY)**
+
+*The Learning Paradox:*
+- User knows word well → marks as "good/excellent"
+- SM-2 algorithm: Good performance = longer intervals (1 day → 6 days → 15 days)
+- Problem: Can't reach 3rd review (needed to exit "new" status) because next review is days away
+- User can't force-review known words to progress status
+
+*SM-2 Scheduling Logic:*
+```
+Review 1: Correct → Interval = 1 day
+Review 2: Correct → Interval = 6 days  ← Current state
+Review 3: Correct → Interval = 15 days (if user could review)
+```
+
+*Status Thresholds:*
+```
+new:      < 3 total reviews      ← Problem words stuck here
+learning: 3-4 reviews OR < 80% accuracy
+mastered: 5+ consecutive reviews AND ≥ 80% accuracy
+```
+
+**2. Review Records Not Syncing to PostgreSQL (CRITICAL DATA INTEGRITY BUG)**
+
+*Evidence:*
+- VocabularyItem.repetitions = 2 (PostgreSQL) ✅
+- Review table count = 0 (PostgreSQL) ❌
+- Reviews saved to IndexedDB (browser) ✅
+- Reviews NOT synced to cloud ❌
+
+*Impact:*
+- Risk of data loss if IndexedDB cleared
+- Retention analytics broken (no Review records)
+- Method-specific performance tracking impossible
+- No backup of review history
 
 #### Symptoms
-- Words remain in "new" status despite multiple correct reviews
-- User consistently marks them as "good" or "excellent"
-- Review frequency doesn't follow spaced repetition algorithm
-- Status progression broken: stuck at "new", never reaches "learning" or "mastered"
+- ❌ Words **never appear** in review sessions (scheduled for future)
+- ✅ Words remain in "new" status (correct behavior: < 3 reviews)
+- ✅ High accuracy when reviewed (user marks good/excellent)
+- ✅ SM-2 algorithm working correctly
+- 🔴 Review records missing from PostgreSQL
 
 #### Impact
-- **Learning Effectiveness:** SM-2 algorithm not working as designed
-- **User Frustration:** Seeing same "new" words repeatedly
-- **Progress Tracking:** Inaccurate mastery statistics
-- **Review Distribution:** Words not graduating to longer intervals
+- **User Frustration:** Can't "graduate" known words out of "new" status
+- **Learning Paradox:** Good performance paradoxically slows status progression
+- **Data Integrity:** Review records not backed up to cloud
+- **Analytics Broken:** No retention tracking, method performance, or review history
+- **Risk of Data Loss:** Reviews only in browser storage
 
-#### Suspected Root Causes
-1. **Review Record Not Created:** Initial review record creation failing
-2. **Status Update Logic Broken:** Update query not executing
-3. **Database Write Failure:** Silent error during save (no error handling)
-4. **Sync Conflict:** Cloud sync overwriting local status changes
-5. **Race Condition:** Multiple updates conflicting
-6. **Missing Field Mapping:** Status field not mapped in Prisma/IndexedDB
-7. **SM-2 Logic Error:** calculateNextStatus() not being called
+#### Proposed Solutions
 
-#### Components to Investigate
-```
-lib/db/reviews.ts                          - Review record CRUD operations
-lib/utils/spaced-repetition.ts            - SM-2 algorithm, status calculation
-lib/services/sync.ts                       - Sync conflict resolution
-components/features/review-session-varied.tsx - Answer submission handler
-app/(dashboard)/review/page.tsx            - Session completion handler
-app/api/sync/reviews/route.ts              - Review sync endpoint
-lib/types/review.ts                        - Review interfaces
-```
+**Solution 1: Add "Practice Mode" for Known Words (RECOMMENDED)**
+- Allow users to force-review words regardless of scheduling
+- Filter option: "Practice Known Words" (status="new" + repetitions ≥ 1)
+- Complete reviews progress status without modifying nextReviewDate
+- **Time:** 3-4 hours
+- **Impact:** Addresses user frustration while preserving SM-2 effectiveness
+
+**Solution 2: Fix Review Sync to PostgreSQL (CRITICAL)**
+- Queue Review records for cloud sync after creation/update  
+- Update sync service to handle Review table syncing properly
+- Use existing `/api/sync/reviews` endpoint
+- **Time:** 2-3 hours
+- **Impact:** Fixes data integrity, enables analytics, prevents data loss
+
+**Solution 3: Adjust Status Thresholds (OPTIONAL)**
+- Lower "learning" threshold: 2 reviews (if accuracy ≥ 90%) instead of always 3
+- Fast-track high performers
+- **Time:** 1 hour
+- **Impact:** Minor UX improvement
+
+**Recommended:** Implement Solutions 1 + 2 (5-7 hours total)
 
 #### Investigation Steps
-1. [ ] Add logging to review submission flow
-2. [ ] Check if review records are created in database
-3. [ ] Verify status update queries execute successfully
-4. [ ] Test SM-2 algorithm status calculation logic
-5. [ ] Check sync conflict resolution (last-write-wins)
-6. [ ] Examine database schema for status field
-7. [ ] Test with specific words: "modales", "botella", "ortografía"
-8. [ ] Check for try-catch blocks swallowing errors
+- [x] Trace review completion flow ✅
+- [x] Check determineVocabularyStatus() is called ✅
+- [x] Verify updateVocabularyWord() saves status ✅
+- [x] Check review records in IndexedDB ✅
+- [x] Examine SM-2 algorithm ✅
+- [x] Check PostgreSQL Review table sync ❌ **BUG FOUND**
+- [x] Check scheduling logic ✅
+- [x] Identify user expectation mismatch ✅
+
+#### ✅ RESOLUTION (February 16, 2026)
+
+**Status:** FIXED - Ready for Deployment
+
+**Root Cause**: Sync endpoint only updated VocabularyItem fields, never created Review records in PostgreSQL
+
+**Fix Applied:**
+- Enhanced `app/api/sync/reviews/route.ts` to create Review records
+- Handles individual review attempts with full context (method, rating, time, direction)
+- Maintains backward compatibility with aggregated ReviewRecords
+- Fixed type safety issues
+- Added comprehensive logging
+
+**Verification:**
+- ✅ No lint errors
+- ✅ No type errors
+- ✅ Test script created: `scripts/test-review-sync-fix.ts`
+- ✅ Issue confirmed: 1,071 words reviewed, 0 Review records
+- ⏳ Pending: Manual testing on live site after deployment
+
+**Practice Mode Note:**
+Practice Mode already exists (⚡ toggle in review settings). Users can enable it to review any words, not just due cards. No additional implementation needed.
 
 #### Acceptance Criteria
-- [ ] Words progress: new → learning → mastered
-- [ ] Status updates immediately after review
-- [ ] SM-2 intervals increase correctly
-- [ ] Sync preserves status updates
-- [ ] Error logging for failed updates
-- [ ] Test words show correct status after review
+- [x] Diagnosis complete ✅
+- [x] Users can force-review known words (Practice Mode exists) ✅
+- [x] Sync endpoint creates Review records ✅
+- [x] Code changes complete ✅
+- [x] Type safety maintained ✅
+- [x] No lint errors ✅
+- [x] Documentation complete ✅
+- [ ] Deployed to production (pending)
+- [ ] Manual verification on live site (pending)
+- [ ] Data integrity restored (pending verification)
 
 ---
 
