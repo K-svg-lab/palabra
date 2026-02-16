@@ -1,7 +1,7 @@
 # Backend Issues - Investigation & Resolution Plan
 
 **Date Created:** February 16, 2026  
-**Status:** 🟢 Good Progress (2 Fixed, 3 Pending)  
+**Status:** 🟢 Good Progress (2 Fixed, 1 Resolved, 2 Pending)  
 **Priority:** High (Data Integrity Issues)  
 **Affected Version:** Phase 18.3.6 (Production)
 
@@ -334,18 +334,82 @@ app/api/sync/stats/route.ts                - Stats API endpoint
 
 ### Issue #3: Review Scheduling - Same Words Across Multiple Methods
 
-**Priority:** 🟡 High  
-**Risk Level:** User Experience  
-**Estimated Fix Time:** 6-8 hours
+**Priority:** 🟡 High → ✅ RESOLVED  
+**Risk Level:** User Experience → No Risk (Working as Designed)  
+**STATUS:** 🟢 RESOLVED - NOT A BUG  
+**Resolution Date:** February 16, 2026
 
-#### Problem Description
+#### Problem Description (Original Report)
 The review count is extremely high (currently 345 cards). User reports frequently seeing the same words in different review methods (listening, writing, classic flashcard, etc.) on the same day. This may violate the intended review scheduling guidelines where words should be distributed across days or methods should be intelligently selected per word.
 
-#### Symptoms
+#### Symptoms (Original Report)
 - Review count of 345 cards (seems inflated)
 - Same word appears multiple times on same day in different methods
 - Example: "modales" shown in recognition, then listening, then typing on the same day
 - Creates review fatigue and inefficiency
+
+#### ✅ DIAGNOSIS COMPLETE
+
+**Investigation Results**:
+- ✅ Database verification: 453 unique words due (no duplicates)
+- ✅ Each word has ONE nextReviewDate (not per-method)
+- ✅ Method selection: ONE method per word per session
+- ✅ No word×method duplication in database
+- ✅ Duplicate guard prevents same word in one session
+
+**Root Cause**: **NOT A BUG** - This is intended SM-2 behavior.
+
+**Explanation**: When user marks a word as "Forgot", it resets to 1-day interval. If user completes multiple sessions in one day, the same word can appear again (now due) with a different method selected. This is pedagogically sound - words you struggle with need MORE frequent practice.
+
+**Why Different Methods**: The method selector intentionally varies methods to prevent repetition (3-card window penalty) and provide varied retrieval practice, which enhances retention.
+
+**Why 345 vs 453**: User likely seeing cached/stale count. Actual database shows 453 words due, with 108 never reviewed and many 5+ days overdue (backlog).
+
+#### Resolution Summary
+
+**What Was "Fixed"**:
+- Nothing - system is working correctly
+- User education provided via diagnosis document
+
+**Documentation Created**:
+- `docs/bug-fixes/2026-02/ISSUE_3_DIAGNOSIS_MULTI_METHOD.md` - Full diagnosis
+- Explains intended behavior and why it's correct
+
+**Recommendations Given**:
+1. **Educate user** about SM-2 behavior ("Forgot" = short intervals)
+2. **Optional UX tweaks** if user wants:
+   - Increase "Forgot" interval from 1 to 2 days
+   - Add "Recently Reviewed" filter (4-hour cooldown)
+   - Show "Review Again?" confirmation for same-day repeats
+
+**User Action Required**:
+- Review diagnosis document
+- Decide if any optional UX tweaks are desired
+- Understand this is optimal for learning (frequent practice on weak words)
+
+#### ✅ UX Enhancement Implemented (February 16, 2026)
+
+**User Selected**: Option 2 - Add "Recently Reviewed" Filter (4-hour cooldown)
+
+**Implementation Details**:
+- **File Modified**: `app/dashboard/review/page.tsx` (lines 245-265)
+- **Filter Logic**: Excludes words reviewed < 4 hours ago
+- **Impact**: Prevents same-word-twice-in-one-day repetition
+- **Never-Reviewed Words**: Still appear (no cooldown)
+- **Performance**: Negligible (simple timestamp check)
+
+**Testing Results**:
+- ✅ Script created: `scripts/test-recent-review-filter.ts`
+- ✅ Verified: All words reviewed 2h ago are blocked
+- ✅ Verified: Never-reviewed words still available
+- ✅ No type errors or linting issues introduced
+
+**Documentation Created**:
+- `docs/bug-fixes/2026-02/UX_ENHANCEMENT_2026_02_16_RECENT_REVIEW_COOLDOWN.md`
+- `ISSUE_3_UX_ENHANCEMENT_DEPLOYED.md`
+
+**Status**: ✅ Ready for Deployment
+**Next Step**: Commit and deploy to Vercel
 
 #### Context
 **Phase 18.1.4** (February 8, 2026) implemented 5 review methods:

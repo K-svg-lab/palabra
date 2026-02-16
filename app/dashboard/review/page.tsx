@@ -243,6 +243,32 @@ export default function ReviewPage() {
         });
       }
 
+      // Phase 18: Issue #3 UX Enhancement - Recently Reviewed Filter
+      // Prevent words reviewed in the last 4 hours from appearing again
+      // This reduces same-day repetition frustration while maintaining optimal spacing
+      const RECENT_REVIEW_COOLDOWN = 4 * 60 * 60 * 1000; // 4 hours in milliseconds
+      const now = Date.now();
+      
+      wordsToReview = wordsToReview.filter(word => {
+        const review = reviewMap.get(word.id);
+        
+        // Include words that have never been reviewed
+        if (!review || !review.lastReviewDate) return true;
+        
+        // Check if word was reviewed recently
+        const timeSinceReview = now - review.lastReviewDate;
+        
+        // Include word if it's been more than 4 hours since last review
+        const includeWord = timeSinceReview >= RECENT_REVIEW_COOLDOWN;
+        
+        if (!includeWord) {
+          const hoursLeft = Math.ceil((RECENT_REVIEW_COOLDOWN - timeSinceReview) / (60 * 60 * 1000));
+          console.log(`⏰ [Recently Reviewed Filter] Excluding "${word.spanishWord}" - reviewed ${Math.round(timeSinceReview / (60 * 60 * 1000) * 10) / 10}h ago (${hoursLeft}h cooldown remaining)`);
+        }
+        
+        return includeWord;
+      });
+
       if (wordsToReview.length > 0) {
         // Apply interleaving for optimal learning (Phase 18.1.5)
         // Intelligently mixes words by part of speech, age, and difficulty
