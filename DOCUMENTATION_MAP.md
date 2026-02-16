@@ -109,20 +109,36 @@
 │  │  PHASE17_COMPLETE.md      →  Redesign summary     │          │
 │  │  PHASE17_PLAN.md          →  Redesign spec        │          │
 │  └───────────────────────────────────────────────────┘          │
+│                                                                   │
+│  ┌───────────────────────────────────────────────────┐          │
+│  │  PHASE 18: AI Learning & Scalability              │          │
+│  ├───────────────────────────────────────────────────┤          │
+│  │  PHASE18_ROADMAP.md       → ⭐ Progress tracker   │          │
+│  │  PHASE18.1.7_IMPLEMENTATION.md → Pre-gen strategy │          │
+│  └───────────────────────────────────────────────────┘          │
 └─────────────────────────────────────────────────────────────────┘
                               ↓
 ┌─────────────────────────────────────────────────────────────────┐
 │                   ORGANIZED DOCUMENTATION                         │
 │                                                                   │
 │  docs/                                                           │
+│  ├── VALIDATED_WORD_EXPANSION_WORKFLOW.md → ⭐ Add vocabulary │
+│  ├── WORD_EXPANSION_QUICK_REF.md → Quick command reference    │
+│  ├── AI_EXAMPLE_GENERATION_GUIDE.md → 🆕 Batch AI generation  │
 │  ├── guides/                                                     │
+│  │   ├── ai-generation/                                         │
+│  │   │   └── QUICK_START.md → 🆕 AI generation commands       │
 │  │   ├── setup/        →  Setup guides (Vercel, APIs, etc)     │
 │  │   ├── testing/      →  Testing guides (SM2, notifications)   │
 │  │   ├── logo/         →  Logo integration docs                 │
 │  │   └── troubleshooting/ →  Debug & troubleshooting           │
+│  ├── sessions/                                                   │
+│  │   └── 2026-02/      → 🆕 Session summaries (Feb 2026)       │
 │  ├── deployments/                                               │
 │  │   ├── 2026-01/      →  January deployments                   │
-│  │   └── 2026-02/      →  February deployments                  │
+│  │   └── 2026-02/      →  February 2026 deployments             │
+│  │       ├── DEPLOYMENT_2026_02_15_AI_GENERATION_FIX.md        │
+│  │       └── DEPLOYMENT_2026_02_15_IOS_MODAL_FIX.md            │
 │  └── bug-fixes/                                                 │
 │      ├── 2026-01/      →  January bug fixes                     │
 │      └── 2026-02/      →  February bug fixes                    │
@@ -309,13 +325,14 @@ BACKEND_EVOLUTION.md (History)
 ## 📊 Documentation Statistics
 
 ```
-Total Documents:     34
+Total Documents:     37
 Backend Docs (New):   4  (~3,600 lines)
-Phase Docs:          24  (~15,000 lines)
+Phase Docs:          25  (~16,500 lines)
+Workflow Docs:        2  (~600 lines)
 Deployment Docs:      3  (~2,000 lines)
 Product Docs:         3  (~800 lines)
 ───────────────────────────────────────
-Total Lines:         ~21,400 lines
+Total Lines:         ~23,500 lines
 ```
 
 ---
@@ -346,6 +363,10 @@ Total Lines:         ~21,400 lines
 | Authentication | BACKEND_INFRASTRUCTURE.md § Authentication System |
 | Sync logic | BACKEND_INFRASTRUCTURE.md § Synchronization Service |
 | Environment vars | BACKEND_INFRASTRUCTURE.md § Environment Configuration |
+| **Adding vocabulary** | **docs/VALIDATED_WORD_EXPANSION_WORKFLOW.md** ⭐ |
+| **Word expansion commands** | **docs/WORD_EXPANSION_QUICK_REF.md** |
+| **AI example generation** | **docs/AI_EXAMPLE_GENERATION_GUIDE.md** 🆕 |
+| **AI generation quick start** | **docs/guides/ai-generation/QUICK_START.md** 🆕 |
 | Deployment | PHASE12_DEPLOYMENT.md |
 | Quick commands | BACKEND_QUICK_REFERENCE.md |
 | Feature roadmap | README_PRD.txt |
@@ -388,10 +409,11 @@ Level 5: Specialized Guides
 ## 💡 Pro Tips
 
 ### Daily Development
-Keep these 3 docs handy:
+Keep these 4 docs handy:
 1. **BACKEND_QUICK_REFERENCE.md** - Commands and patterns
 2. **BACKEND_INFRASTRUCTURE.md** - Detailed reference
-3. **DOCUMENTATION_INDEX.md** - Find other docs
+3. **WORD_EXPANSION_QUICK_REF.md** - Add vocabulary commands
+4. **DOCUMENTATION_INDEX.md** - Find other docs
 
 ### Onboarding New Team Members
 Give them this reading order:
@@ -443,8 +465,8 @@ Use this checklist monthly:
 
 ---
 
-**Last Updated:** January 13, 2026  
-**Visual Map Version:** 1.0
+**Last Updated:** February 13, 2026  
+**Visual Map Version:** 1.1
 
 *Keep this document handy for quick navigation!* 🗺️
 

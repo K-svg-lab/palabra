@@ -2,8 +2,8 @@
 
 **Complete Documentation Navigator**
 
-**Last Updated:** February 16, 2026  
-**Project Status:** Phase 18 In Progress - All 5 Backend Issues Resolved (Feb 16, 2026)
+**Last Updated:** February 15, 2026  
+**Project Status:** Phase 18 In Progress - AI Generation & UX Fixes Deployed (Feb 15, 2026)
 
 ---
 
@@ -138,8 +138,10 @@ Spanish_Vocab/
 
 | Document | Purpose | When to Use |
 |----------|---------|-------------|
+| **[docs/deployments/2026-02/DEPLOYMENT_2026_02_15_AI_GENERATION_FIX.md](./docs/deployments/2026-02/DEPLOYMENT_2026_02_15_AI_GENERATION_FIX.md)** | 🆕 **AI example generation fixed for premium users + UX improvements** | Premium AI examples, manual entry, modal UI fixes (Feb 15, 2026) |
+| **[docs/deployments/2026-02/DEPLOYMENT_2026_02_15_IOS_MODAL_FIX.md](./docs/deployments/2026-02/DEPLOYMENT_2026_02_15_IOS_MODAL_FIX.md)** | **iOS Safari PWA modal overflow fixed** | iOS bottom sheets, install prompt, safe areas (Feb 15, 2026) |
 | **[docs/bug-fixes/2026-02/BUG_FIX_2026_02_14_INTERFERENCE_DETECTION_INTEGRATION.md](./docs/bug-fixes/2026-02/BUG_FIX_2026_02_14_INTERFERENCE_DETECTION_INTEGRATION.md)** | **Interference Detection missing integration fixed** | Understanding how Phase 18.2.1 was integrated (Feb 14, 2026) |
-| **[docs/deployments/2026-02/DEPLOYMENT_2026_02_16_AUTOMATIC_CONFUSION_RECORDING.md](./docs/deployments/2026-02/DEPLOYMENT_2026_02_16_AUTOMATIC_CONFUSION_RECORDING.md)** | 🆕 **Automatic confusion recording during reviews** | Interference Detection System completion (Feb 16, 2026) |
+| **[docs/deployments/2026-02/DEPLOYMENT_2026_02_16_AUTOMATIC_CONFUSION_RECORDING.md](./docs/deployments/2026-02/DEPLOYMENT_2026_02_16_AUTOMATIC_CONFUSION_RECORDING.md)** | **Automatic confusion recording during reviews** | Interference Detection System completion (Feb 16, 2026) |
 
 ### 📋 Product & Planning
 
