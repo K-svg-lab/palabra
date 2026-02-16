@@ -49,6 +49,52 @@ export function ReviewSessionEnhanced({
     window.scrollTo({ top: 0, behavior: 'instant' });
   }, []);
   
+  /**
+   * Record confusion between words (async, fire-and-forget)
+   * 
+   * Phase 18.2.1: Automatically detect and record when user confuses similar words
+   * This enables the Interference Detection System to provide comparative reviews
+   */
+  const recordConfusionAsync = async (
+    correctWordId: string,
+    userAnswer: string,
+    direction: ReviewDirection
+  ) => {
+    try {
+      console.log('[Confusion] Recording potential confusion:', {
+        correctWordId,
+        userAnswer,
+        direction
+      });
+
+      const response = await fetch('/api/confusion/record', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          correctWordId,
+          userAnswer,
+          direction
+        })
+      });
+
+      if (!response.ok) {
+        console.warn('[Confusion] Failed to record:', response.status);
+        return;
+      }
+
+      const data = await response.json();
+      
+      if (data.confusionRecorded) {
+        console.log('[Confusion] ✅ Recorded with similarity:', (data.similarity * 100).toFixed(1) + '%');
+      } else {
+        console.log('[Confusion] ℹ️ Not recorded:', data.reason || 'No similar word');
+      }
+    } catch (error) {
+      // Fail silently - don't disrupt the review flow
+      console.warn('[Confusion] Error recording (non-critical):', error);
+    }
+  };
+  
   // Process words based on configuration
   const processedWords = useMemo(() => {
     let filtered = [...words];
@@ -124,6 +170,11 @@ export function ReviewSessionEnhanced({
     // Guard: Prevent duplicate results for the same word
     if (results.some(r => r.vocabularyId === currentWord.id)) {
       return;
+    }
+    
+    // Phase 18.2.1: Record confusion if answer was wrong
+    if (!isCorrect && userAnswer) {
+      recordConfusionAsync(currentWord.id, userAnswer, currentDirection);
     }
     
     const timeSpent = Date.now() - cardStartTime;

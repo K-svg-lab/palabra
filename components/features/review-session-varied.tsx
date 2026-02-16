@@ -211,6 +211,52 @@ export function ReviewSessionVaried({
   }, [showDeepLearningCard, deepLearningWord, deepLearningPrompt]);
 
   /**
+   * Record confusion between words (async, fire-and-forget)
+   * 
+   * Phase 18.2.1: Automatically detect and record when user confuses similar words
+   * This enables the Interference Detection System to provide comparative reviews
+   */
+  const recordConfusionAsync = async (
+    correctWordId: string,
+    userAnswer: string,
+    direction: 'spanish-to-english' | 'english-to-spanish'
+  ) => {
+    try {
+      console.log('[Confusion] Recording potential confusion:', {
+        correctWordId,
+        userAnswer,
+        direction
+      });
+
+      const response = await fetch('/api/confusion/record', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          correctWordId,
+          userAnswer,
+          direction
+        })
+      });
+
+      if (!response.ok) {
+        console.warn('[Confusion] Failed to record:', response.status);
+        return;
+      }
+
+      const data = await response.json();
+      
+      if (data.confusionRecorded) {
+        console.log('[Confusion] ✅ Recorded with similarity:', (data.similarity * 100).toFixed(1) + '%');
+      } else {
+        console.log('[Confusion] ℹ️ Not recorded:', data.reason || 'No similar word');
+      }
+    } catch (error) {
+      // Fail silently - don't disrupt the review flow
+      console.warn('[Confusion] Error recording (non-critical):', error);
+    }
+  };
+
+  /**
    * Handle method completion
    */
   const handleMethodComplete = (methodResult: ReviewMethodResult) => {
@@ -233,6 +279,11 @@ export function ReviewSessionVaried({
       currentIndex,
       totalWords: processedWords.length
     });
+
+    // Phase 18.2.1: Record confusion if answer was wrong and we have a typed answer
+    if (!methodResult.isCorrect && methodResult.userAnswer) {
+      recordConfusionAsync(currentWord.id, methodResult.userAnswer, currentDirection);
+    }
 
     // Update method history
     const newHistory: MethodHistory = {
