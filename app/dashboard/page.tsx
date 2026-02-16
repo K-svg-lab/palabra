@@ -163,7 +163,8 @@ export default function HomePage() {
 
       try {
         // Get recent stats for streak calculation
-        const recentStats = await getRecentStats(30);
+        // Phase 18: Issue #5 Fix - Query 90 days for consistency with progress page (was 30)
+        const recentStats = await getRecentStats(90);
         const streak = calculateCurrentStreak(recentStats);
         setCurrentStreak(streak);
 
@@ -198,7 +199,37 @@ export default function HomePage() {
           }
         }
 
-        // Generate insights with user proficiency data
+        // Phase 18.2.1: Fetch confusion insight from API if user is authenticated
+        let confusionInsight = undefined;
+        if (user?.id) {
+          try {
+            console.log('[Dashboard] Fetching confusion insight...');
+            const confusionResponse = await fetch('/api/user/confusion');
+            console.log('[Dashboard] Confusion API response status:', confusionResponse.status);
+            if (confusionResponse.ok) {
+              const confusionData = await confusionResponse.json();
+              console.log('[Dashboard] Confusion API data:', confusionData);
+              if (confusionData.confusion) {
+                confusionInsight = {
+                  word1: confusionData.confusion.word1,
+                  word2: confusionData.confusion.word2,
+                  word1Id: confusionData.confusion.word1Id,
+                  word2Id: confusionData.confusion.word2Id,
+                  occurrences: confusionData.confusion.occurrences,
+                };
+                console.log('[Dashboard] Confusion insight created:', confusionInsight);
+              } else {
+                console.log('[Dashboard] No confusion data in response');
+              }
+            } else {
+              console.log('[Dashboard] Confusion API response not OK');
+            }
+          } catch (error) {
+            console.error('[Dashboard] Confusion insight error:', error);
+          }
+        }
+
+        // Generate insights with user proficiency data and confusion patterns
         const learningStats: LearningStats = {
           cardsReviewedToday: todayStats.cardsReviewed,
           newWordsAddedToday: todayStats.newWordsAdded,
@@ -219,6 +250,8 @@ export default function HomePage() {
           languageLevel: user?.languageLevel,
           levelAssessedAt: user?.levelAssessedAt,
           proficiencyInsight,
+          // Phase 18.2.1: Add confusion insight
+          confusionInsight,
         };
 
         const generatedInsights = generateInsights(learningStats);

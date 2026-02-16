@@ -96,7 +96,7 @@ export default function ProgressPage() {
         const [
           reviews,
           todayStats,
-          last7DaysStats,
+          recentStatsForStreak, // Phase 18: Issue #5 Fix - Renamed from last7DaysStats (now 90 days)
           dueCount,
           totalCardsReviewed,
           totalStudyTime,
@@ -104,7 +104,7 @@ export default function ProgressPage() {
         ] = await Promise.all([
           getAllReviews(),
           getTodayStats(),
-          getRecentStats(7),
+          getRecentStats(90), // Phase 18: Issue #5 Fix - Query 90 days for accurate streak calculation (was 7)
           countDueReviews(),
           getTotalCardsReviewed(),
           getTotalStudyTime(),
@@ -118,7 +118,7 @@ export default function ProgressPage() {
         console.log('📊 Today\'s stats loaded (corrected):', todayStats);
         console.log('📊 Actual new words today:', actualNewWordsToday);
         console.log('📊 Total cards reviewed:', totalCardsReviewed);
-        console.log('📊 Recent stats:', last7DaysStats);
+        console.log('📊 Recent stats for streak:', recentStatsForStreak.length, 'days');
 
         // Calculate vocabulary status counts
         const statusCounts = calculateVocabularyStatusCounts(allWords, reviews);
@@ -128,8 +128,9 @@ export default function ProgressPage() {
         const todayAccuracy = todayStats.accuracyRate ? Math.round(todayStats.accuracyRate * 100) : 0;
 
         // Calculate streaks
-        const currentStreak = calculateCurrentStreak(last7DaysStats);
-        const longestStreak = calculateLongestStreak(last7DaysStats);
+        // Phase 18: Issue #5 Fix - Now using 90 days of data for accurate streak calculation
+        const currentStreak = calculateCurrentStreak(recentStatsForStreak);
+        const longestStreak = calculateLongestStreak(recentStatsForStreak);
 
         // Build progress stats
         const progressStats: ProgressStats = {
@@ -150,7 +151,9 @@ export default function ProgressPage() {
         };
 
         setStats(progressStats);
-        setRecentStats(last7DaysStats);
+        // Phase 18: Issue #5 Fix - Store last 7 days for charts (display), but streak uses 90 days
+        const last7DaysForChart = recentStatsForStreak.slice(0, 7);
+        setRecentStats(last7DaysForChart);
       } catch (error) {
         console.error('Failed to load progress data:', error);
       } finally {
