@@ -48,18 +48,16 @@ export function MasteryRing({
   const learningPercentage = totalWords > 0 ? (learningWords / totalWords) * 100 : 0;
   const masteredPercentage = totalWords > 0 ? (masteredWords / totalWords) * 100 : 0;
 
-  // Calculate dash offsets for stacked rings (cumulative)
-  const newDashOffset = animated
-    ? circumference * (1 - newPercentage / 100)
-    : circumference;
-  const learningStart = newPercentage;
-  const learningDashOffset = animated
-    ? circumference * (1 - (learningStart + learningPercentage) / 100)
-    : circumference;
-  const masteredStart = newPercentage + learningPercentage;
-  const masteredDashOffset = animated
-    ? circumference * (1 - (masteredStart + masteredPercentage) / 100)
-    : circumference;
+  // Each segment occupies its own arc slice.
+  // strokeDasharray: "segLen (C - segLen)" — period = C so segment positions are exact.
+  // strokeDashoffset: C - startArc — positions the dash at its correct clockwise start point.
+  const newArc = animated ? (newPercentage / 100) * circumference : 0;
+  const learningArc = animated ? (learningPercentage / 100) * circumference : 0;
+  const masteredArc = animated ? (masteredPercentage / 100) * circumference : 0;
+
+  const newStartArc = 0;
+  const learningStartArc = (newPercentage / 100) * circumference;
+  const masteredStartArc = ((newPercentage + learningPercentage) / 100) * circumference;
 
   return (
     <div className={`flex flex-col items-center ${className}`}>
@@ -117,8 +115,8 @@ export function MasteryRing({
             stroke="url(#gradient-new)"
             strokeWidth={config.stroke}
             fill="none"
-            strokeDasharray={circumference}
-            strokeDashoffset={newDashOffset}
+            strokeDasharray={`${newArc} ${circumference - newArc}`}
+            strokeDashoffset={circumference - newStartArc}
             strokeLinecap="round"
             className="transition-all duration-1000 ease-out"
           />
@@ -131,8 +129,8 @@ export function MasteryRing({
             stroke="url(#gradient-learning)"
             strokeWidth={config.stroke}
             fill="none"
-            strokeDasharray={circumference}
-            strokeDashoffset={learningDashOffset}
+            strokeDasharray={`${learningArc} ${circumference - learningArc}`}
+            strokeDashoffset={circumference - learningStartArc}
             strokeLinecap="round"
             className="transition-all duration-1000 ease-out"
           />
@@ -145,8 +143,8 @@ export function MasteryRing({
             stroke="url(#gradient-mastered)"
             strokeWidth={config.stroke}
             fill="none"
-            strokeDasharray={circumference}
-            strokeDashoffset={masteredDashOffset}
+            strokeDasharray={`${masteredArc} ${circumference - masteredArc}`}
+            strokeDashoffset={circumference - masteredStartArc}
             strokeLinecap="round"
             className="transition-all duration-1000 ease-out"
           />

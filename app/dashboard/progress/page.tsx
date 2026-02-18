@@ -10,10 +10,9 @@ import { RefreshCw } from 'lucide-react';
 import { useVocabulary } from '@/lib/hooks/use-vocabulary';
 import { usePullToRefresh } from '@/lib/hooks/use-pull-to-refresh';
 import { getAllReviews, countDueReviews } from '@/lib/db/reviews';
-import { getTodayStats, getRecentStats, getTotalCardsReviewed, getTotalStudyTime } from '@/lib/db/stats';
+import { getTodayStats, getRecentStats, getTotalCardsReviewed, getTotalStudyTime, getOverallAccuracy } from '@/lib/db/stats';
 import { 
   calculateVocabularyStatusCounts, 
-  calculateOverallAccuracy,
   calculateCurrentStreak,
   calculateLongestStreak,
   formatStudyTime,
@@ -101,6 +100,7 @@ export default function ProgressPage() {
           totalCardsReviewed,
           totalStudyTime,
           actualNewWordsToday,
+          overallAccuracyRate,
         ] = await Promise.all([
           getAllReviews(),
           getTodayStats(),
@@ -109,6 +109,7 @@ export default function ProgressPage() {
           getTotalCardsReviewed(),
           getTotalStudyTime(),
           getActualNewWordsAddedToday(),
+          getOverallAccuracy(), // Weighted average from DailyStats — avoids ReviewRecord data integrity issues
         ]);
         
         // CRITICAL FIX: Correct the newWordsAdded count
@@ -123,8 +124,9 @@ export default function ProgressPage() {
         // Calculate vocabulary status counts
         const statusCounts = calculateVocabularyStatusCounts(allWords, reviews);
 
-        // Calculate accuracy
-        const overallAccuracy = calculateOverallAccuracy(reviews);
+        // Calculate accuracy — use DailyStats weighted average (getOverallAccuracy) rather than
+        // ReviewRecord.correctCount/totalReviews, which has a known data integrity issue returning 100%.
+        const overallAccuracy = Math.round(overallAccuracyRate * 100);
         const todayAccuracy = todayStats.accuracyRate ? Math.round(todayStats.accuracyRate * 100) : 0;
 
         // Calculate streaks
@@ -151,9 +153,9 @@ export default function ProgressPage() {
         };
 
         setStats(progressStats);
-        // Phase 18: Issue #5 Fix - Store last 7 days for charts (display), but streak uses 90 days
-        const last7DaysForChart = recentStatsForStreak.slice(0, 7);
-        setRecentStats(last7DaysForChart);
+        // Pass the full 90 days to recentStats so chart functions can look up the correct dates.
+        // prepareReviewsChartData / prepareAccuracyChartData build their own date ranges internally.
+        setRecentStats(recentStatsForStreak);
       } catch (error) {
         console.error('Failed to load progress data:', error);
       } finally {
